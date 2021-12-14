@@ -28,14 +28,14 @@ class RegisterFile extends Module {
   val registers = RegInit(VecInit(Seq.fill(32)(0.U(32.W))))
 
   when(!reset.asBool()) {
-    when(io.write_enable && io.write_address  =/= 0.U) {
+    when(io.write_enable && io.write_address =/= 0.U) {
       registers(io.write_address) := io.write_data
     }
   }
 
   when(io.read_address1 === 0.U) {
     io.read_data1 := 0.U
-  }.elsewhen (io.read_address1 === io.write_address && io.write_enable) {
+  }.elsewhen(io.read_address1 === io.write_address && io.write_enable) {
     io.read_data1 := io.write_data
   }.otherwise {
     io.read_data1 := registers(io.read_address1)
@@ -43,7 +43,7 @@ class RegisterFile extends Module {
 
   when(io.read_address2 === 0.U) {
     io.read_data2 := 0.U
-  }.elsewhen (io.read_address2 === io.write_address && io.write_enable) {
+  }.elsewhen(io.read_address2 === io.write_address && io.write_enable) {
     io.read_data2 := io.write_data
   }.otherwise {
     io.read_data2 := registers(io.read_address1)
