@@ -5,7 +5,11 @@ import chisel3.util._
 
 class CPU extends Module {
   val io = IO(new Bundle{
+    val instruction = Input(UInt(32.W))
+    val instruction_address = Output(UInt(32.W))
 
+    val debug_read_address = Input(UInt(32.W))
+    val debug_read_data = Output(UInt(32.W))
   })
 
   val pc = Module(new ProgramCounter)
@@ -30,9 +34,14 @@ class CPU extends Module {
   regs.io.read_address1 := id.io.regs_reg1_read_address
   regs.io.read_address2 := id.io.regs_reg2_read_address
 
+  regs.io.debug_read_address := io.debug_read_address
+  io.debug_read_data := regs.io.debug_read_data
+
   // TODO(howard): implement if
-  if2id.io.instruction := 0.U
-  if2id.io.instruction_address := 0.U
+  if2id.io.instruction := io.instruction
+  if2id.io.instruction_address := pc.io.pc
+  if2id.io.hold_flag := ctrl.io.output_hold_flag
+  io.instruction_address := pc.io.pc
 
   id.io.reg1 := regs.io.read_data1
   id.io.reg2 := regs.io.read_data2
@@ -62,4 +71,5 @@ class CPU extends Module {
   ex.io.reg2 := id2ex.io.output_reg2
   ex.io.write_enable := id2ex.io.output_write_enable
   ex.io.write_address := id2ex.io.output_write_address
+  ex.io.data := 0.U
 }

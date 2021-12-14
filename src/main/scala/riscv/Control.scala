@@ -22,7 +22,7 @@ class Control extends Module {
   })
 
   io.pc_jump_flag := io.jump_flag
-  io.pc_jump_address := io.pc_jump_address
+  io.pc_jump_address := io.jump_address
 
   io.output_hold_flag := HoldStates.None.id.U
 

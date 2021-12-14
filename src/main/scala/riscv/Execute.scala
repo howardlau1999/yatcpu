@@ -37,27 +37,22 @@ class Execute extends Module {
   val funct7 = io.instruction(31, 25)
   val rd = io.instruction(11, 7)
   val uimm = io.instruction(19, 15)
-  val signed_op1 = SInt(32.W)
-  val signed_op2 = SInt(32.W)
 
-  io.regs_write_enable := io.write_enable
-  io.regs_write_address := io.write_address
+  val signed_op1 = io.op1.asSInt()
+  val signed_op2 = io.op2.asSInt()
 
-  val mem_read_address_index = UInt(32.W)
-  val mem_write_address_index = UInt(32.W)
-
-  mem_read_address_index := (io.reg1 + Cat(Fill(20, io.instruction(31)), io.instruction(31, 20))) & 0x3.U
-  mem_write_address_index := (io.reg1 + Cat(Fill(20, io.instruction(31)), io.instruction(31, 25), io.instruction(11, 7))) & 0x3.U
+  val mem_read_address_index = ((io.reg1 + Cat(Fill(20, io.instruction(31)), io.instruction(31, 20))) & 0x3.U).asUInt()
+  val mem_write_address_index = ((io.reg1 + Cat(Fill(20, io.instruction(31)), io.instruction(31, 25), io.instruction(11, 7))) & 0x3.U).asUInt()
 
   def disable_memory() = {
     disable_memory_write()
-    io.mem_write_address := 0.U
     io.mem_read_address := 0.U
   }
 
   def disable_memory_write() = {
     io.mem_write_enable := false.B
     io.mem_write_data := 0.U
+    io.mem_write_address := 0.U
   }
 
   def disable_control() = {
@@ -74,8 +69,9 @@ class Execute extends Module {
     io.ctrl_jump_flag := false.B
   }
 
-  signed_op1 := io.op1
-  signed_op2 := io.op2
+  io.regs_write_enable := io.write_enable
+  io.regs_write_address := io.write_address
+  io.regs_write_data := 0.U
 
   when(opcode === InstructionTypes.I.id.U) {
     disable_control()
@@ -213,6 +209,8 @@ class Execute extends Module {
       }
     }.elsewhen(funct3 === InstructionsTypeS.sw.id.U) {
       io.mem_write_data := io.reg2
+    }.otherwise {
+      disable_memory()
     }
   }.elsewhen(opcode === InstructionTypes.B.id.U) {
     disable_control()

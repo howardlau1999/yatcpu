@@ -24,6 +24,9 @@ class RegisterFile extends Module {
     val read_address2 = Input(UInt(32.W))
     val read_data1 = Output(UInt(32.W))
     val read_data2 = Output(UInt(32.W))
+
+    val debug_read_address = Input(UInt(32.W))
+    val debug_read_data = Output(UInt(32.W))
   })
   val registers = RegInit(VecInit(Seq.fill(32)(0.U(32.W))))
 
@@ -46,6 +49,14 @@ class RegisterFile extends Module {
   }.elsewhen(io.read_address2 === io.write_address && io.write_enable) {
     io.read_data2 := io.write_data
   }.otherwise {
-    io.read_data2 := registers(io.read_address1)
+    io.read_data2 := registers(io.read_address2)
+  }
+
+  when(io.debug_read_address === 0.U) {
+    io.debug_read_data := 0.U
+  }.elsewhen(io.debug_read_address === io.write_address && io.write_enable) {
+    io.debug_read_data := io.write_data
+  }.otherwise {
+    io.debug_read_data := registers(io.debug_read_address)
   }
 }
