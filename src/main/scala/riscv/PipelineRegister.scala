@@ -10,6 +10,10 @@ class PipelineRegister(width: Int = 32) extends Module {
   })
 
   val reg = RegInit(UInt(width.W), 0.U)
-  reg := io.in
+  when (io.hold_enable) {
+    reg := 0.U
+  }.otherwise{
+    reg := io.in
+  }
   io.out := reg
 }
