@@ -15,7 +15,9 @@ object Instructions extends Enumeration {
   //          0b0110111
   val lui = Value(0x37)
   //          0b0000001
-  val nop = Value(0x1)
+  val nop = Value(0x01)
+  //          0b1101111
+  val jal = Value(0x6f)
 }
 
 object InstructionsTypeI extends Enumeration {
@@ -72,6 +74,10 @@ class InstructionDecode extends Module {
   io.ex_instruction_address := io.instruction_address
   io.ex_reg1 := io.reg1
   io.ex_reg2 := io.reg2
+  io.ex_op1 := 0.U
+  io.ex_op2 := 0.U
+  io.ex_op1_jump := 0.U
+  io.ex_op2_jump := 0.U
 
   when(opcode === InstructionTypes.I.id.U) {
     io.ex_reg_write_enable := true.B
@@ -80,6 +86,15 @@ class InstructionDecode extends Module {
     io.regs_reg2_read_address := 0.U
     io.ex_op1 := io.reg1
     io.ex_op2 := Cat(Fill(20, io.instruction(31)), io.instruction(31, 20))
+  }.elsewhen(opcode === Instructions.jal.id.U) {
+    io.ex_reg_write_enable := true.B
+    io.ex_reg_write_address := rd
+    io.regs_reg1_read_address := 0.U
+    io.regs_reg2_read_address := 0.U
+    io.ex_op1 := io.instruction_address
+    io.ex_op2 := 4.U
+    io.ex_op1_jump := io.instruction_address
+    io.ex_op2_jump := Cat(Fill(12, io.instruction(31)), io.instruction(19, 12), io.instruction(20), io.instruction(30, 21), 0.U(1.W))
   }.elsewhen(opcode === Instructions.lui.id.U) {
     io.ex_reg_write_enable := true.B
     io.ex_reg_write_address := rd
