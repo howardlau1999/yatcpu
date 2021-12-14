@@ -16,7 +16,7 @@ class ProgramCounter extends Module {
 
   when(io.jump_enable) {
     pc := io.jump_address
-  }.elsewhen(io.hold_flag >= 1.U) {
+  }.elsewhen(io.hold_flag >= HoldStates.PC.id.U) {
     pc := pc
   }.otherwise {
     pc := pc + 4.U
