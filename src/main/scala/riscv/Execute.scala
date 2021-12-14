@@ -23,9 +23,9 @@ class Execute extends Module {
     val mem_write_address = Output(UInt(32.W))
     val mem_write_data = Output(UInt(32.W))
 
-    val reg_write_enable = Output(Bool())
-    val reg_write_address = Output(UInt(32.W))
-    val reg_write_data = Output(UInt(32.W))
+    val regs_write_enable = Output(Bool())
+    val regs_write_address = Output(UInt(32.W))
+    val regs_write_data = Output(UInt(32.W))
 
     val ctrl_hold_flag = Output(Bool())
     val ctrl_jump_flag = Output(Bool())
@@ -40,8 +40,8 @@ class Execute extends Module {
   val signed_op1 = SInt(32.W)
   val signed_op2 = SInt(32.W)
 
-  io.reg_write_enable := io.write_enable
-  io.reg_write_address := io.write_address
+  io.regs_write_enable := io.write_enable
+  io.regs_write_address := io.write_address
 
   val mem_read_address_index = UInt(32.W)
   val mem_write_address_index = UInt(32.W)
@@ -81,29 +81,29 @@ class Execute extends Module {
     disable_control()
     disable_memory()
     when(funct3 === InstructionsTypeI.addi.id.U) {
-      io.reg_write_data := io.op1 + io.op2
+      io.regs_write_data := io.op1 + io.op2
     }.elsewhen(funct3 === InstructionsTypeI.slli.id.U) {
-      io.reg_write_data := io.reg1 << io.instruction(24, 20)
+      io.regs_write_data := io.reg1 << io.instruction(24, 20)
     }.elsewhen(funct3 === InstructionsTypeI.slti.id.U) {
-      io.reg_write_data := signed_op1 < signed_op2
+      io.regs_write_data := signed_op1 < signed_op2
     }.elsewhen(funct3 === InstructionsTypeI.sltiu.id.U) {
-      io.reg_write_data := io.op1 < io.op2
+      io.regs_write_data := io.op1 < io.op2
     }.elsewhen(funct3 === InstructionsTypeI.xori.id.U) {
-      io.reg_write_data := io.op1 ^ io.op2
+      io.regs_write_data := io.op1 ^ io.op2
     }.elsewhen(funct3 === InstructionsTypeI.sri.id.U) {
       when(io.instruction(30) === 1.U) {
         val mask = (0xFFFFFFFFL.U >> io.instruction(24, 20)).asUInt()
-        io.reg_write_data := ((io.reg1 >> io.instruction(24, 20)).asUInt() & mask |
+        io.regs_write_data := ((io.reg1 >> io.instruction(24, 20)).asUInt() & mask |
           (Fill(32, io.reg1(31)) & (~mask).asUInt()).asUInt())
       }.otherwise {
-        io.reg_write_data := io.reg1 >> io.instruction(24, 20)
+        io.regs_write_data := io.reg1 >> io.instruction(24, 20)
       }
     }.elsewhen(funct3 === InstructionsTypeI.ori.id.U) {
-      io.reg_write_data := io.op1 | io.op2
+      io.regs_write_data := io.op1 | io.op2
     }.elsewhen(funct3 === InstructionsTypeI.andi.id.U) {
-      io.reg_write_data := io.op1 & io.op2
+      io.regs_write_data := io.op1 & io.op2
     }.otherwise {
-      io.reg_write_data := 0.U
+      io.regs_write_data := 0.U
     }
   }.elsewhen(opcode === InstructionTypes.RM.id.U) {
     disable_memory()
@@ -112,30 +112,30 @@ class Execute extends Module {
     when(funct7 === 0.U || funct7 === 0x20.U) {
       when(funct3 === InstructionsTypeR.add_sub.id.U) {
         when(io.instruction(30) === 1.U) {
-          io.reg_write_data := io.op1 + io.op2
+          io.regs_write_data := io.op1 + io.op2
         }.otherwise {
-          io.reg_write_data := io.op1 - io.op2
+          io.regs_write_data := io.op1 - io.op2
         }
       }.elsewhen(funct3 === InstructionsTypeR.sll.id.U) {
-        io.reg_write_data := io.op1 << io.op2(4, 0)
+        io.regs_write_data := io.op1 << io.op2(4, 0)
       }.elsewhen(funct3 === InstructionsTypeR.slt.id.U) {
-        io.reg_write_data := signed_op1 < signed_op2
+        io.regs_write_data := signed_op1 < signed_op2
       }.elsewhen(funct3 === InstructionsTypeR.sltu.id.U) {
-        io.reg_write_data := io.op1 < io.op2
+        io.regs_write_data := io.op1 < io.op2
       }.elsewhen(funct3 === InstructionsTypeR.xor.id.U) {
-        io.reg_write_data := io.op1 ^ io.op2
+        io.regs_write_data := io.op1 ^ io.op2
       }.elsewhen(funct3 === InstructionsTypeR.sr.id.U) {
         when(io.instruction(30) === 1.U) {
           val mask = (0xFFFFFFFFL.U >> io.reg2(4, 0)).asUInt()
-          io.reg_write_data := ((io.reg1 >> io.reg2(4, 0)).asUInt() & mask |
+          io.regs_write_data := ((io.reg1 >> io.reg2(4, 0)).asUInt() & mask |
             (Fill(32, io.reg1(31)) & (~mask).asUInt()).asUInt())
         }.otherwise {
-          io.reg_write_data := io.reg1 >> io.reg2(4, 0)
+          io.regs_write_data := io.reg1 >> io.reg2(4, 0)
         }
       }.elsewhen(funct3 === InstructionsTypeR.or.id.U) {
-        io.reg_write_data := io.op1 | io.op2
+        io.regs_write_data := io.op1 | io.op2
       }.elsewhen(funct3 === InstructionsTypeR.and.id.U) {
-        io.reg_write_data := io.op1 & io.op2
+        io.regs_write_data := io.op1 & io.op2
       }
     }
   }.elsewhen(opcode === InstructionTypes.L.id.U) {
@@ -146,49 +146,49 @@ class Execute extends Module {
       val is_lbu = funct3 === InstructionsTypeL.lbu.id.U
       when(mem_read_address_index === 0.U) {
         when(is_lbu) {
-          io.reg_write_data := Cat(Fill(24, 0.U), io.data(7, 0))
+          io.regs_write_data := Cat(Fill(24, 0.U), io.data(7, 0))
         }.otherwise {
-          io.reg_write_data := Cat(Fill(24, io.data(7)), io.data(7, 0))
+          io.regs_write_data := Cat(Fill(24, io.data(7)), io.data(7, 0))
         }
       }.elsewhen(mem_read_address_index === 1.U) {
         when(is_lbu) {
-          io.reg_write_data := Cat(Fill(24, 0.U), io.data(15, 8))
+          io.regs_write_data := Cat(Fill(24, 0.U), io.data(15, 8))
         }.otherwise {
-          io.reg_write_data := Cat(Fill(24, io.data(15)), io.data(15, 8))
+          io.regs_write_data := Cat(Fill(24, io.data(15)), io.data(15, 8))
         }
 
       }.elsewhen(mem_read_address_index === 2.U) {
         when(is_lbu) {
-          io.reg_write_data := Cat(Fill(24, 0.U), io.data(23, 16))
+          io.regs_write_data := Cat(Fill(24, 0.U), io.data(23, 16))
         }.otherwise {
-          io.reg_write_data := Cat(Fill(24, io.data(23)), io.data(23, 16))
+          io.regs_write_data := Cat(Fill(24, io.data(23)), io.data(23, 16))
         }
       }.otherwise {
         when(is_lbu) {
-          io.reg_write_data := Cat(Fill(24, 0.U), io.data(31, 24))
+          io.regs_write_data := Cat(Fill(24, 0.U), io.data(31, 24))
         }.otherwise {
-          io.reg_write_data := Cat(Fill(24, io.data(31)), io.data(31, 24))
+          io.regs_write_data := Cat(Fill(24, io.data(31)), io.data(31, 24))
         }
       }
     }.elsewhen(funct3 === InstructionsTypeL.lh.id.U || funct3 === InstructionsTypeL.lhu.id.U) {
       val is_lhu = funct3 === InstructionsTypeL.lhu.id.U
       when(mem_read_address_index === 0.U) {
         when(is_lhu) {
-          io.reg_write_data := Cat(Fill(16, 0.U), io.data(15, 0))
+          io.regs_write_data := Cat(Fill(16, 0.U), io.data(15, 0))
         }.otherwise {
-          io.reg_write_data := Cat(Fill(16, io.data(15)), io.data(15, 0))
+          io.regs_write_data := Cat(Fill(16, io.data(15)), io.data(15, 0))
         }
       }.otherwise {
         when(is_lhu) {
-          io.reg_write_data := Cat(Fill(16, 0.U), io.data(31, 16))
+          io.regs_write_data := Cat(Fill(16, 0.U), io.data(31, 16))
         }.otherwise {
-          io.reg_write_data := Cat(Fill(16, io.data(31)), io.data(31, 16))
+          io.regs_write_data := Cat(Fill(16, io.data(31)), io.data(31, 16))
         }
       }
     }.elsewhen(funct3 === InstructionsTypeL.lw.id.U) {
-      io.reg_write_data := io.data
+      io.regs_write_data := io.data
     }.otherwise {
-      io.reg_write_data := 0.U
+      io.regs_write_data := 0.U
     }
   }.elsewhen(opcode === InstructionTypes.S.id.U) {
     disable_control()
@@ -241,18 +241,18 @@ class Execute extends Module {
     disable_hold()
     io.ctrl_jump_flag := true.B
     io.ctrl_jump_address := io.op1_jump + io.op2_jump
-    io.reg_write_data := io.op1 + io.op2
+    io.regs_write_data := io.op1 + io.op2
   }.elsewhen(opcode === Instructions.lui.id.U) {
     disable_control()
     disable_memory()
-    io.reg_write_data := io.op1 + io.op2
+    io.regs_write_data := io.op1 + io.op2
   }.elsewhen(opcode === Instructions.nop.id.U) {
     disable_control()
     disable_memory()
-    io.reg_write_data := 0.U
+    io.regs_write_data := 0.U
   }.otherwise {
     disable_control()
     disable_memory()
-    io.reg_write_data := 0.U
+    io.regs_write_data := 0.U
   }
 }

@@ -104,7 +104,7 @@ class InstructionDecode extends Module {
   val io = IO(new Bundle {
     val instruction = Input(UInt(32.W))
     val instruction_address = Input(UInt(32.W))
-
+    val jump_flag = Input(Bool())
     val reg1 = Input(UInt(32.W))
     val reg2 = Input(UInt(32.W))
 
