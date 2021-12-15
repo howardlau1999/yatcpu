@@ -60,6 +60,7 @@ sbt test
 根据[手册](https://www.stepfpga.com/doc/_media/basys3_ss.pdf)可得知，学校提供的 Basys3 实验板型号为 XC7A35T，只需要安装 Webpack 版本的 vivado 即可使用。我们在中山大学校园网内提供了 vivado 的镜像。
 
 ```bash
+sudo apt install libtinfo5 # 需要一个这个，否则启动报错
 cd ~
 curl -O https://mirrors.matrix.moe/software/Xilinx_Unified_2020.1_0602_1208.tar.gz
 tar -zxf Xilinx_Unified_2020.1_0602_1208.tar.gz
