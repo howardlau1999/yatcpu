@@ -33,6 +33,29 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
       }
     }
 
+    "should execute sb and lb" in {
+      test(new CPU) { c =>
+        val instructions: Array[BigInt] = Array(
+          0x00f00293L,
+          0x00500223L,
+          0x00400303L,
+          0x00000013L,
+          0x00000013L,
+          0x00000013L,
+          0x00000013L,
+          0x00000013L,
+          0x00000013L,
+        )
+        for (i <- 0 until 7) {
+          val pc = c.io.instruction_address.peek().litValue() >> 2
+          c.io.instruction.poke(instructions(pc.toInt).U)
+          c.clock.step()
+        }
+        c.io.debug_read_address.poke(6.U)
+        c.io.debug_read_data.expect(15.U)
+      }
+    }
+
     "should calculate 1+2+...+100=5050" in {
       test(new CPU) { c =>
         val instructions: Array[BigInt] = Array(

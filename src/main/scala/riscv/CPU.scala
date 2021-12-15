@@ -10,9 +10,9 @@ class CPU extends Module {
 
     val debug_read_address = Input(UInt(32.W))
     val debug_read_data = Output(UInt(32.W))
-    val debug_jump_address = Output(UInt(32.W))
   })
 
+  val data_mem = Module(new Memory(128))
   val pc = Module(new ProgramCounter)
   val ctrl = Module(new Control)
   val regs = Module(new RegisterFile)
@@ -24,7 +24,6 @@ class CPU extends Module {
   pc.io.hold_flag := ctrl.io.output_hold_flag
   pc.io.jump_enable := ctrl.io.pc_jump_flag
   pc.io.jump_address := ctrl.io.pc_jump_address
-  io.debug_jump_address := pc.io.jump_address
 
   ctrl.io.jump_flag := ex.io.ctrl_jump_flag
   ctrl.io.jump_address := ex.io.ctrl_jump_address
@@ -72,5 +71,10 @@ class CPU extends Module {
   ex.io.reg2 := id2ex.io.output_reg2
   ex.io.write_enable := id2ex.io.output_write_enable
   ex.io.write_address := id2ex.io.output_write_address
-  ex.io.data := 0.U
+  ex.io.data := data_mem.io.read_data
+
+  data_mem.io.write_enable := ex.io.mem_write_enable
+  data_mem.io.write_address := ex.io.mem_write_address
+  data_mem.io.write_data := ex.io.mem_write_data
+  data_mem.io.read_address := ex.io.mem_read_address
 }
