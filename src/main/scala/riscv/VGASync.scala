@@ -38,12 +38,49 @@ class VGASync extends Module {
   val pixel_next = Wire(UInt(2.W))
   val pixel_tick = Wire(Bool())
 
-  val count_vertical_reg = RegInit(UInt(10.W), 0.U)
-  val count_horizontal_reg = RegInit(UInt(10.W), 0.U)
+  val v_count_reg = RegInit(UInt(10.W), 0.U)
+  val h_count_reg = RegInit(UInt(10.W), 0.U)
+
+  val v_count_next = Wire(UInt(10.W))
+  val h_count_next = Wire(UInt(10.W))
 
   val vsync_reg = RegInit(Bool(), false.B)
   val hsync_reg = RegInit(Bool(), false.B)
 
   val vsync_next = Wire(Bool())
   val hsync_next = Wire(Bool())
+
+  pixel_next := pixel + 1.U
+  pixel_tick := pixel === 0.U
+
+  when(pixel_tick) {
+    when(h_count_reg === MaxHorizontal.U) {
+      h_count_next := 0.U
+    }.otherwise {
+      h_count_next := h_count_reg + 1.U
+    }
+  }.otherwise {
+    h_count_next := h_count_reg
+  }
+
+  when(pixel_tick && h_count_reg === MaxHorizontal.U) {
+    when(v_count_reg === MaxVertical.U) {
+      v_count_next := 0.U
+    }.otherwise {
+      v_count_next := v_count_reg + 1.U
+    }
+  }.otherwise {
+    v_count_next := v_count_reg
+  }
+
+  hsync_next := h_count_reg >= RetraceHorizontalStart.U && h_count_reg <= RetraceHorizontalEnd.U
+  vsync_next := v_count_reg >= RetraceVerticalStart.U && v_count_reg <= RetraceVerticalEnd.U
+
+  io.video_on := h_count_reg < DisplayHorizontal.U && v_count_reg < DisplayVertical.U
+  io.hsync := hsync_reg
+  io.vsync := vsync_reg
+  io.x := h_count_reg
+  io.y := v_count_reg
+  io.p_tick := pixel_tick
+  io.f_tick := io.x === 0.U && io.y === 0.U
 }
