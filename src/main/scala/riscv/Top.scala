@@ -11,7 +11,7 @@ class Top extends Module {
 
   val numbers = RegInit(UInt(16.W), 0.U)
   val counter = RegInit(UInt(31.W), 0.U)
-  when (counter === 100000.U) {
+  when (counter === 100000000.U) {
     counter := 0.U
     numbers := numbers + 1.U
   }.otherwise {

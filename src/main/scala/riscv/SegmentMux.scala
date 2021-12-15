@@ -32,5 +32,5 @@ class SegmentMux extends Module {
   val s0 = io.index(0).asBool()
   val s1 = io.index(1).asBool()
 
-  io.digit_mask := Cat(s0 || s1, !s0 || s1, s0 || !s1, !(s0 && s1))
+  io.digit_mask := Cat(!(s0 && s1), s0 || !s1, !s0 || s1, s0 || s1)
 }

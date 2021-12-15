@@ -15,7 +15,7 @@ class BCD2Segments extends Module {
   when(bcd === 0.U) {
     segs := 0x01.U
   }.elsewhen(bcd === 1.U) {
-    segs := 0x3F.U
+    segs := 0x4F.U
   }.elsewhen(bcd === 2.U) {
     segs := 0x12.U
   }.elsewhen(bcd === 3.U) {
@@ -33,7 +33,7 @@ class BCD2Segments extends Module {
   }.elsewhen(bcd === 9.U) {
     segs := 0x04.U
   }.elsewhen(bcd === 10.U) {
-    segs := 0x0C.U
+    segs := 0x08.U
   }.elsewhen(bcd === 11.U) {
     segs := 0x60.U
   }.elsewhen(bcd === 12.U) {
@@ -43,7 +43,7 @@ class BCD2Segments extends Module {
   }.elsewhen(bcd === 14.U) {
     segs := 0x30.U
   }.elsewhen(bcd === 15.U) {
-    segs := 0x3C.U
+    segs := 0x38.U
   }.otherwise {
     segs := 0xFF.U
   }

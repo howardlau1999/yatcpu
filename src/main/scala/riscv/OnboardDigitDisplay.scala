@@ -8,13 +8,13 @@ class OnboardDigitDisplay extends Module {
     val numbers = Input(UInt(16.W))
 
     val segs = Output(UInt(7.W))
-    val digit_mask = Output(UInt(3.W))
+    val digit_mask = Output(UInt(4.W))
   })
 
   val counter = RegInit(UInt(32.W), 0.U)
-  val index = RegInit(UInt(32.W), 0.U)
+  val index = RegInit(UInt(2.W), 0.U)
 
-  when(counter === 500000.U) {
+  when(counter === 50000.U) {
     counter := 0.U
     index := index + 1.U
   }.otherwise {
@@ -26,5 +26,5 @@ class OnboardDigitDisplay extends Module {
   seg_mux.io.numbers := io.numbers
 
   io.segs := seg_mux.io.segs
-  io.digit_mask := seg_mux.io.segs
+  io.digit_mask := seg_mux.io.digit_mask
 }
