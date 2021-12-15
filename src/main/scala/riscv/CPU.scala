@@ -10,6 +10,7 @@ class CPU extends Module {
 
     val debug_read_address = Input(UInt(32.W))
     val debug_read_data = Output(UInt(32.W))
+    val debug_jump_address = Output(UInt(32.W))
   })
 
   val pc = Module(new ProgramCounter)
@@ -23,6 +24,7 @@ class CPU extends Module {
   pc.io.hold_flag := ctrl.io.output_hold_flag
   pc.io.jump_enable := ctrl.io.pc_jump_flag
   pc.io.jump_address := ctrl.io.pc_jump_address
+  io.debug_jump_address := pc.io.jump_address
 
   ctrl.io.jump_flag := ex.io.ctrl_jump_flag
   ctrl.io.jump_address := ex.io.ctrl_jump_address
@@ -37,7 +39,6 @@ class CPU extends Module {
   regs.io.debug_read_address := io.debug_read_address
   io.debug_read_data := regs.io.debug_read_data
 
-  // TODO(howard): implement if
   if2id.io.instruction := io.instruction
   if2id.io.instruction_address := pc.io.pc
   if2id.io.hold_flag := ctrl.io.output_hold_flag

@@ -107,7 +107,7 @@ class Execute extends Module {
     // TODO(howard): support mul and div
     when(funct7 === 0.U || funct7 === 0x20.U) {
       when(funct3 === InstructionsTypeR.add_sub.id.U) {
-        when(io.instruction(30) === 1.U) {
+        when(io.instruction(30) === 0.U) {
           io.regs_write_data := io.op1 + io.op2
         }.otherwise {
           io.regs_write_data := io.op1 - io.op2
