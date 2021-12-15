@@ -1,3 +1,4 @@
+# Only tested on Vivado 2020.1 on Windows 10
 open_hw_manager
 connect_hw_server -allow_non_jtag
 refresh_hw_server [current_hw_server]
