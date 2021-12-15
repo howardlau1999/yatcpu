@@ -340,3 +340,6 @@ project/plugins/project/
 hs_err_pid*
 
 verilog
+*.jou
+*.log
+vivado/riscv-basys3
