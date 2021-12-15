@@ -20,5 +20,22 @@ if {[file exist $project_dir]} {
 add_files -norecurse $sources
 update_compile_order -fileset sources_1
 add_files -fileset constrs_1 -norecurse ./basys3.xdc
-launch_runs impl_1 -to_step write_bitstream -jobs 4
+while 1 {
+    if { [catch {launch_runs impl_1 -to_step write_bitstream -jobs 4} ] } {
+        regexp {ERROR: \[Vivado (\d+-\d+)]} $errorInfo -> code
+        if { [string equal $code "12-978"] } {
+            puts "Already generated and up-to-date"
+            break
+        } elseif { [string equal $code "12-1088"] } {
+            puts "Out of date, reset runs"
+            reset_runs impl_1
+            continue
+        } else {
+            puts "UNKNOWN ERROR!!! $errorInfo"
+            exit
+        }
+    }
+    break
+}
+
 wait_on_run [current_run]
