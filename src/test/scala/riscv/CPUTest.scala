@@ -35,6 +35,11 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
 
     "should execute sb and lb" in {
       test(new CPU) { c =>
+        /*
+          li t0, 15
+          sb t0, 4(x0)
+          lb t1, 4(x0)
+         */
         val instructions: Array[BigInt] = Array(
           0x00f00293L,
           0x00500223L,
