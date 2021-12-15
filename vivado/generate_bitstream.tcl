@@ -19,7 +19,7 @@ if {[file exist $project_dir]} {
 
 add_files -norecurse $sources
 update_compile_order -fileset sources_1
-add_files -fileset constrs_1 -norecurse ./basys3.xdc
+add_files -fileset constrs_1 -norecurse basys3.xdc
 while 1 {
     if { [catch {launch_runs impl_1 -to_step write_bitstream -jobs 4} ] } {
         regexp {ERROR: \[Vivado (\d+-\d+)]} $errorInfo -> code
