@@ -42,7 +42,8 @@ class Execute extends Module {
   val signed_op2 = io.op2.asSInt()
 
   val mem_read_address_index = ((io.reg1 + Cat(Fill(20, io.instruction(31)), io.instruction(31, 20))) & 0x3.U).asUInt()
-  val mem_write_address_index = ((io.reg1 + Cat(Fill(20, io.instruction(31)), io.instruction(31, 25), io.instruction(11, 7))) & 0x3.U).asUInt()
+  val mem_write_address_index = ((io.reg1 + Cat(Fill(20, io.instruction(31)), io.instruction(31, 25), io.instruction
+  (11, 7))) & 0x3.U).asUInt()
 
   def disable_memory() = {
     disable_memory_write()

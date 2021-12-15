@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util._
 
 class Memory(capacity: Int) extends Module {
-  val io = IO(new Bundle{
+  val io = IO(new Bundle {
     val read_address = Input(UInt(32.W))
     val debug_read_address = Input(UInt(32.W))
     val write_address = Input(UInt(32.W))

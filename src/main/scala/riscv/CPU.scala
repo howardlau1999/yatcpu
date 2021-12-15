@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util._
 
 class CPU extends Module {
-  val io = IO(new Bundle{
+  val io = IO(new Bundle {
     val instruction = Input(UInt(32.W))
     val instruction_address = Output(UInt(32.W))
 

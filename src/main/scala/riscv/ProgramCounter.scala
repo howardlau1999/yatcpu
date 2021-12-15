@@ -24,7 +24,3 @@ class ProgramCounter extends Module {
 
   io.pc := pc
 }
-
-object ProgramCounter extends App {
-  (new ChiselStage).emitVerilog(new ProgramCounter())
-}

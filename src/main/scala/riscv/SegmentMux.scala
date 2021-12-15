@@ -14,7 +14,7 @@ class SegmentMux extends Module {
 
 
   val digit = RegInit(UInt(4.W), 0.U)
-  val bcd2segs = new BCD2Segments()
+  val bcd2segs = Module(new BCD2Segments)
 
   bcd2segs.io.bcd := digit
   io.segs := bcd2segs.io.segs

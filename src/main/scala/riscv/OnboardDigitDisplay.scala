@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util._
 
 class OnboardDigitDisplay extends Module {
-  val io = IO(new Bundle{
+  val io = IO(new Bundle {
     val numbers = Input(UInt(16.W))
 
     val segs = Output(UInt(7.W))
@@ -21,7 +21,7 @@ class OnboardDigitDisplay extends Module {
     counter := counter + 1.U
   }
 
-  val seg_mux = new SegmentMux()
+  val seg_mux = Module(new SegmentMux)
   seg_mux.io.index := index
   seg_mux.io.numbers := io.numbers
 

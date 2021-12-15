@@ -6,6 +6,7 @@ import org.scalatest._
 
 class CPUTest extends FreeSpec with ChiselScalatestTester {
   var warned = false
+
   def run_instructions(instructions: Array[UInt], c: CPU, cycles: Int) = {
     warned = false
     for (i <- 1 to cycles) {
@@ -23,6 +24,7 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
       c.clock.step()
     }
   }
+
   "CPU " - {
     "should execute lui and addi" in {
       test(new CPU) { c =>
