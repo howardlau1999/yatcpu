@@ -28,6 +28,8 @@ object Instructions extends Enumeration {
   val jal = Value(0x6f)
   //          0b1100111
   val jalr = Value(0x67)
+  //          0b0010111
+  val auipc = Value(0x17)
 }
 
 object InstructionsTypeL extends Enumeration {
@@ -240,6 +242,12 @@ class InstructionDecode extends Module {
     io.regs_reg2_read_address := 0.U
     io.ex_op1 := Cat(io.instruction(31, 12), Fill(12, 0.U(1.W)))
     io.ex_op2 := 0.U
+  }.elsewhen(opcode === Instructions.auipc.id.U) {
+    enable_write(rd)
+    io.regs_reg1_read_address := 0.U
+    io.regs_reg2_read_address := 0.U
+    io.ex_op1 := io.instruction_address
+    io.ex_op2 := Cat(io.instruction(31, 12), Fill(12, 0.U(1.W)))
   }.elsewhen(opcode === Instructions.nop.id.U) {
     disable_regs()
   }.otherwise {

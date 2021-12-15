@@ -97,5 +97,77 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
         c.io.debug_read_data.expect(5050.U)
       }
     }
+
+    "should execute recursive fibonacci" in {
+      test(new CPU) { c =>
+        val instructions: Array[BigInt] = Array(
+          0x3fc00113L,
+          0x094000efL,
+          0x0000006fL,
+          0x00000013L,
+          0x00000013L,
+          0x00000013L,
+          0x00000013L,
+          0xfe010113L,
+          0x00112e23L,
+          0x00812c23L,
+          0x00912a23L,
+          0x02010413L,
+          0xfea42623L,
+          0xfec42703L,
+          0x00100793L,
+          0x00f70863L,
+          0xfec42703L,
+          0x00200793L,
+          0x00f71663L,
+          0x00100793L,
+          0x0300006fL,
+          0xfec42783L,
+          0xfff78793L,
+          0x00078513L,
+          0xfbdff0efL,
+          0x00050493L,
+          0xfec42783L,
+          0xffe78793L,
+          0x00078513L,
+          0xfa9ff0efL,
+          0x00050793L,
+          0x00f487b3L,
+          0x00078513L,
+          0x01c12083L,
+          0x01812403L,
+          0x01412483L,
+          0x02010113L,
+          0x00008067L,
+          0xff010113L,
+          0x00112623L,
+          0x00812423L,
+          0x00912223L,
+          0x01010413L,
+          0x00400493L,
+          0x00a00513L,
+          0xf69ff0efL,
+          0x00050793L,
+          0x00f4a023L,
+          0x00000793L,
+          0x00078513L,
+          0x00c12083L,
+          0x00812403L,
+          0x00412483L,
+          0x01010113L,
+          0x00008067L,
+          0x00000013L,
+          0x00000013L,
+          0x00000013L,
+        )
+        for (i <- 1 until 10000) {
+          val pc = c.io.instruction_address.peek().litValue() >> 2
+          c.io.instruction.poke(instructions(pc.toInt).U)
+          c.clock.step()
+        }
+        c.io.debug_mem_read_address.poke(4.U)
+        c.io.debug_mem_read_data.expect(55.U)
+      }
+    }
   }
 }

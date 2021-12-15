@@ -240,7 +240,7 @@ class Execute extends Module {
     io.ctrl_jump_flag := true.B
     io.ctrl_jump_address := io.op1_jump + io.op2_jump
     io.regs_write_data := io.op1 + io.op2
-  }.elsewhen(opcode === Instructions.lui.id.U) {
+  }.elsewhen(opcode === Instructions.lui.id.U || opcode === Instructions.auipc.id.U) {
     disable_control()
     disable_memory()
     io.regs_write_data := io.op1 + io.op2
