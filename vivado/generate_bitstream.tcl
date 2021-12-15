@@ -3,3 +3,4 @@ add_files -norecurse {../verilog/BCD2Segments.v ../verilog/OnboardDigitDisplay.v
 update_compile_order -fileset sources_1
 add_files -fileset constrs_1 -norecurse ./basys3.xdc
 launch_runs impl_1 -to_step write_bitstream -jobs 8
+wait_on_run [current_run]

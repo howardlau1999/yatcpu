@@ -342,4 +342,5 @@ hs_err_pid*
 verilog
 *.jou
 *.log
+.Xil
 vivado/riscv-basys3
