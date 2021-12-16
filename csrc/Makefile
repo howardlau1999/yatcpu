@@ -6,6 +6,8 @@ OBJCOPYFLAGS = -O binary -j .text
 
 DESTDIR ?= ../src/main/resources
 
+all: hello fibonacci quicksort
+
 %: %.o init.o
 	$(RISCVCC) $(ARCHFLAGS) $(EXEFLAGS) -o $@.out init.o $@.o
 	$(RISCVOBJCOPY) $(OBJCOPYFLAGS) $@.out $(DESTDIR)/$@.asmbin
