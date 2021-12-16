@@ -6,43 +6,43 @@ import chisel3.util._
 object InstructionTypes extends Bundle {
 
   //          0b0000011
-  val L =0x03.U
+  val L = 0x03.U
   //          0b0010011
-  val I =0x13.U
+  val I = 0x13.U
   //          0b0100011
-  val S =0x23.U
+  val S = 0x23.U
   //          0b0110011
-  val RM =0x33.U
+  val RM = 0x33.U
   //          0b1100011
-  val B =0x63.U
+  val B = 0x63.U
 }
 
 object Instructions extends Bundle {
 
   //          0b0110111
-  val lui =0x37.U
+  val lui = 0x37.U
   //          0b0000001
-  val nop =0x01.U
+  val nop = 0x01.U
   //          0b1101111
-  val jal =0x6f.U
+  val jal = 0x6f.U
   //          0b1100111
-  val jalr =0x67.U
+  val jalr = 0x67.U
   //          0b0010111
-  val auipc =0x17.U
+  val auipc = 0x17.U
 }
 
 object InstructionsTypeL extends Bundle {
 
   // 0b000
-  val lb =0.U
+  val lb = 0.U
   // 0b001
-  val lh =1.U
+  val lh = 1.U
   // 0b010
-  val lw =2.U
+  val lw = 2.U
   // 0b100
-  val lbu =4.U
+  val lbu = 4.U
   // 0b101
-  val lhu =5.U
+  val lhu = 5.U
 }
 
 object InstructionsTypeI extends Bundle {
@@ -68,11 +68,11 @@ object InstructionsTypeI extends Bundle {
 object InstructionsTypeS extends Bundle {
 
   // 0b000
-  val sb =0.U
+  val sb = 0.U
   // 0b001
-  val sh =1.U
+  val sh = 1.U
   // 0b010
-  val sw =2.U
+  val sw = 2.U
 }
 
 object InstructionsTypeR extends Bundle {
@@ -100,17 +100,17 @@ object InstructionsTypeM extends Bundle {
 object InstructionsTypeB extends Bundle {
 
   // 0b000
-  val beq =0.U
+  val beq = 0.U
   // 0b001
-  val bne =1.U
+  val bne = 1.U
   // 0b100
-  val blt =4.U
+  val blt = 4.U
   // 0b101
-  val bge =5.U
+  val bge = 5.U
   // 0b110
-  val bltu =6.U
+  val bltu = 6.U
   // 0b111
-  val bgeu =7.U
+  val bgeu = 7.U
 }
 
 class InstructionDecode extends Module {
