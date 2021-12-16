@@ -13,9 +13,12 @@ class CPU extends Module {
 
     val debug_mem_read_address = Input(UInt(32.W))
     val debug_mem_read_data = Output(UInt(32.W))
+
+    val char_mem_read_address = Input(UInt(32.W))
+    val char_mem_read_data = Output(UInt(32.W))
   })
 
-  val data_mem = Module(new Memory(1024))
+  val data_mem = Module(new Memory(4096))
   val pc = Module(new ProgramCounter)
   val ctrl = Module(new Control)
   val regs = Module(new RegisterFile)
@@ -83,4 +86,7 @@ class CPU extends Module {
 
   data_mem.io.debug_read_address := io.debug_mem_read_address
   io.debug_mem_read_data := data_mem.io.debug_read_data
+
+  data_mem.io.char_read_address := io.char_mem_read_address
+  io.char_mem_read_data := data_mem.io.char_read_data
 }

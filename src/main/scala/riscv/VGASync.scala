@@ -3,6 +3,11 @@ package riscv
 import chisel3._
 import chisel3.util._
 
+object ScreenInfo {
+  val DisplayHorizontal = 640
+  val DisplayVertical = 480
+}
+
 class VGASync extends Module {
   val io = IO(new Bundle {
     val hsync = Output(Bool())
@@ -14,8 +19,8 @@ class VGASync extends Module {
     val y = Output(UInt(10.W))
   })
 
-  val DisplayHorizontal = 640
-  val DisplayVertical = 480
+  val DisplayHorizontal = ScreenInfo.DisplayHorizontal
+  val DisplayVertical = ScreenInfo.DisplayVertical
 
   val BorderLeft = 48
   val BorderRight = 16
@@ -75,6 +80,12 @@ class VGASync extends Module {
 
   hsync_next := h_count_reg >= RetraceHorizontalStart.U && h_count_reg <= RetraceHorizontalEnd.U
   vsync_next := v_count_reg >= RetraceVerticalStart.U && v_count_reg <= RetraceVerticalEnd.U
+
+  pixel := pixel_next
+  hsync_reg := hsync_next
+  vsync_reg := vsync_next
+  v_count_reg := v_count_next
+  h_count_reg := h_count_next
 
   io.video_on := h_count_reg < DisplayHorizontal.U && v_count_reg < DisplayVertical.U
   io.hsync := hsync_reg

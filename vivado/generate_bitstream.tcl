@@ -4,7 +4,7 @@
 set project_dir riscv-basys3
 set project_name riscv-basys3
 set part xc7a35tcpg236-1
-set sources {../verilog/BCD2Segments.v ../verilog/OnboardDigitDisplay.v ../verilog/Top.v ../verilog/SegmentMux.v}
+set sources {../verilog/Top.v}
 
 # open the project. will create one if it doesn't exist 
 if {[file exist $project_dir]} {
