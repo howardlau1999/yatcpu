@@ -61,7 +61,11 @@ class Top extends Module {
   }
 
   io.dp := true.B
-  cpu.io.debug_mem_read_address := io.switch * 4.U
-  io.led := cpu.io.instruction_address / 4.U
-  onboard_display.io.numbers := cpu.io.debug_mem_read_data(15, 0).asUInt()
+  cpu.io.debug_mem_read_address := io.switch(15, 1).asUInt() * 4.U
+  io.led := 0.U
+  when(io.switch(0) === 0.U) {
+    onboard_display.io.numbers := cpu.io.debug_mem_read_data(15, 0).asUInt()
+  }.otherwise {
+    onboard_display.io.numbers := cpu.io.debug_mem_read_data(31, 16).asUInt()
+  }
 }
