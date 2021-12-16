@@ -18,7 +18,7 @@ class CPU extends Module {
     val char_mem_read_data = Output(UInt(32.W))
   })
 
-  val data_mem = Module(new Memory(4096))
+  val data_mem = Module(new Memory(1024))
   val pc = Module(new ProgramCounter)
   val ctrl = Module(new Control)
   val regs = Module(new RegisterFile)
@@ -82,7 +82,7 @@ class CPU extends Module {
   data_mem.io.write_enable := ex.io.mem_write_enable
   data_mem.io.write_address := ex.io.mem_write_address
   data_mem.io.write_data := ex.io.mem_write_data
-  data_mem.io.read_address := ex.io.mem_read_address
+  data_mem.io.read_address := id.io.ex_mem_read_address
 
   data_mem.io.debug_read_address := io.debug_mem_read_address
   io.debug_mem_read_data := data_mem.io.debug_read_data

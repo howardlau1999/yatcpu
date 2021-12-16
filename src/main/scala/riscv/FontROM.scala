@@ -24,7 +24,7 @@ class FontROM extends Module {
     val glyph_pixel_on = Output(Bool())
   })
 
-  val glyphs = RegInit(readFontBitmap())
+  val glyphs = readFontBitmap()
   io.glyph_pixel_on := glyphs(io.glyph_index)(glyphWidth.U * io.glyph_y + io.glyph_x).asBool()
 
   def readFontBitmap() = {

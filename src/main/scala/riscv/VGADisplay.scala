@@ -21,8 +21,13 @@ class VGADisplay extends Module {
 
   io.char_mem_address := (io.screen_y / GlyphInfo.glyphHeight.U * ScreenInfo.DisplayHorizontal.U / GlyphInfo.glyphWidth
     .U / 4.U) + (io.screen_x
-    / GlyphInfo.glyphWidth.U / 4.U) + 256.U
-  io.glyph_index := io.char_mem_data(io.screen_x % 4.U) - 31.U
+    / GlyphInfo.glyphWidth.U / 4.U) + 1024.U
+  val chars = Wire(Vec(4, UInt(32.W)))
+  chars(0) := io.char_mem_data(7, 0)
+  chars(1) := io.char_mem_data(15, 8)
+  chars(2) := io.char_mem_data(23, 16)
+  chars(3) := io.char_mem_data(31, 24)
+  io.glyph_index := io.char_mem_data(chars(io.screen_x % 4.U)) - 31.U
   io.glyph_x := io.screen_x % GlyphInfo.glyphWidth.U
   io.glyph_y := io.screen_y % GlyphInfo.glyphHeight.U
 

@@ -128,6 +128,7 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
         )
         run_instructions(instructions, c, 3500)
         c.io.debug_mem_read_address.poke(4.U)
+        c.clock.step()
         c.io.debug_mem_read_data.expect(55.U)
       }
     }
@@ -198,6 +199,7 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
         run_instructions(instructions, c, 1550)
         for (i <- 1 to 10) {
           c.io.debug_mem_read_address.poke((4 * i).U)
+          c.clock.step()
           c.io.debug_mem_read_data.expect((i - 1).U)
         }
       }

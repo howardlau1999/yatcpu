@@ -19,7 +19,6 @@ class Execute extends Module {
     val data = Input(UInt(32.W))
 
     val mem_write_enable = Output(Bool())
-    val mem_read_address = Output(UInt(32.W))
     val mem_write_address = Output(UInt(32.W))
     val mem_write_data = Output(UInt(32.W))
 
@@ -47,7 +46,6 @@ class Execute extends Module {
 
   def disable_memory() = {
     disable_memory_write()
-    io.mem_read_address := 0.U
   }
 
   def disable_memory_write() = {
@@ -138,7 +136,6 @@ class Execute extends Module {
   }.elsewhen(opcode === InstructionTypes.L) {
     disable_memory_write()
     disable_control()
-    io.mem_read_address := io.op1 + io.op2
     when(funct3 === InstructionsTypeL.lb || funct3 === InstructionsTypeL.lbu) {
       val is_lbu = funct3 === InstructionsTypeL.lbu
       when(mem_read_address_index === 0.U) {
@@ -189,7 +186,6 @@ class Execute extends Module {
     }
   }.elsewhen(opcode === InstructionTypes.S) {
     disable_control()
-    io.mem_read_address := io.op1 + io.op2
     io.mem_write_address := io.op1 + io.op2
     io.mem_write_enable := true.B
     when(funct3 === InstructionsTypeS.sb) {

@@ -18,11 +18,9 @@ class Memory(capacity: Int) extends Module {
     val char_read_data = Output(UInt(32.W))
   })
 
-  val data = Reg(Vec(capacity, UInt(32.W)))
-  when(io.write_enable) {
-    data(io.write_address) := io.write_data
-  }
-  io.read_data := data(io.read_address)
-  io.debug_read_data := data(io.debug_read_address)
-  io.char_read_data := data(io.char_read_address)
+  val mem = SyncReadMem(capacity, UInt(32.W))
+  mem.write(io.write_address / 4.U, io.write_data)
+  io.read_data := mem.read(io.read_address / 4.U, true.B)
+  io.debug_read_data := mem.read(io.debug_read_address / 4.U, true.B)
+  io.char_read_data := mem.read(io.char_read_address / 4.U, true.B)
 }

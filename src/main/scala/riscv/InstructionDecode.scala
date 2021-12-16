@@ -134,6 +134,7 @@ class InstructionDecode extends Module {
     val ex_reg2 = Output(UInt(32.W))
     val ex_reg_write_enable = Output(UInt(32.W))
     val ex_reg_write_address = Output(UInt(5.W))
+    val ex_mem_read_address = Output(UInt(32.W))
   })
   val opcode = io.instruction(6, 0)
   val funct3 = io.instruction(14, 12)
@@ -166,6 +167,7 @@ class InstructionDecode extends Module {
   io.ex_op2 := 0.U
   io.ex_op1_jump := 0.U
   io.ex_op2_jump := 0.U
+  io.ex_mem_read_address := 0.U
 
   when(opcode === InstructionTypes.L) {
     when(
@@ -180,6 +182,7 @@ class InstructionDecode extends Module {
       io.regs_reg2_read_address := 0.U
       io.ex_op1 := io.reg1
       io.ex_op2 := Cat(Fill(20, io.instruction(31)), io.instruction(31, 20))
+      io.ex_mem_read_address := io.ex_op1 + io.ex_op2
     }.otherwise {
       disable_regs()
     }
