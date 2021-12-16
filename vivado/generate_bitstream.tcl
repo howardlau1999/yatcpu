@@ -14,7 +14,7 @@ if {[file exist $project_dir]} {
     }
     open_project $project_dir/$project_name.xpr -part $part 
 } else {
-    create_project riscv-basys3 riscv-basys3 -part $part
+    create_project $project_name $project_dir -part $part
 }
 
 add_files -norecurse $sources
