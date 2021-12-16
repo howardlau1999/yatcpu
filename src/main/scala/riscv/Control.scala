@@ -12,6 +12,7 @@ object HoldStates extends Enumeration {
 class Control extends Module {
   val io = IO(new Bundle {
     val jump_flag = Input(Bool())
+    val hold_flag_id = Input(Bool())
     val hold_flag_ex = Input(Bool())
     val jump_address = Input(UInt(32.W))
 
@@ -25,8 +26,9 @@ class Control extends Module {
   io.pc_jump_address := io.jump_address
 
   io.output_hold_flag := HoldStates.None.id.U
-
-  when(io.jump_flag || io.hold_flag_ex) {
+  when(io.hold_flag_id) {
+    io.output_hold_flag := HoldStates.IF.id.U
+  }.elsewhen(io.jump_flag || io.hold_flag_ex) {
     io.output_hold_flag := HoldStates.ID.id.U
   }
 }

@@ -7,10 +7,12 @@ class Top extends Module {
   val io = IO(new Bundle {
     val segs = Output(UInt(7.W))
     val digit_mask = Output(UInt(4.W))
+    val dp = Output(Bool())
 
     val hsync = Output(Bool())
     val vsync = Output(Bool())
     val rgb = Output(UInt(12.W))
+
   })
 
   val numbers = RegInit(UInt(16.W), 0.U)
@@ -24,7 +26,6 @@ class Top extends Module {
 
   val onboard_display = Module(new OnboardDigitDisplay)
 
-  onboard_display.io.numbers := numbers
   io.segs := onboard_display.io.segs
   io.digit_mask := onboard_display.io.digit_mask
 
@@ -48,10 +49,16 @@ class Top extends Module {
   cpu.io.char_mem_read_address := vga_display.io.char_mem_address
   vga_display.io.char_mem_data := cpu.io.char_mem_read_data
 
-  font_rom.io.glyph_index := vga_display.io.glyph_index
+  font_rom.io.glyph_index := vga_display.io.glyph_rom_index
   font_rom.io.glyph_x := vga_display.io.glyph_x
   font_rom.io.glyph_y := vga_display.io.glyph_y
-  vga_display.io.glyph_pixel_on := font_rom.io.glyph_pixel_on
+  when(vga_sync.io.video_on && font_rom.io.glyph_pixel_on) {
+    io.rgb := 0xFFFF.U
+  }.otherwise {
+    io.rgb := 0.U
+  }
 
-  io.rgb := vga_display.io.rgb
+  io.dp := true.B
+  cpu.io.debug_mem_read_address := 0xD.U
+  onboard_display.io.numbers := cpu.io.debug_mem_read_data(15, 0).asUInt()
 }

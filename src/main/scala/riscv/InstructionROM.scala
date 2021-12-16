@@ -20,9 +20,12 @@ class InstructionROM(asmBinaryFilename: String) extends Module {
     while (inputStream.read(arr) == 4) {
       val instBuf = ByteBuffer.wrap(arr)
       instBuf.order(ByteOrder.LITTLE_ENDIAN)
-
-      instructions = instructions :+ BigInt(instBuf.getInt() & 0xFFFFFFFFL).U(32.W)
+      val inst = BigInt(instBuf.getInt() & 0xFFFFFFFFL)
+      instructions = instructions :+ inst.U(32.W)
     }
+    instructions = instructions :+ 0x00000013.U(32.W)
+    instructions = instructions :+ 0x00000013.U(32.W)
+    instructions = instructions :+ 0x00000013.U(32.W)
     VecInit(instructions)
   }
 }

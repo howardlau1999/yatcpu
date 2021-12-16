@@ -44,6 +44,10 @@ class Execute extends Module {
   val mem_write_address_index = ((io.reg1 + Cat(Fill(20, io.instruction(31)), io.instruction(31, 25), io.instruction
   (11, 7))) & 0x3.U).asUInt()
 
+  val mem_read_address_aligned = ((io.reg1 + Cat(Fill(20, io.instruction(31)), io.instruction(31, 20))) / 4.U)
+  val mem_write_address_aligned = ((io.reg1 + Cat(Fill(20, io.instruction(31)), io.instruction(31, 25), io.instruction
+  (11, 7)))) / 4.U
+
   def disable_memory() = {
     disable_memory_write()
   }
@@ -136,6 +140,7 @@ class Execute extends Module {
   }.elsewhen(opcode === InstructionTypes.L) {
     disable_memory_write()
     disable_control()
+
     when(funct3 === InstructionsTypeL.lb || funct3 === InstructionsTypeL.lbu) {
       val is_lbu = funct3 === InstructionsTypeL.lbu
       when(mem_read_address_index === 0.U) {

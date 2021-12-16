@@ -25,31 +25,29 @@ class FontROM extends Module {
   })
 
   val glyphs = readFontBitmap()
-  io.glyph_pixel_on := glyphs(io.glyph_index)(glyphWidth.U * io.glyph_y + io.glyph_x).asBool()
+  io.glyph_pixel_on := glyphs(io.glyph_index * GlyphInfo.glyphHeight.U + io.glyph_y)(io
+    .glyph_x).asBool()
 
   def readFontBitmap() = {
     val inputStream = getClass.getClassLoader.getResourceAsStream("vga_font_8x16.bmp")
     val image = ImageIO.read(inputStream)
 
-
     val glyphColumns = image.getWidth() / glyphWidth
     val glyphRows = image.getHeight / glyphHeight
     val glyphCount = glyphColumns * glyphRows
-    val glyphs = new Array[UInt](glyphCount)
+    val glyphs = new Array[UInt](glyphCount * GlyphInfo.glyphHeight)
 
     for (row <- 0 until glyphRows) {
       for (col <- 0 until glyphColumns) {
-        val lines = new Array[Int](glyphHeight)
         for (i <- 0 until glyphHeight) {
           var lineInt = 0
           for (j <- 0 until glyphWidth) {
-            if (image.getRGB(col * glyphWidth + j, row * glyphHeight + i) == 0xFF000000) {
+            if (image.getRGB(col * glyphWidth + j, row * glyphHeight + i) != 0xFFFFFFFF) {
               lineInt |= (1 << j)
             }
           }
-          lines(i) = lineInt
+          glyphs((row * glyphColumns + col) * GlyphInfo.glyphHeight + i) = lineInt.U(8.W)
         }
-        glyphs(row * glyphColumns + col) = Cat(lines.map(l => l.U))
       }
     }
     VecInit(glyphs)

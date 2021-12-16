@@ -34,6 +34,7 @@ class CPU extends Module {
   ctrl.io.jump_flag := ex.io.ctrl_jump_flag
   ctrl.io.jump_address := ex.io.ctrl_jump_address
   ctrl.io.hold_flag_ex := ex.io.ctrl_hold_flag
+  ctrl.io.hold_flag_id := id.io.ctrl_hold_flag
 
   regs.io.write_enable := ex.io.regs_write_enable
   regs.io.write_address := ex.io.regs_write_address

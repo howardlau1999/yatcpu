@@ -30,7 +30,7 @@ class ID2EX extends Module {
   })
   val hold_enable = io.hold_flag >= HoldStates.ID.id.U
 
-  val instruction = Module(new PipelineRegister())
+  val instruction = Module(new PipelineRegister(defaultValue = 0x00000013.U))
   instruction.io.in := io.instruction
   instruction.io.hold_enable := hold_enable
   io.output_instruction := instruction.io.out
