@@ -344,3 +344,5 @@ verilog
 *.log
 .Xil
 vivado/riscv-basys3
+.vscode
+.metals
