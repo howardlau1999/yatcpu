@@ -5,6 +5,8 @@ import chisel3.util._
 
 class Top extends Module {
   val io = IO(new Bundle {
+    val switch = Input(UInt(16.W))
+
     val segs = Output(UInt(7.W))
     val digit_mask = Output(UInt(4.W))
     val dp = Output(Bool())
@@ -12,7 +14,7 @@ class Top extends Module {
     val hsync = Output(Bool())
     val vsync = Output(Bool())
     val rgb = Output(UInt(12.W))
-
+    val led = Output(UInt(16.W))
   })
 
   val numbers = RegInit(UInt(16.W), 0.U)
@@ -59,6 +61,7 @@ class Top extends Module {
   }
 
   io.dp := true.B
-  cpu.io.debug_mem_read_address := 0xD.U
+  cpu.io.debug_mem_read_address := io.switch * 4.U
+  io.led := cpu.io.instruction_address / 4.U
   onboard_display.io.numbers := cpu.io.debug_mem_read_data(15, 0).asUInt()
 }
