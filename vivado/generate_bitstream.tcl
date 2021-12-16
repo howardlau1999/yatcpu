@@ -20,8 +20,29 @@ if {[file exist $project_dir]} {
 add_files -norecurse $sources
 update_compile_order -fileset sources_1
 add_files -fileset constrs_1 -norecurse basys3.xdc
+
 while 1 {
-    if { [catch {launch_runs impl_1 -to_step write_bitstream -jobs 4} ] } {
+    if { [catch {launch_runs synth_1 -jobs 4 } ] } {
+        regexp {ERROR: \[Common (\d+-\d+)]} $errorInfo -> code
+        if { [string equal $code "12-978"] } {
+            puts "Already generated and up-to-date"
+            break
+        } elseif { [string equal $code "17-69"] } {
+            puts "Out of date, reset runs"
+            reset_runs synth_1
+            continue
+        } else {
+            puts "UNKNOWN ERROR!!! $errorInfo"
+            exit
+        }
+    }
+    break
+}
+
+wait_on_run synth_1
+
+while 1 {
+    if { [catch {launch_runs impl_1 -jobs 4 -to_step write_bitstream } ] } {
         regexp {ERROR: \[Vivado (\d+-\d+)]} $errorInfo -> code
         if { [string equal $code "12-978"] } {
             puts "Already generated and up-to-date"
@@ -38,4 +59,4 @@ while 1 {
     break
 }
 
-wait_on_run [current_run]
+wait_on_run impl_1
