@@ -18,11 +18,9 @@ class Memory(capacity: Int) extends Module {
     val char_read_data = Output(UInt(32.W))
   })
 
-  val data = RegInit(VecInit(Seq.fill(capacity)(0.U(32.W))))
-  when(!reset.asBool()) {
-    when(io.write_enable && io.write_address =/= 0.U) {
-      data(io.write_address) := io.write_data
-    }
+  val data = Reg(Vec(capacity, UInt(32.W)))
+  when(io.write_enable) {
+    data(io.write_address) := io.write_data
   }
   io.read_data := data(io.read_address)
   io.debug_read_data := data(io.debug_read_address)
