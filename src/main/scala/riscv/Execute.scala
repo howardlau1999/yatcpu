@@ -79,31 +79,26 @@ class Execute extends Module {
   when(opcode === InstructionTypes.I) {
     disable_control()
     disable_memory()
-    when(funct3 === InstructionsTypeI.addi) {
-      io.regs_write_data := io.op1 + io.op2
-    }.elsewhen(funct3 === InstructionsTypeI.slli) {
-      io.regs_write_data := io.reg1 << io.instruction(24, 20)
-    }.elsewhen(funct3 === InstructionsTypeI.slti) {
-      io.regs_write_data := signed_op1 < signed_op2
-    }.elsewhen(funct3 === InstructionsTypeI.sltiu) {
-      io.regs_write_data := io.op1 < io.op2
-    }.elsewhen(funct3 === InstructionsTypeI.xori) {
-      io.regs_write_data := io.op1 ^ io.op2
-    }.elsewhen(funct3 === InstructionsTypeI.sri) {
-      when(io.instruction(30) === 1.U) {
-        val mask = (0xFFFFFFFFL.U >> io.instruction(24, 20)).asUInt()
-        io.regs_write_data := ((io.reg1 >> io.instruction(24, 20)).asUInt() & mask |
-          (Fill(32, io.reg1(31)) & (~mask).asUInt()).asUInt())
-      }.otherwise {
-        io.regs_write_data := io.reg1 >> io.instruction(24, 20)
-      }
-    }.elsewhen(funct3 === InstructionsTypeI.ori) {
-      io.regs_write_data := io.op1 | io.op2
-    }.elsewhen(funct3 === InstructionsTypeI.andi) {
-      io.regs_write_data := io.op1 & io.op2
-    }.otherwise {
-      io.regs_write_data := 0.U
-    }
+    val mask = (0xFFFFFFFFL.U >> io.instruction(24, 20)).asUInt()
+    io.regs_write_data := MuxLookup(
+      funct3,
+      0.U,
+      Array(
+        InstructionsTypeI.addi -> (io.op1 + io.op2),
+        InstructionsTypeI.slli -> (io.reg1 << io.instruction(24, 20)),
+        InstructionsTypeI.slti -> (signed_op1 < signed_op2),
+        InstructionsTypeI.sltiu -> (io.op1 < io.op2),
+        InstructionsTypeI.xori -> (io.op1 ^ io.op2),
+        InstructionsTypeI.ori -> (io.op1 | io.op2),
+        InstructionsTypeI.andi -> (io.op1 & io.op2),
+        InstructionsTypeI.sri -> Mux(
+          io.instruction(30) === 1.U,
+          ((io.reg1 >> io.instruction(24, 20)).asUInt() & mask |
+          (Fill(32, io.reg1(31)) & (~mask).asUInt()).asUInt()),
+          io.reg1 >> io.instruction(24, 20)
+        )
+      )
+    )
   }.elsewhen(opcode === InstructionTypes.RM) {
     disable_memory()
     disable_control()
