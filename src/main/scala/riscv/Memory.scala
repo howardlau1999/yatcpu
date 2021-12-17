@@ -20,7 +20,7 @@ class Memory(capacity: Int) extends Module {
 
   val mem = SyncReadMem(capacity, UInt(32.W))
 
-  mem.write(io.write_address / 4.U, io.write_data)
+  mem.write((io.write_address / 4.U) & Fill(32, io.write_enable), io.write_data)
 
   io.read_data := mem.read(io.read_address / 4.U, true.B)
   io.debug_read_data := mem.read(io.debug_read_address / 4.U, true.B)
