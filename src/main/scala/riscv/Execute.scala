@@ -82,7 +82,7 @@ class Execute extends Module {
     when(funct3 === InstructionsTypeI.addi) {
       io.regs_write_data := io.op1 + io.op2
     }.elsewhen(funct3 === InstructionsTypeI.slli) {
-      io.regs_write_data := io.reg1 << io.instruction(24, 20)
+      io.regs_write_data := (io.reg1 << io.instruction(24, 20)).asUInt()
     }.elsewhen(funct3 === InstructionsTypeI.slti) {
       io.regs_write_data := signed_op1 < signed_op2
     }.elsewhen(funct3 === InstructionsTypeI.sltiu) {
@@ -116,7 +116,7 @@ class Execute extends Module {
           io.regs_write_data := io.op1 - io.op2
         }
       }.elsewhen(funct3 === InstructionsTypeR.sll) {
-        io.regs_write_data := io.op1 << io.op2(4, 0)
+        io.regs_write_data := (io.op1 << io.op2(4, 0)).asUInt()
       }.elsewhen(funct3 === InstructionsTypeR.slt) {
         io.regs_write_data := signed_op1 < signed_op2
       }.elsewhen(funct3 === InstructionsTypeR.sltu) {

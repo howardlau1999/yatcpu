@@ -9,7 +9,7 @@ class PipelineRegister(width: Int = 32, defaultValue: UInt = 0.U) extends Module
     val out = Output(UInt(width.W))
   })
 
-  val reg = RegInit(UInt(width.W), 0.U)
+  val reg = RegInit(UInt(width.W), defaultValue)
   when(io.hold_enable) {
     reg := defaultValue
   }.otherwise {

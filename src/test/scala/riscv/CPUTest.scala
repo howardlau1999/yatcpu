@@ -9,6 +9,19 @@ import java.nio.{ByteBuffer, ByteOrder}
 class CPUTest extends FreeSpec with ChiselScalatestTester {
   var warned = false
 
+  def read_instructions(filename: String) = {
+    val inputStream = getClass.getClassLoader.getResourceAsStream(filename)
+    var instructions = new Array[UInt](0)
+    val arr = new Array[Byte](4)
+    while (inputStream.read(arr) == 4) {
+      val instBuf = ByteBuffer.wrap(arr)
+      instBuf.order(ByteOrder.LITTLE_ENDIAN)
+      val inst = BigInt(instBuf.getInt() & 0xFFFFFFFFL)
+      instructions = instructions :+ inst.U(32.W)
+    }
+    instructions
+  }
+
   def run_instructions(instructions: Array[UInt], c: CPU, cycles: Int) = {
     warned = false
     for (i <- 1 to cycles) {
@@ -117,18 +130,7 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
                   *(int *)(4) = fib(10);
           }
          */
-        val instructions: Array[UInt] = Array(
-          0x3fc00113L.U, 0x084000efL.U, 0x0000006fL.U, 0xfe010113L.U, 0x00112e23L.U, 0x00812c23L.U,
-          0x00912a23L.U, 0x02010413L.U, 0xfea42623L.U, 0xfec42703L.U, 0x00100793L.U, 0x00f70863L.U,
-          0xfec42703L.U, 0x00200793L.U, 0x00f71663L.U, 0x00100793L.U, 0x0300006fL.U, 0xfec42783L.U,
-          0xfff78793L.U, 0x00078513L.U, 0xfbdff0efL.U, 0x00050493L.U, 0xfec42783L.U, 0xffe78793L.U,
-          0x00078513L.U, 0xfa9ff0efL.U, 0x00050793L.U, 0x00f487b3L.U, 0x00078513L.U, 0x01c12083L.U,
-          0x01812403L.U, 0x01412483L.U, 0x02010113L.U, 0x00008067L.U, 0xff010113L.U, 0x00112623L.U,
-          0x00812423L.U, 0x00912223L.U, 0x01010413L.U, 0x00400493L.U, 0x00a00513L.U, 0xf69ff0efL.U,
-          0x00050793L.U, 0x00f4a023L.U, 0x00000793L.U, 0x00078513L.U, 0x00c12083L.U, 0x00812403L.U,
-          0x00412483L.U, 0x01010113L.U, 0x00008067L.U,
-        )
-        run_instructions(instructions, c, 3500)
+        run_instructions(read_instructions("fibonacci.asmbin"), c, 3500)
         c.io.debug_mem_read_address.poke(4.U)
         c.clock.step()
         c.io.debug_mem_read_data.expect(55.U)
@@ -174,31 +176,7 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
         }
        */
       test(new CPU) { c =>
-        val instructions: Array[UInt] = Array(
-          0x3fc00113L.U, 0x184000efL.U, 0x0000006fL.U, 0xfd010113L.U, 0x02112623L.U, 0x02812423L.U, 0x03010413L.U,
-          0xfca42e23L.U, 0xfcb42c23L.U, 0xfcc42a23L.U, 0xfd842703L.U, 0xfd442783L.U, 0x14f75263L.U, 0xfd842783L.U,
-          0x00279793L.U, 0xfdc42703L.U, 0x00f707b3L.U, 0x0007a783L.U, 0xfef42223L.U, 0xfd842783L.U, 0xfef42623L.U,
-          0xfd442783L.U, 0xfef42423L.U, 0x0c00006fL.U, 0xfe842783L.U, 0xfff78793L.U, 0xfef42423L.U, 0xfe842783L.U,
-          0x00279793L.U, 0xfdc42703L.U, 0x00f707b3L.U, 0x0007a783L.U, 0xfe442703L.U, 0x00e7c863L.U, 0xfec42703L.U,
-          0xfe842783L.U, 0xfcf748e3L.U, 0xfe842783L.U, 0x00279793L.U, 0xfdc42703L.U, 0x00f70733L.U, 0xfec42783L.U,
-          0x00279793L.U, 0xfdc42683L.U, 0x00f687b3L.U, 0x00072703L.U, 0x00e7a023L.U, 0x0100006fL.U, 0xfec42783L.U,
-          0x00178793L.U, 0xfef42623L.U, 0xfec42783L.U, 0x00279793L.U, 0xfdc42703L.U, 0x00f707b3L.U, 0x0007a783L.U,
-          0xfe442703L.U, 0x00e7d863L.U, 0xfec42703L.U, 0xfe842783L.U, 0xfcf748e3L.U, 0xfec42783L.U, 0x00279793L.U,
-          0xfdc42703L.U, 0x00f70733L.U, 0xfe842783L.U, 0x00279793L.U, 0xfdc42683L.U, 0x00f687b3L.U, 0x00072703L.U,
-          0x00e7a023L.U, 0xfec42703L.U, 0xfe842783L.U, 0xf4f744e3L.U, 0xfec42783L.U, 0x00279793L.U, 0xfdc42703L.U,
-          0x00f707b3L.U, 0xfe442703L.U, 0x00e7a023L.U, 0xfec42783L.U, 0xfff78793L.U, 0x00078613L.U, 0xfd842583L.U,
-          0xfdc42503L.U, 0xeb9ff0efL.U, 0xfec42783L.U, 0x00178793L.U, 0xfd442603L.U, 0x00078593L.U, 0xfdc42503L.U,
-          0xea1ff0efL.U, 0x0080006fL.U, 0x00000013L.U, 0x02c12083L.U, 0x02812403L.U, 0x03010113L.U, 0x00008067L.U,
-          0xfc010113L.U, 0x02112e23L.U, 0x02812c23L.U, 0x04010413L.U, 0x00600793L.U, 0xfcf42223L.U, 0x00200793L.U,
-          0xfcf42423L.U, 0x00400793L.U, 0xfcf42623L.U, 0x00500793L.U, 0xfcf42823L.U, 0x00300793L.U, 0xfcf42a23L.U,
-          0x00100793L.U, 0xfcf42c23L.U, 0xfc042e23L.U, 0x00900793L.U, 0xfef42023L.U, 0x00700793L.U, 0xfef42223L.U,
-          0x00800793L.U, 0xfef42423L.U, 0xfc440793L.U, 0x00900613L.U, 0x00000593L.U, 0x00078513L.U, 0xe19ff0efL.U,
-          0x00100793L.U, 0xfef42623L.U, 0x0340006fL.U, 0xfec42783L.U, 0xfff78793L.U, 0xfec42703L.U, 0x00271713L.U,
-          0x00279793L.U, 0xff040693L.U, 0x00f687b3L.U, 0xfd47a783L.U, 0x00f72023L.U, 0xfec42783L.U, 0x00178793L.U,
-          0xfef42623L.U, 0xfec42703L.U, 0x00a00793L.U, 0xfce7d4e3L.U, 0x00000793L.U, 0x00078513L.U, 0x03c12083L.U,
-          0x03812403L.U, 0x04010113L.U, 0x00008067L.U
-        )
-        run_instructions(instructions, c, 1550)
+        run_instructions(read_instructions("quicksort.asmbin"), c, 1550)
         for (i <- 1 to 10) {
           c.io.debug_mem_read_address.poke((4 * i).U)
           c.clock.step()
@@ -209,40 +187,27 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
 
     "should write hello world to video memory" in {
       test(new CPU) { c =>
-        val instructions: Array[UInt] = Array(
-          0x3fc00113L.U, 0x008000efL.U, 0x0000006fL.U, 0xfe010113L.U, 0x00812e23L.U, 0x02010413L.U, 0xfe042623L.U,
-          0x1300006fL.U, 0xfec42703L.U, 0x00070793L.U, 0x00279793L.U, 0x00e787b3L.U, 0x00479793L.U, 0x40078793L.U,
-          0xfef42423L.U, 0xfe842783L.U, 0x00178713L.U, 0xfee42423L.U, 0x04800713L.U, 0x00e78023L.U, 0xfe842783L.U,
-          0x00178713L.U, 0xfee42423L.U, 0x06500713L.U, 0x00e78023L.U, 0xfe842783L.U, 0x00178713L.U, 0xfee42423L.U,
-          0x06c00713L.U, 0x00e78023L.U, 0xfe842783L.U, 0x00178713L.U, 0xfee42423L.U, 0x06c00713L.U, 0x00e78023L.U,
-          0xfe842783L.U, 0x00178713L.U, 0xfee42423L.U, 0x06f00713L.U, 0x00e78023L.U, 0xfe842783L.U, 0x00178713L.U,
-          0xfee42423L.U, 0x02c00713L.U, 0x00e78023L.U, 0xfe842783L.U, 0x00178713L.U, 0xfee42423L.U, 0x02000713L.U,
-          0x00e78023L.U, 0xfe842783L.U, 0x00178713L.U, 0xfee42423L.U, 0x07700713L.U, 0x00e78023L.U, 0xfe842783L.U,
-          0x00178713L.U, 0xfee42423L.U, 0x06f00713L.U, 0x00e78023L.U, 0xfe842783L.U, 0x00178713L.U, 0xfee42423L.U,
-          0x07200713L.U, 0x00e78023L.U, 0xfe842783L.U, 0x00178713L.U, 0xfee42423L.U, 0x06c00713L.U, 0x00e78023L.U,
-          0xfe842783L.U, 0x00178713L.U, 0xfee42423L.U, 0x06400713L.U, 0x00e78023L.U, 0xfe842783L.U, 0x00178713L.U,
-          0xfee42423L.U, 0x02100713L.U, 0x00e78023L.U, 0xfec42783L.U, 0x00178793L.U, 0xfef42623L.U, 0xfec42703L.U,
-          0x01d00793L.U, 0xece7d6e3L.U, 0x00d00793L.U, 0xdeade737L.U, 0xead70713L.U, 0x00e7a023L.U, 0x00000793L.U,
-          0x00078513L.U, 0x01c12403L.U, 0x02010113L.U, 0x00008067L.U,
-        )
-        run_instructions(instructions, c, 3000)
+        run_instructions(read_instructions("hello.asmbin"), c, 25000)
         val helloworld = "Hello, world!"
-        for (i <- 0 until 3) {
-          c.io.char_mem_read_address.poke((i * 4 + 1024).U)
-          c.clock.step()
-          val arr: Array[Byte] = Array(
-            helloworld.charAt(i * 4).toByte,
-            helloworld.charAt(i * 4 + 1).toByte,
-            helloworld.charAt(i * 4 + 2).toByte,
-            helloworld.charAt(i * 4 + 3).toByte,
-          )
-          val buf = ByteBuffer.wrap(arr)
-          buf.order(ByteOrder.LITTLE_ENDIAN)
-          c.io.char_mem_read_data.expect(BigInt(buf.getInt() & 0xFFFFFFFF).U)
+        for (r <- 0 until 30) {
+          for (i <- 0 until 3) {
+            c.io.char_mem_read_address.poke((i * 4 + 1024 + 80 * r).U)
+            c.clock.step()
+            val arr: Array[Byte] = Array(
+              helloworld.charAt(i * 4).toByte,
+              helloworld.charAt(i * 4 + 1).toByte,
+              helloworld.charAt(i * 4 + 2).toByte,
+              helloworld.charAt(i * 4 + 3).toByte,
+            )
+            val buf = ByteBuffer.wrap(arr)
+            buf.order(ByteOrder.LITTLE_ENDIAN)
+            c.io.char_mem_read_data.expect(BigInt(buf.getInt() & 0xFFFFFFFF).U)
+          }
         }
-        c.io.debug_mem_read_address.poke(0xD.U)
+
+        c.io.debug_mem_read_address.poke(0x4.U)
         c.clock.step()
-        c.io.debug_mem_read_data.expect(0xDEADDEADL.U)
+        c.io.debug_mem_read_data.expect(0xDEADBEEFL.U)
       }
     }
   }
