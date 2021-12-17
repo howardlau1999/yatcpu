@@ -1,6 +1,6 @@
 void write_char(int row, int col, char ch) {
-	char *vram = ((char *) 1024) + row * 80 + col;
-	*vram = ch;
+	char *vram = (char *) 1024;
+	vram[row * 80 + col] = ch;
 }
 
 void clear_screen() {
@@ -17,6 +17,7 @@ int main() {
 		write_char(row, col++, 'l');
 		write_char(row, col++, 'l');
 		write_char(row, col++, 'o');
+		write_char(row, col++, ',');
 		write_char(row, col++, ' ');
 		write_char(row, col++, 'w');
 		write_char(row, col++, 'o');
