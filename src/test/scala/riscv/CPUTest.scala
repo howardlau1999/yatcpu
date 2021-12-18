@@ -130,7 +130,7 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
                   *(int *)(4) = fib(10);
           }
          */
-        run_instructions(read_instructions("fibonacci.asmbin"), c, 3500)
+        run_instructions(read_instructions("fibonacci.asmbin"), c, 4000)
         c.io.debug_mem_read_address.poke(4.U)
         c.clock.step()
         c.io.debug_mem_read_data.expect(55.U)
@@ -176,7 +176,7 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
         }
        */
       test(new CPU) { c =>
-        run_instructions(read_instructions("quicksort.asmbin"), c, 1550)
+        run_instructions(read_instructions("quicksort.asmbin"), c, 3000)
         for (i <- 1 to 10) {
           c.io.debug_mem_read_address.poke((4 * i).U)
           c.clock.step()
@@ -187,7 +187,7 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
 
     "should write hello world to video memory" in {
       test(new CPU) { c =>
-        run_instructions(read_instructions("hello.asmbin"), c, 25000)
+        run_instructions(read_instructions("hello.asmbin"), c, 30000)
         val helloworld = "Hello, world!"
         for (r <- 0 until 30) {
           for (i <- 0 until 3) {

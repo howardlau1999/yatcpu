@@ -76,6 +76,10 @@ class Execute extends Module {
   io.regs_write_address := io.write_address
   io.regs_write_data := 0.U
 
+  val writing_mem = RegInit(Bool(), false.B)
+  val mem_write_address = Reg(UInt(32.W))
+  val mem_write_data = Reg(UInt(32.W))
+
   when(opcode === InstructionTypes.I) {
     disable_control()
     disable_memory()
@@ -193,6 +197,7 @@ class Execute extends Module {
     disable_control()
     io.mem_write_address := io.op1 + io.op2
     io.mem_write_enable := true.B
+    writing_mem := true.B
     when(funct3 === InstructionsTypeS.sb) {
       when(mem_write_address_index === 0.U) {
         io.mem_write_data := Cat(io.data(31, 8), io.reg2(7, 0))
@@ -213,7 +218,10 @@ class Execute extends Module {
       io.mem_write_data := io.reg2
     }.otherwise {
       disable_memory()
+      writing_mem := false.B
     }
+    mem_write_address := io.mem_write_address
+    mem_write_data := io.mem_write_data
   }.elsewhen(opcode === InstructionTypes.B) {
     disable_control()
     disable_memory()
@@ -246,13 +254,16 @@ class Execute extends Module {
     disable_control()
     disable_memory()
     io.regs_write_data := io.op1 + io.op2
-  }.elsewhen(opcode === Instructions.nop) {
+  }.otherwise{
     disable_control()
-    disable_memory()
-    io.regs_write_data := 0.U
-  }.otherwise {
-    disable_control()
-    disable_memory()
+    when(writing_mem) {
+      io.mem_write_enable := true.B
+      io.mem_write_data := mem_write_data
+      io.mem_write_address := mem_write_address
+      writing_mem := false.B
+    }.otherwise{
+      disable_memory()
+    }
     io.regs_write_data := 0.U
   }
 }

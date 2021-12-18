@@ -210,6 +210,7 @@ class InstructionDecode extends Module {
       io.ex_op2 := Cat(Fill(20, io.instruction(31)), io.instruction(31, 25), io.instruction(11, 7))
       io.ex_mem_read_address := io.ex_op1 + io.ex_op2
       last_write_address := io.ex_op1 + io.ex_op2
+      io.ctrl_hold_flag := true.B
     }.otherwise {
       disable_regs()
     }
