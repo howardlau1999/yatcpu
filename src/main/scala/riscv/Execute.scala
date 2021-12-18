@@ -83,137 +83,117 @@ class Execute extends Module {
   when(opcode === InstructionTypes.I) {
     disable_control()
     disable_memory()
-    when(funct3 === InstructionsTypeI.addi) {
-      io.regs_write_data := io.op1 + io.op2
-    }.elsewhen(funct3 === InstructionsTypeI.slli) {
-      io.regs_write_data := (io.reg1 << io.instruction(24, 20)).asUInt()
-    }.elsewhen(funct3 === InstructionsTypeI.slti) {
-      io.regs_write_data := signed_op1 < signed_op2
-    }.elsewhen(funct3 === InstructionsTypeI.sltiu) {
-      io.regs_write_data := io.op1 < io.op2
-    }.elsewhen(funct3 === InstructionsTypeI.xori) {
-      io.regs_write_data := io.op1 ^ io.op2
-    }.elsewhen(funct3 === InstructionsTypeI.sri) {
-      when(io.instruction(30) === 1.U) {
-        val mask = (0xFFFFFFFFL.U >> io.instruction(24, 20)).asUInt()
-        io.regs_write_data := ((io.reg1 >> io.instruction(24, 20)).asUInt() & mask |
-          (Fill(32, io.reg1(31)) & (~mask).asUInt()).asUInt())
-      }.otherwise {
-        io.regs_write_data := io.reg1 >> io.instruction(24, 20)
-      }
-    }.elsewhen(funct3 === InstructionsTypeI.ori) {
-      io.regs_write_data := io.op1 | io.op2
-    }.elsewhen(funct3 === InstructionsTypeI.andi) {
-      io.regs_write_data := io.op1 & io.op2
-    }.otherwise {
-      io.regs_write_data := 0.U
-    }
+    val mask = (0xFFFFFFFFL.U >> io.instruction(24, 20)).asUInt()
+    io.regs_write_data := MuxLookup(
+      funct3,
+      0.U,
+      Array(
+        InstructionsTypeI.addi -> (io.op1 + io.op2),
+        InstructionsTypeI.slli -> ((io.reg1 << io.instruction(24, 20)).asUInt()),
+        InstructionsTypeI.slti -> (signed_op1 < signed_op2),
+        InstructionsTypeI.sltiu -> (io.op1 < io.op2),
+        InstructionsTypeI.xori -> (io.op1 ^ io.op2),
+        InstructionsTypeI.ori -> (io.op1 | io.op2),
+        InstructionsTypeI.andi -> (io.op1 & io.op2),
+        InstructionsTypeI.sri -> Mux(
+          io.instruction(30) === 1.U,
+          ((io.reg1 >> io.instruction(24, 20)).asUInt() & mask |
+          (Fill(32, io.reg1(31)) & (~mask).asUInt()).asUInt()),
+          io.reg1 >> io.instruction(24, 20)
+        )
+      )
+    )
   }.elsewhen(opcode === InstructionTypes.RM) {
     disable_memory()
     disable_control()
     // TODO(howard): support mul and div
     when(funct7 === 0.U || funct7 === 0x20.U) {
-      when(funct3 === InstructionsTypeR.add_sub) {
-        when(io.instruction(30) === 0.U) {
-          io.regs_write_data := io.op1 + io.op2
-        }.otherwise {
-          io.regs_write_data := io.op1 - io.op2
-        }
-      }.elsewhen(funct3 === InstructionsTypeR.sll) {
-        io.regs_write_data := (io.op1 << io.op2(4, 0)).asUInt()
-      }.elsewhen(funct3 === InstructionsTypeR.slt) {
-        io.regs_write_data := signed_op1 < signed_op2
-      }.elsewhen(funct3 === InstructionsTypeR.sltu) {
-        io.regs_write_data := io.op1 < io.op2
-      }.elsewhen(funct3 === InstructionsTypeR.xor) {
-        io.regs_write_data := io.op1 ^ io.op2
-      }.elsewhen(funct3 === InstructionsTypeR.sr) {
-        when(io.instruction(30) === 1.U) {
-          val mask = (0xFFFFFFFFL.U >> io.reg2(4, 0)).asUInt()
-          io.regs_write_data := ((io.reg1 >> io.reg2(4, 0)).asUInt() & mask |
-            (Fill(32, io.reg1(31)) & (~mask).asUInt()).asUInt())
-        }.otherwise {
-          io.regs_write_data := io.reg1 >> io.reg2(4, 0)
-        }
-      }.elsewhen(funct3 === InstructionsTypeR.or) {
-        io.regs_write_data := io.op1 | io.op2
-      }.elsewhen(funct3 === InstructionsTypeR.and) {
-        io.regs_write_data := io.op1 & io.op2
-      }
+      val mask = (0xFFFFFFFFL.U >> io.reg2(4, 0)).asUInt()
+      io.regs_write_data := MuxLookup(
+        funct3,
+        0.U,
+        Array(
+          InstructionsTypeR.add_sub -> Mux(
+            io.instruction(30) === 0.U,
+            io.op1 + io.op2,
+            io.op1 - io.op2
+          ),
+          InstructionsTypeR.sll -> ((io.op1 << io.op2(4, 0)).asUInt()),
+          InstructionsTypeR.slt -> (signed_op1 < signed_op2),
+          InstructionsTypeR.sltu -> (io.op1 < io.op2),
+          InstructionsTypeR.xor -> (io.op1 ^ io.op2),
+          InstructionsTypeR.or -> (io.op1 | io.op2),
+          InstructionsTypeR.and -> (io.op1 & io.op2),
+          InstructionsTypeR.sr -> Mux(
+            io.instruction(30) === 1.U,
+            ((io.reg1 >> io.reg2(4, 0)).asUInt() & mask |
+            (Fill(32, io.reg1(31)) & (~mask).asUInt()).asUInt()),
+            io.reg1 >> io.reg2(4, 0)
+          )
+        )
+      )
     }
   }.elsewhen(opcode === InstructionTypes.L) {
     disable_memory_write()
     disable_control()
-
-    when(funct3 === InstructionsTypeL.lb || funct3 === InstructionsTypeL.lbu) {
-      val is_lbu = funct3 === InstructionsTypeL.lbu
-      when(mem_read_address_index === 0.U) {
-        when(is_lbu) {
-          io.regs_write_data := Cat(Fill(24, 0.U), io.data(7, 0))
-        }.otherwise {
-          io.regs_write_data := Cat(Fill(24, io.data(7)), io.data(7, 0))
-        }
-      }.elsewhen(mem_read_address_index === 1.U) {
-        when(is_lbu) {
-          io.regs_write_data := Cat(Fill(24, 0.U), io.data(15, 8))
-        }.otherwise {
-          io.regs_write_data := Cat(Fill(24, io.data(15)), io.data(15, 8))
-        }
-
-      }.elsewhen(mem_read_address_index === 2.U) {
-        when(is_lbu) {
-          io.regs_write_data := Cat(Fill(24, 0.U), io.data(23, 16))
-        }.otherwise {
-          io.regs_write_data := Cat(Fill(24, io.data(23)), io.data(23, 16))
-        }
-      }.otherwise {
-        when(is_lbu) {
-          io.regs_write_data := Cat(Fill(24, 0.U), io.data(31, 24))
-        }.otherwise {
-          io.regs_write_data := Cat(Fill(24, io.data(31)), io.data(31, 24))
-        }
-      }
-    }.elsewhen(funct3 === InstructionsTypeL.lh || funct3 === InstructionsTypeL.lhu) {
-      val is_lhu = funct3 === InstructionsTypeL.lhu
-      when(mem_read_address_index === 0.U) {
-        when(is_lhu) {
-          io.regs_write_data := Cat(Fill(16, 0.U), io.data(15, 0))
-        }.otherwise {
-          io.regs_write_data := Cat(Fill(16, io.data(15)), io.data(15, 0))
-        }
-      }.otherwise {
-        when(is_lhu) {
-          io.regs_write_data := Cat(Fill(16, 0.U), io.data(31, 16))
-        }.otherwise {
-          io.regs_write_data := Cat(Fill(16, io.data(31)), io.data(31, 16))
-        }
-      }
-    }.elsewhen(funct3 === InstructionsTypeL.lw) {
-      io.regs_write_data := io.data
-    }.otherwise {
-      io.regs_write_data := 0.U
-    }
+    io.regs_write_data := MuxLookup(
+      funct3,
+      0.U,
+      Array(
+        InstructionsTypeL.lb -> MuxLookup(
+          mem_read_address_index,
+          Cat(Fill(24, io.data(31)), io.data(31, 24)),
+          Array(
+            0.U -> Cat(Fill(24, io.data(7)), io.data(7, 0)),
+            1.U -> Cat(Fill(24, io.data(15)), io.data(15, 8)),
+            2.U -> Cat(Fill(24, io.data(23)), io.data(23, 16))
+          )
+        ),
+        InstructionsTypeL.lbu -> MuxLookup(
+          mem_read_address_index,
+          Cat(Fill(24, 0.U), io.data(31, 24)),
+          Array(
+            0.U -> Cat(Fill(24, 0.U), io.data(7, 0)),
+            1.U -> Cat(Fill(24, 0.U), io.data(15, 8)),
+            2.U -> Cat(Fill(24, 0.U), io.data(23, 16))
+          )
+        ),
+        InstructionsTypeL.lh -> Mux(
+          mem_read_address_index === 0.U,
+          Cat(Fill(16, io.data(15)), io.data(15, 0)),
+          Cat(Fill(16, io.data(31)), io.data(31, 16))
+        ),
+        InstructionsTypeL.lhu -> Mux(
+          mem_read_address_index === 0.U,
+          Cat(Fill(16, 0.U), io.data(15, 0)),
+          Cat(Fill(16, 0.U), io.data(31, 16))
+        ),
+        InstructionsTypeL.lw -> io.data
+      )
+    )
   }.elsewhen(opcode === InstructionTypes.S) {
     disable_control()
     io.mem_write_address := io.op1 + io.op2
     io.mem_write_enable := true.B
     writing_mem := true.B
     when(funct3 === InstructionsTypeS.sb) {
-      when(mem_write_address_index === 0.U) {
-        io.mem_write_data := Cat(io.data(31, 8), io.reg2(7, 0))
-      }.elsewhen(mem_write_address_index === 1.U) {
-        io.mem_write_data := Cat(io.data(31, 16), io.reg2(7, 0), io.data(7, 0))
-      }.elsewhen(mem_write_address_index === 2.U) {
-        io.mem_write_data := Cat(io.data(31, 24), io.reg2(7, 0), io.data(15, 0))
-      }.otherwise {
-        io.mem_write_data := Cat(io.reg2(7, 0), io.data(23, 0))
-      }
+      io.mem_write_data := MuxLookup(
+        mem_write_address_index,
+        Cat(io.reg2(7, 0), io.data(23, 0)),
+        Array(
+          0.U -> Cat(io.data(31, 8), io.reg2(7, 0)),
+          1.U -> Cat(io.data(31, 16), io.reg2(7, 0), io.data(7, 0)),
+          2.U -> Cat(io.data(31, 24), io.reg2(7, 0), io.data(15, 0)),
+        )
+      )
     }.elsewhen(funct3 === InstructionsTypeS.sh) {
-      when(mem_write_address_index === 0.U) {
-        io.mem_write_data := Cat(io.data(31, 16), io.reg2(15, 0))
-      }.otherwise {
-        io.mem_write_data := Cat(io.reg2(15, 0), io.data(15, 0))
-      }
+      io.mem_write_data := MuxLookup(
+        mem_write_address_index,
+        Cat(io.reg2(15, 0), io.data(15, 0)),
+        Array(
+          0.U -> Cat(io.data(31, 16), io.reg2(15, 0))
+        )
+      )
     }.elsewhen(funct3 === InstructionsTypeS.sw) {
       io.mem_write_data := io.reg2
     }.otherwise {
@@ -225,25 +205,30 @@ class Execute extends Module {
   }.elsewhen(opcode === InstructionTypes.B) {
     disable_control()
     disable_memory()
-    when(funct3 === InstructionsTypeB.beq) {
-      io.ctrl_jump_flag := io.op1 === io.op2
-      io.ctrl_jump_address := Fill(32, io.op1 === io.op2) & (io.op1_jump + io.op2_jump)
-    }.elsewhen(funct3 === InstructionsTypeB.bne) {
-      io.ctrl_jump_flag := io.op1 =/= io.op2
-      io.ctrl_jump_address := Fill(32, io.op1 =/= io.op2) & (io.op1_jump + io.op2_jump)
-    }.elsewhen(funct3 === InstructionsTypeB.bltu) {
-      io.ctrl_jump_flag := io.op1 < io.op2
-      io.ctrl_jump_address := Fill(32, io.op1 < io.op2) & (io.op1_jump + io.op2_jump)
-    }.elsewhen(funct3 === InstructionsTypeB.bgeu) {
-      io.ctrl_jump_flag := io.op1 >= io.op2
-      io.ctrl_jump_address := Fill(32, io.op1 >= io.op2) & (io.op1_jump + io.op2_jump)
-    }.elsewhen(funct3 === InstructionsTypeB.blt) {
-      io.ctrl_jump_flag := signed_op1 < signed_op2
-      io.ctrl_jump_address := Fill(32, signed_op1 < signed_op2) & (io.op1_jump + io.op2_jump)
-    }.elsewhen(funct3 === InstructionsTypeB.bge) {
-      io.ctrl_jump_flag := signed_op1 >= signed_op2
-      io.ctrl_jump_address := Fill(32, signed_op1 >= signed_op2) & (io.op1_jump + io.op2_jump)
-    }
+    io.ctrl_jump_flag := MuxLookup(
+      funct3,
+      0.U,
+      Array(
+        InstructionsTypeB.beq -> (io.op1 === io.op2),
+        InstructionsTypeB.bne -> (io.op1 =/= io.op2),
+        InstructionsTypeB.bltu -> (io.op1 < io.op2),
+        InstructionsTypeB.bgeu -> (io.op1 >= io.op2),
+        InstructionsTypeB.blt -> (signed_op1 < signed_op2),
+        InstructionsTypeB.bge -> (signed_op1 >= signed_op2)
+      )
+    )
+    io.ctrl_jump_address := MuxLookup(
+      funct3,
+      0.U,
+      Array(
+        InstructionsTypeB.beq -> (Fill(32, io.op1 === io.op2) & (io.op1_jump + io.op2_jump)),
+        InstructionsTypeB.bne -> (Fill(32, io.op1 =/= io.op2) & (io.op1_jump + io.op2_jump)),
+        InstructionsTypeB.bltu -> (Fill(32, io.op1 < io.op2) & (io.op1_jump + io.op2_jump)),
+        InstructionsTypeB.bgeu -> (Fill(32, io.op1 >= io.op2) & (io.op1_jump + io.op2_jump)),
+        InstructionsTypeB.blt -> (Fill(32, signed_op1 < signed_op2) & (io.op1_jump + io.op2_jump)),
+        InstructionsTypeB.bge -> (Fill(32, signed_op1 >= signed_op2) & (io.op1_jump + io.op2_jump))
+      )
+    )
   }.elsewhen(opcode === Instructions.jal || opcode === Instructions.jalr) {
     disable_memory()
     disable_hold()

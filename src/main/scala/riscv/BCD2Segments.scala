@@ -12,41 +12,28 @@ class BCD2Segments extends Module {
   val bcd = io.bcd
   val segs = Wire(UInt(7.W))
 
-  when(bcd === 0.U) {
-    segs := 0x01.U
-  }.elsewhen(bcd === 1.U) {
-    segs := 0x4F.U
-  }.elsewhen(bcd === 2.U) {
-    segs := 0x12.U
-  }.elsewhen(bcd === 3.U) {
-    segs := 0x06.U
-  }.elsewhen(bcd === 4.U) {
-    segs := 0x4C.U
-  }.elsewhen(bcd === 5.U) {
-    segs := 0x24.U
-  }.elsewhen(bcd === 6.U) {
-    segs := 0x20.U
-  }.elsewhen(bcd === 7.U) {
-    segs := 0x0F.U
-  }.elsewhen(bcd === 8.U) {
-    segs := 0x00.U
-  }.elsewhen(bcd === 9.U) {
-    segs := 0x04.U
-  }.elsewhen(bcd === 10.U) {
-    segs := 0x08.U
-  }.elsewhen(bcd === 11.U) {
-    segs := 0x60.U
-  }.elsewhen(bcd === 12.U) {
-    segs := 0x72.U
-  }.elsewhen(bcd === 13.U) {
-    segs := 0x42.U
-  }.elsewhen(bcd === 14.U) {
-    segs := 0x30.U
-  }.elsewhen(bcd === 15.U) {
-    segs := 0x38.U
-  }.otherwise {
-    segs := 0xFF.U
-  }
+  segs := MuxLookup(
+    bcd,
+    0xFF.U,
+    Array(
+      0.U -> 0x01.U,
+      1.U -> 0x4F.U,
+      2.U -> 0x12.U,
+      3.U -> 0x06.U,
+      4.U -> 0x4C.U,
+      5.U -> 0x24.U,
+      6.U -> 0x20.U,
+      7.U -> 0x0F.U,
+      8.U -> 0x00.U,
+      9.U -> 0x04.U,
+      10.U -> 0x08.U,
+      11.U -> 0x60.U,
+      12.U -> 0x72.U,
+      13.U -> 0x42.U,
+      14.U -> 0x30.U,
+      15.U -> 0x38.U,
+    )
+  )
 
   io.segs := segs
 }

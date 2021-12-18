@@ -18,16 +18,15 @@ class SegmentMux extends Module {
 
   bcd2segs.io.bcd := digit
   io.segs := bcd2segs.io.segs
-
-  when(io.index === 0.U) {
-    digit := io.numbers(3, 0)
-  }.elsewhen(io.index === 1.U) {
-    digit := io.numbers(7, 4)
-  }.elsewhen(io.index === 2.U) {
-    digit := io.numbers(11, 8)
-  }.elsewhen(io.index === 3.U) {
-    digit := io.numbers(15, 12)
-  }
+  digit := MuxLookup(
+    io.index,
+    io.numbers(3, 0), // 0.U
+    Array(
+      1.U -> io.numbers(7, 4),
+      2.U -> io.numbers(11, 8),
+      3.U -> io.numbers(15, 12)
+    )
+  )
 
   val s0 = io.index(0).asBool()
   val s1 = io.index(1).asBool()

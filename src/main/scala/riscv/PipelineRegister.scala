@@ -10,10 +10,6 @@ class PipelineRegister(width: Int = 32, defaultValue: UInt = 0.U) extends Module
   })
 
   val reg = RegInit(UInt(width.W), defaultValue)
-  when(io.hold_enable) {
-    reg := defaultValue
-  }.otherwise {
-    reg := io.in
-  }
+  reg := Mux(io.hold_enable, defaultValue, io.in)
   io.out := reg
 }

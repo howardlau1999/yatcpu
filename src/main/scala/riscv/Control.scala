@@ -25,10 +25,11 @@ class Control extends Module {
   io.pc_jump_flag := io.jump_flag
   io.pc_jump_address := io.jump_address
 
-  io.output_hold_flag := HoldStates.None.id.U
-  when(io.hold_flag_id) {
-    io.output_hold_flag := HoldStates.IF.id.U
-  }.elsewhen(io.jump_flag || io.hold_flag_ex) {
-    io.output_hold_flag := HoldStates.ID.id.U
-  }
+  io.output_hold_flag := MuxCase(
+    HoldStates.None.id.U, //default
+    Array(
+      io.hold_flag_id -> HoldStates.IF.id.U,
+      (io.jump_flag || io.hold_flag_ex) -> HoldStates.ID.id.U
+    )
+  )
 }
