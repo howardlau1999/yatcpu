@@ -18,15 +18,6 @@ class Top extends Module {
     val led = Output(UInt(16.W))
   })
 
-  val numbers = RegInit(UInt(16.W), 0.U)
-  val counter = RegInit(UInt(31.W), 0.U)
-  when(counter === 100000000.U) {
-    counter := 0.U
-    numbers := numbers + 1.U
-  }.otherwise {
-    counter := counter + 1.U
-  }
-
   val onboard_display = Module(new OnboardDigitDisplay)
 
   io.segs := onboard_display.io.segs
@@ -55,18 +46,14 @@ class Top extends Module {
   font_rom.io.glyph_index := vga_display.io.glyph_rom_index
   font_rom.io.glyph_x := vga_display.io.glyph_x
   font_rom.io.glyph_y := vga_display.io.glyph_y
-  when(vga_sync.io.video_on && font_rom.io.glyph_pixel_on) {
-    io.rgb := 0xFFFF.U
-  }.otherwise {
-    io.rgb := 0.U
-  }
+  io.rgb := Mux(vga_sync.io.video_on && font_rom.io.glyph_pixel_on, 0xFFFF.U, 0.U)
 
   io.dp := true.B
   cpu.io.debug_mem_read_address := io.switch(15, 1).asUInt() * 4.U
   io.led := 0.U
-  when(io.switch(0) === 0.U) {
-    onboard_display.io.numbers := cpu.io.debug_mem_read_data(15, 0).asUInt()
-  }.otherwise {
-    onboard_display.io.numbers := cpu.io.debug_mem_read_data(31, 16).asUInt()
-  }
+  onboard_display.io.numbers := Mux(
+    io.switch(0) === 0.U,
+    cpu.io.debug_mem_read_data(15, 0).asUInt(),
+    pu.io.debug_mem_read_data(31, 16).asUInt()
+  )
 }
