@@ -34,7 +34,7 @@ class VGADisplay extends Module {
   }
 
   io.glyph_rom_index := 0.U
-  when(ch >= 32.U && ch <= 127.U) {
+  when(ch >= 32.U) {
     io.glyph_rom_index := ch - 31.U
   }
 
