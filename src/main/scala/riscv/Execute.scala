@@ -136,42 +136,41 @@ class Execute extends Module {
   }.elsewhen(opcode === InstructionTypes.L) {
     disable_memory_write()
     disable_control()
-
-    when(funct3 === InstructionsTypeL.lb) {
-      io.regs_write_data := MuxLookup(
-        mem_read_address_index,
-        Cat(Fill(24, io.data(31)), io.data(31, 24)),
-        Array(
-          0.U -> Cat(Fill(24, io.data(7)), io.data(7, 0)),
-          1.U -> Cat(Fill(24, io.data(15)), io.data(15, 8)),
-          2.U -> Cat(Fill(24, io.data(23)), io.data(23, 16))
-        )
+    io.regs_write_data := MuxLookup(
+      funct3,
+      0.U,
+      Array(
+        InstructionsTypeL.lb -> MuxLookup(
+          mem_read_address_index,
+          Cat(Fill(24, io.data(31)), io.data(31, 24)),
+          Array(
+            0.U -> Cat(Fill(24, io.data(7)), io.data(7, 0)),
+            1.U -> Cat(Fill(24, io.data(15)), io.data(15, 8)),
+            2.U -> Cat(Fill(24, io.data(23)), io.data(23, 16))
+          )
+        ),
+        InstructionsTypeL.lbu -> MuxLookup(
+          mem_read_address_index,
+          Cat(Fill(24, 0.U), io.data(31, 24)),
+          Array(
+            0.U -> Cat(Fill(24, 0.U), io.data(7, 0)),
+            1.U -> Cat(Fill(24, 0.U), io.data(15, 8)),
+            2.U -> Cat(Fill(24, 0.U), io.data(23, 16))
+          )
+        ),
+        InstructionsTypeL.lh -> Mux(
+          mem_read_address_index === 0.U,
+          Cat(Fill(16, io.data(15)), io.data(15, 0)),
+          Cat(Fill(16, io.data(31)), io.data(31, 16))
+        ),
+        InstructionsTypeL.lhu -> Mux(
+          mem_read_address_index === 0.U,
+          Cat(Fill(16, 0.U), io.data(15, 0)),
+          Cat(Fill(16, 0.U), io.data(31, 16))
+        ),
+        InstructionsTypeL.lw -> io.data
       )
-    }.elsewhen(funct3 === InstructionsTypeL.lbu) {
-      io.regs_write_data := MuxLookup(
-        mem_read_address_index,
-        Cat(Fill(24, 0.U), io.data(31, 24)),
-        Array(
-          0.U -> Cat(Fill(24, 0.U), io.data(7, 0)),
-          1.U -> Cat(Fill(24, 0.U), io.data(15, 8)),
-          2.U -> Cat(Fill(24, 0.U), io.data(23, 16))
-        )
-      )
-    }.elsewhen(funct3 === InstructionsTypeL.lh) {
-      io.regs_write_data := Mux(
-        mem_read_address_index === 0.U,
-        Cat(Fill(16, io.data(15)), io.data(15, 0)),
-        Cat(Fill(16, io.data(31)), io.data(31, 16))
-      )
-    }.elsewhen(funct3 === InstructionsTypeL.lhu) {
-      io.regs_write_data := Mux(
-        mem_read_address_index === 0.U,
-        Cat(Fill(16, 0.U), io.data(15, 0)),
-        Cat(Fill(16, 0.U), io.data(31, 16))
-      )
-    }.otherwise {
-      io.regs_write_data := Mux(funct3 === InstructionsTypeL.lw, io.data, 0.U)
-    }
+    )
   }.elsewhen(opcode === InstructionTypes.S) {
     disable_control()
     io.mem_write_address := io.op1 + io.op2
