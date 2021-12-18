@@ -89,7 +89,7 @@ class Execute extends Module {
       0.U,
       Array(
         InstructionsTypeI.addi -> (io.op1 + io.op2),
-        InstructionsTypeI.slli -> ((io.reg1 << io.instruction(24, 20)).asUInt()),
+        InstructionsTypeI.slli -> (io.reg1 << io.instruction(24, 20)).asUInt(),
         InstructionsTypeI.slti -> (signed_op1 < signed_op2),
         InstructionsTypeI.sltiu -> (io.op1 < io.op2),
         InstructionsTypeI.xori -> (io.op1 ^ io.op2),
