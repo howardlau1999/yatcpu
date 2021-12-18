@@ -4,6 +4,7 @@ import chisel3._
 import chisel3.util._
 
 class Top extends Module {
+  val binaryFilename = "hello.asmbin"
   val io = IO(new Bundle {
     val switch = Input(UInt(16.W))
 
@@ -31,7 +32,7 @@ class Top extends Module {
   io.segs := onboard_display.io.segs
   io.digit_mask := onboard_display.io.digit_mask
 
-  val instruction_rom = Module(new InstructionROM("hello.asmbin"))
+  val instruction_rom = Module(new InstructionROM(binaryFilename))
   val cpu = Module(new CPU)
 
   instruction_rom.io.instruction_address := cpu.io.instruction_address
