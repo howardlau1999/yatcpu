@@ -54,6 +54,6 @@ class Top extends Module {
   onboard_display.io.numbers := Mux(
     io.switch(0) === 0.U,
     cpu.io.debug_mem_read_data(15, 0).asUInt(),
-    pu.io.debug_mem_read_data(31, 16).asUInt()
+    cpu.io.debug_mem_read_data(31, 16).asUInt()
   )
 }

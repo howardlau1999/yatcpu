@@ -67,7 +67,7 @@ class VGASync extends Module {
   v_count_next := Mux(
     pixel_tick && h_count_reg === MaxHorizontal.U,
     Mux(v_count_reg === MaxVertical.U, 0.U, v_count_reg + 1.U),
-    v_count_next := v_count_reg
+    v_count_reg
   )
 
   hsync_next := h_count_reg >= RetraceHorizontalStart.U && h_count_reg <= RetraceHorizontalEnd.U
