@@ -98,7 +98,7 @@ class Execute extends Module {
         InstructionsTypeI.sri -> Mux(
           io.instruction(30) === 1.U,
           ((io.reg1 >> io.instruction(24, 20)).asUInt() & mask |
-          (Fill(32, io.reg1(31)) & (~mask).asUInt()).asUInt()),
+            (Fill(32, io.reg1(31)) & (~mask).asUInt()).asUInt()),
           io.reg1 >> io.instruction(24, 20)
         )
       )
@@ -127,7 +127,7 @@ class Execute extends Module {
           InstructionsTypeR.sr -> Mux(
             io.instruction(30) === 1.U,
             ((io.reg1 >> io.reg2(4, 0)).asUInt() & mask |
-            (Fill(32, io.reg1(31)) & (~mask).asUInt()).asUInt()),
+              (Fill(32, io.reg1(31)) & (~mask).asUInt()).asUInt()),
             io.reg1 >> io.reg2(4, 0)
           )
         )
@@ -217,18 +217,7 @@ class Execute extends Module {
         InstructionsTypeB.bge -> (signed_op1 >= signed_op2)
       )
     )
-    io.ctrl_jump_address := MuxLookup(
-      funct3,
-      0.U,
-      Array(
-        InstructionsTypeB.beq -> (Fill(32, io.op1 === io.op2) & (io.op1_jump + io.op2_jump)),
-        InstructionsTypeB.bne -> (Fill(32, io.op1 =/= io.op2) & (io.op1_jump + io.op2_jump)),
-        InstructionsTypeB.bltu -> (Fill(32, io.op1 < io.op2) & (io.op1_jump + io.op2_jump)),
-        InstructionsTypeB.bgeu -> (Fill(32, io.op1 >= io.op2) & (io.op1_jump + io.op2_jump)),
-        InstructionsTypeB.blt -> (Fill(32, signed_op1 < signed_op2) & (io.op1_jump + io.op2_jump)),
-        InstructionsTypeB.bge -> (Fill(32, signed_op1 >= signed_op2) & (io.op1_jump + io.op2_jump))
-      )
-    )
+    io.ctrl_jump_address := Fill(32, io.ctrl_jump_flag) & (io.op1_jump + io.op2_jump)
   }.elsewhen(opcode === Instructions.jal || opcode === Instructions.jalr) {
     disable_memory()
     disable_hold()
@@ -239,14 +228,14 @@ class Execute extends Module {
     disable_control()
     disable_memory()
     io.regs_write_data := io.op1 + io.op2
-  }.otherwise{
+  }.otherwise {
     disable_control()
     when(writing_mem) {
       io.mem_write_enable := true.B
       io.mem_write_data := mem_write_data
       io.mem_write_address := mem_write_address
       writing_mem := false.B
-    }.otherwise{
+    }.otherwise {
       disable_memory()
     }
     io.regs_write_data := 0.U
