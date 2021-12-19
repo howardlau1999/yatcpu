@@ -27,6 +27,12 @@ class CPU extends Module {
   val id2ex = Module(new ID2EX)
   val ex = Module(new Execute)
 
+  // TODO(howard): connect clint
+  if2id.io.interrupt_flag := 0.U
+  id2ex.io.csr_write_enable := 0.U
+  id2ex.io.csr_write_address := 0.U
+  id2ex.io.csr_read_data := 0.U
+
   pc.io.hold_flag := ctrl.io.output_hold_flag
   pc.io.jump_enable := ctrl.io.pc_jump_flag
   pc.io.jump_address := ctrl.io.pc_jump_address
