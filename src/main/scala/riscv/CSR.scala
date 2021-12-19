@@ -92,7 +92,7 @@ class CSR extends Module {
   val regLUT =
     Array(
       CSRRegister.CycleL -> cycles(31, 0),
-      CSRRegister.CycleH -> cycles(63, 0),
+      CSRRegister.CycleH -> cycles(63, 32),
       CSRRegister.MTVEC -> mtvec,
       CSRRegister.MCAUSE -> mcause,
       CSRRegister.MEPC -> mepc,
