@@ -160,9 +160,9 @@ class InstructionDecode extends Module {
 
 
     val csr_read_address = Output(UInt(32.W))
-    val csr_write_enable = Output(Bool())
-    val csr_write_address = Output(UInt(32.W))
-    val csr_write_data = Output(UInt(32.W))
+    val ex_csr_write_enable = Output(Bool())
+    val ex_csr_write_address = Output(UInt(32.W))
+    val ex_csr_write_data = Output(UInt(32.W))
   })
   val opcode = io.instruction(6, 0)
   val funct3 = io.instruction(14, 12)
@@ -199,9 +199,9 @@ class InstructionDecode extends Module {
   io.ex_mem_read_address := 0.U
   io.ctrl_hold_flag := false.B
   io.csr_read_address := 0.U
-  io.csr_write_enable := false.B
-  io.csr_write_data := 0.U
-  io.csr_write_address := 0.U
+  io.ex_csr_write_enable := false.B
+  io.ex_csr_write_data := 0.U
+  io.ex_csr_write_address := 0.U
   last_write_address := 0.U
 
   when(opcode === InstructionTypes.L) {
@@ -303,6 +303,35 @@ class InstructionDecode extends Module {
     io.regs_reg2_read_address := 0.U
     io.ex_op1 := io.instruction_address
     io.ex_op2 := Cat(io.instruction(31, 12), Fill(12, 0.U(1.W)))
+  }.elsewhen(opcode === Instructions.csr) {
+    disable_regs()
+    io.csr_read_address := Cat(0.U(20.W), io.instruction(31, 20))
+    io.ex_csr_write_address := Cat(0.U(20.W), io.instruction(31, 20))
+    when(
+      funct3 === InstructionsTypeCSR.csrrc ||
+        funct3 === InstructionsTypeCSR.csrrs ||
+        funct3 === InstructionsTypeCSR.csrrw
+    ) {
+      io.regs_reg1_read_address := rs1
+      io.regs_reg2_read_address := 0.U
+      io.ex_reg_write_enable := true.B
+      io.ex_reg_write_address := rd
+      io.ex_csr_write_enable := true.B
+    }.elsewhen(
+      funct3 === InstructionsTypeCSR.csrrci ||
+        funct3 === InstructionsTypeCSR.csrrsi ||
+        funct3 === InstructionsTypeCSR.csrrwi
+    ) {
+      io.regs_reg1_read_address := 0.U
+      io.regs_reg2_read_address := 0.U
+      io.ex_reg_write_enable := true.B
+      io.ex_reg_write_address := rd
+      io.ex_csr_write_enable := true.B
+    }.otherwise {
+      io.ex_csr_write_enable := false.B
+      io.ex_csr_write_data := 0.U
+      io.ex_csr_write_address := 0.U
+    }
   }.elsewhen(opcode === Instructions.nop) {
     disable_regs()
   }.otherwise {
