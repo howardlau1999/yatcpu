@@ -1,6 +1,7 @@
 package riscv
 
 import chisel3._
+import chisel3.util.{MuxCase}
 import chisel3.stage.ChiselStage
 
 class ProgramCounter extends Module {
@@ -14,17 +15,13 @@ class ProgramCounter extends Module {
 
   val pc = RegInit(0.U(32.W))
 
-  when(io.jump_enable) {
-    pc := io.jump_address
-  }.elsewhen(io.hold_flag >= HoldStates.PC.id.U) {
-    pc := pc
-  }.otherwise {
-    pc := pc + 4.U
-  }
+  pc := MuxCase(
+    pc + 4.U,
+    Array(
+      io.jump_enable -> io.jump_address,
+      (io.hold_flag >= HoldStates.PC.id.U) -> pc
+    )
+  )
 
   io.pc := pc
-}
-
-object ProgramCounter extends App {
-  (new ChiselStage).emitVerilog(new ProgramCounter())
 }

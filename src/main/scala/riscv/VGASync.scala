@@ -3,6 +3,11 @@ package riscv
 import chisel3._
 import chisel3.util._
 
+object ScreenInfo {
+  val DisplayHorizontal = 640
+  val DisplayVertical = 480
+}
+
 class VGASync extends Module {
   val io = IO(new Bundle {
     val hsync = Output(Bool())
@@ -14,8 +19,8 @@ class VGASync extends Module {
     val y = Output(UInt(10.W))
   })
 
-  val DisplayHorizontal = 640
-  val DisplayVertical = 480
+  val DisplayHorizontal = ScreenInfo.DisplayHorizontal
+  val DisplayVertical = ScreenInfo.DisplayVertical
 
   val BorderLeft = 48
   val BorderRight = 16
@@ -53,28 +58,26 @@ class VGASync extends Module {
   pixel_next := pixel + 1.U
   pixel_tick := pixel === 0.U
 
-  when(pixel_tick) {
-    when(h_count_reg === MaxHorizontal.U) {
-      h_count_next := 0.U
-    }.otherwise {
-      h_count_next := h_count_reg + 1.U
-    }
-  }.otherwise {
-    h_count_next := h_count_reg
-  }
+  h_count_next := Mux(
+    pixel_tick,
+    Mux(h_count_reg === MaxHorizontal.U, 0.U, h_count_reg + 1.U),
+    h_count_reg
+  )
 
-  when(pixel_tick && h_count_reg === MaxHorizontal.U) {
-    when(v_count_reg === MaxVertical.U) {
-      v_count_next := 0.U
-    }.otherwise {
-      v_count_next := v_count_reg + 1.U
-    }
-  }.otherwise {
-    v_count_next := v_count_reg
-  }
+  v_count_next := Mux(
+    pixel_tick && h_count_reg === MaxHorizontal.U,
+    Mux(v_count_reg === MaxVertical.U, 0.U, v_count_reg + 1.U),
+    v_count_reg
+  )
 
   hsync_next := h_count_reg >= RetraceHorizontalStart.U && h_count_reg <= RetraceHorizontalEnd.U
   vsync_next := v_count_reg >= RetraceVerticalStart.U && v_count_reg <= RetraceVerticalEnd.U
+
+  pixel := pixel_next
+  hsync_reg := hsync_next
+  vsync_reg := vsync_next
+  v_count_reg := v_count_next
+  h_count_reg := h_count_next
 
   io.video_on := h_count_reg < DisplayHorizontal.U && v_count_reg < DisplayVertical.U
   io.hsync := hsync_reg

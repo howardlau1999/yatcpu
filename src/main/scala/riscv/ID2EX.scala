@@ -8,7 +8,7 @@ class ID2EX extends Module {
     val instruction = Input(UInt(32.W))
     val instruction_address = Input(UInt(32.W))
     val write_enable = Input(Bool())
-    val write_address = Input(UInt(32.W))
+    val write_address = Input(UInt(5.W))
     val reg1 = Input(UInt(32.W))
     val reg2 = Input(UInt(32.W))
     val op1 = Input(UInt(32.W))
@@ -20,7 +20,7 @@ class ID2EX extends Module {
     val output_instruction = Output(UInt(32.W))
     val output_instruction_address = Output(UInt(32.W))
     val output_write_enable = Output(Bool())
-    val output_write_address = Output(UInt(32.W))
+    val output_write_address = Output(UInt(5.W))
     val output_reg1 = Output(UInt(32.W))
     val output_reg2 = Output(UInt(32.W))
     val output_op1 = Output(UInt(32.W))
@@ -30,7 +30,7 @@ class ID2EX extends Module {
   })
   val hold_enable = io.hold_flag >= HoldStates.ID.id.U
 
-  val instruction = Module(new PipelineRegister())
+  val instruction = Module(new PipelineRegister(defaultValue = 0x00000013.U))
   instruction.io.in := io.instruction
   instruction.io.hold_enable := hold_enable
   io.output_instruction := instruction.io.out

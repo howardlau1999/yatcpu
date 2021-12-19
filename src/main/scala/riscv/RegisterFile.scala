@@ -36,27 +36,28 @@ class RegisterFile extends Module {
     }
   }
 
-  when(io.read_address1 === 0.U) {
-    io.read_data1 := 0.U
-  }.elsewhen(io.read_address1 === io.write_address && io.write_enable) {
-    io.read_data1 := io.write_data
-  }.otherwise {
-    io.read_data1 := registers(io.read_address1)
-  }
+  io.read_data1 := MuxCase(
+    registers(io.read_address1),
+    Array(
+      (io.read_address1 === 0.U) -> 0.U,
+      (io.read_address1 === io.write_address && io.write_enable) -> io.write_data
+    )
+  )
 
-  when(io.read_address2 === 0.U) {
-    io.read_data2 := 0.U
-  }.elsewhen(io.read_address2 === io.write_address && io.write_enable) {
-    io.read_data2 := io.write_data
-  }.otherwise {
-    io.read_data2 := registers(io.read_address2)
-  }
+  io.read_data2 := MuxCase(
+    registers(io.read_address2),
+    Array(
+      (io.read_address2 === 0.U) -> 0.U,
+      (io.read_address2 === io.write_address && io.write_enable) -> io.write_data
+    )
+  )
 
-  when(io.debug_read_address === 0.U) {
-    io.debug_read_data := 0.U
-  }.elsewhen(io.debug_read_address === io.write_address && io.write_enable) {
-    io.debug_read_data := io.write_data
-  }.otherwise {
-    io.debug_read_data := registers(io.debug_read_address)
-  }
+  io.debug_read_data := MuxCase(
+    registers(io.debug_read_address),
+    Array(
+      (io.debug_read_address === 0.U) -> 0.U,
+      (io.debug_read_address === io.write_address && io.write_enable) -> io.write_data
+    )
+  )
+
 }

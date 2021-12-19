@@ -3,103 +3,114 @@ package riscv
 import chisel3._
 import chisel3.util._
 
-object InstructionTypes extends Enumeration {
-  type InstructionType = Value
+object InstructionTypes extends Bundle {
 
   //          0b0000011
-  val L = Value(0x03)
+  val L = 0x03.U
   //          0b0010011
-  val I = Value(0x13)
+  val I = 0x13.U
   //          0b0100011
-  val S = Value(0x23)
+  val S = 0x23.U
   //          0b0110011
-  val RM = Value(0x33)
+  val RM = 0x33.U
   //          0b1100011
-  val B = Value(0x63)
+  val B = 0x63.U
 }
 
-object Instructions extends Enumeration {
-  type Instruction = Value
+object Instructions extends Bundle {
+
   //          0b0110111
-  val lui = Value(0x37)
+  val lui = 0x37.U
   //          0b0000001
-  val nop = Value(0x01)
+  val nop = 0x01.U
   //          0b1101111
-  val jal = Value(0x6f)
+  val jal = 0x6f.U
   //          0b1100111
-  val jalr = Value(0x67)
+  val jalr = 0x67.U
   //          0b0010111
-  val auipc = Value(0x17)
+  val auipc = 0x17.U
 }
 
-object InstructionsTypeL extends Enumeration {
-  type InstructionTypeL = Value
+object InstructionsTypeL extends Bundle {
+
   // 0b000
-  val lb = Value(0)
+  val lb = 0.U
   // 0b001
-  val lh = Value(1)
+  val lh = 1.U
   // 0b010
-  val lw = Value(2)
+  val lw = 2.U
   // 0b100
-  val lbu = Value(4)
+  val lbu = 4.U
   // 0b101
-  val lhu = Value(5)
+  val lhu = 5.U
 }
 
-object InstructionsTypeI extends Enumeration {
-  type InstructionTypeI = Value
+object InstructionsTypeI extends Bundle {
+
   // 0b000
-  val addi = Value
+  val addi = 0.U
   // 0b001
-  val slli = Value
+  val slli = 1.U
   // 0b010
-  val slti = Value
+  val slti = 2.U
   // 0b011
-  val sltiu = Value
+  val sltiu = 3.U
   // 0b100
-  val xori = Value
+  val xori = 4.U
   // 0b101
-  val sri = Value
+  val sri = 5.U
   // 0b110
-  val ori = Value
+  val ori = 6.U
   // 0b111
-  val andi = Value
+  val andi = 7.U
 }
 
-object InstructionsTypeS extends Enumeration {
-  type InstructionTypeS = Value
+object InstructionsTypeS extends Bundle {
+
   // 0b000
-  val sb = Value(0)
+  val sb = 0.U
   // 0b001
-  val sh = Value(1)
+  val sh = 1.U
   // 0b010
-  val sw = Value(2)
+  val sw = 2.U
 }
 
-object InstructionsTypeR extends Enumeration {
-  type InstructionTypeR = Value
-  val add_sub, sll, slt, sltu, xor, sr, or, and = Value
+object InstructionsTypeR extends Bundle {
+  val add_sub = 0.U
+  val sll = 1.U
+  val slt = 2.U
+  val sltu = 3.U
+  val xor = 4.U
+  val sr = 5.U
+  val or = 6.U
+  val and = 7.U
 }
 
-object InstructionsTypeM extends Enumeration {
-  type InstructionTypeM = Value
-  val mul, mulh, mulhsu, mulhum, div, divu, rem, remu = Value
+object InstructionsTypeM extends Bundle {
+  val mul = 0.U
+  val mulh = 1.U
+  val mulhsu = 2.U
+  val mulhum = 3.U
+  val div = 4.U
+  val divu = 5.U
+  val rem = 6.U
+  val remu = 7.U
 }
 
-object InstructionsTypeB extends Enumeration {
-  type InstructionTypeB = Value
+object InstructionsTypeB extends Bundle {
+
   // 0b000
-  val beq = Value(0)
+  val beq = 0.U
   // 0b001
-  val bne = Value(1)
+  val bne = 1.U
   // 0b100
-  val blt = Value(4)
+  val blt = 4.U
   // 0b101
-  val bge = Value(5)
+  val bge = 5.U
   // 0b110
-  val bltu = Value(6)
+  val bltu = 6.U
   // 0b111
-  val bgeu = Value(7)
+  val bgeu = 7.U
 }
 
 class InstructionDecode extends Module {
@@ -113,6 +124,8 @@ class InstructionDecode extends Module {
     val regs_reg1_read_address = Output(UInt(32.W))
     val regs_reg2_read_address = Output(UInt(32.W))
 
+    val ctrl_hold_flag = Output(UInt(32.W))
+
     val ex_op1 = Output(UInt(32.W))
     val ex_op2 = Output(UInt(32.W))
     val ex_op1_jump = Output(UInt(32.W))
@@ -123,6 +136,7 @@ class InstructionDecode extends Module {
     val ex_reg2 = Output(UInt(32.W))
     val ex_reg_write_enable = Output(UInt(32.W))
     val ex_reg_write_address = Output(UInt(5.W))
+    val ex_mem_read_address = Output(UInt(32.W))
   })
   val opcode = io.instruction(6, 0)
   val funct3 = io.instruction(14, 12)
@@ -147,6 +161,8 @@ class InstructionDecode extends Module {
     io.ex_reg_write_address := addr
   }
 
+  val last_write_address = RegInit(UInt(32.W), 0.U)
+
   io.ex_instruction := io.instruction
   io.ex_instruction_address := io.instruction_address
   io.ex_reg1 := io.reg1
@@ -155,42 +171,50 @@ class InstructionDecode extends Module {
   io.ex_op2 := 0.U
   io.ex_op1_jump := 0.U
   io.ex_op2_jump := 0.U
+  io.ex_mem_read_address := 0.U
+  io.ctrl_hold_flag := false.B
+  last_write_address := 0.U
 
-  when(opcode === InstructionTypes.L.id.U) {
+  when(opcode === InstructionTypes.L) {
     when(
-      funct3 === InstructionsTypeL.lb.id.U ||
-        funct3 === InstructionsTypeL.lh.id.U ||
-        funct3 === InstructionsTypeL.lw.id.U ||
-        funct3 === InstructionsTypeL.lbu.id.U ||
-        funct3 === InstructionsTypeL.lhu.id.U
+      funct3 === InstructionsTypeL.lb ||
+        funct3 === InstructionsTypeL.lh ||
+        funct3 === InstructionsTypeL.lw ||
+        funct3 === InstructionsTypeL.lbu ||
+        funct3 === InstructionsTypeL.lhu
     ) {
       enable_write(rd)
       io.regs_reg1_read_address := rs1
       io.regs_reg2_read_address := 0.U
       io.ex_op1 := io.reg1
       io.ex_op2 := Cat(Fill(20, io.instruction(31)), io.instruction(31, 20))
+      io.ex_mem_read_address := io.ex_op1 + io.ex_op2
+      io.ctrl_hold_flag := io.ex_mem_read_address === last_write_address
     }.otherwise {
       disable_regs()
     }
-  }.elsewhen(opcode === InstructionTypes.I.id.U) {
+  }.elsewhen(opcode === InstructionTypes.I) {
     enable_write(rd)
     io.regs_reg1_read_address := rs1
     io.regs_reg2_read_address := 0.U
     io.ex_op1 := io.reg1
     io.ex_op2 := Cat(Fill(20, io.instruction(31)), io.instruction(31, 20))
-  }.elsewhen(opcode === InstructionTypes.S.id.U) {
-    when(funct3 === InstructionsTypeS.sb.id.U ||
-      funct3 === InstructionsTypeS.sh.id.U ||
-      funct3 === InstructionsTypeS.sw.id.U) {
+  }.elsewhen(opcode === InstructionTypes.S) {
+    when(funct3 === InstructionsTypeS.sb ||
+      funct3 === InstructionsTypeS.sh ||
+      funct3 === InstructionsTypeS.sw) {
       disable_write()
       io.regs_reg1_read_address := rs1
       io.regs_reg2_read_address := rs2
       io.ex_op1 := io.reg1
       io.ex_op2 := Cat(Fill(20, io.instruction(31)), io.instruction(31, 25), io.instruction(11, 7))
+      io.ex_mem_read_address := io.ex_op1 + io.ex_op2
+      last_write_address := io.ex_op1 + io.ex_op2
+      io.ctrl_hold_flag := true.B
     }.otherwise {
       disable_regs()
     }
-  }.elsewhen(opcode === InstructionTypes.RM.id.U) {
+  }.elsewhen(opcode === InstructionTypes.RM) {
     when(funct7 === 0.U || funct7 === 0x20.U) {
       enable_write(rd)
       io.regs_reg1_read_address := rs1
@@ -201,14 +225,14 @@ class InstructionDecode extends Module {
       // TODO(howard): implement mul and div
       disable_regs()
     }
-  }.elsewhen(opcode === InstructionTypes.B.id.U) {
+  }.elsewhen(opcode === InstructionTypes.B) {
     when(
-      funct3 === InstructionsTypeB.beq.id.U ||
-        funct3 === InstructionsTypeB.bne.id.U ||
-        funct3 === InstructionsTypeB.blt.id.U ||
-        funct3 === InstructionsTypeB.bge.id.U ||
-        funct3 === InstructionsTypeB.bltu.id.U ||
-        funct3 === InstructionsTypeB.bgeu.id.U
+      funct3 === InstructionsTypeB.beq ||
+        funct3 === InstructionsTypeB.bne ||
+        funct3 === InstructionsTypeB.blt ||
+        funct3 === InstructionsTypeB.bge ||
+        funct3 === InstructionsTypeB.bltu ||
+        funct3 === InstructionsTypeB.bgeu
     ) {
       disable_write()
       io.regs_reg1_read_address := rs1
@@ -216,19 +240,21 @@ class InstructionDecode extends Module {
       io.ex_op1 := io.reg1
       io.ex_op2 := io.reg2
       io.ex_op1_jump := io.instruction_address
-      io.ex_op2_jump := Cat(Fill(20, io.instruction(31)), io.instruction(7), io.instruction(30, 25), io.instruction(11, 8), 0.U(1.W))
+      io.ex_op2_jump := Cat(Fill(20, io.instruction(31)), io.instruction(7), io.instruction(30, 25), io.instruction
+      (11, 8), 0.U(1.W))
     }.otherwise {
       disable_regs()
     }
-  }.elsewhen(opcode === Instructions.jal.id.U) {
+  }.elsewhen(opcode === Instructions.jal) {
     enable_write(rd)
     io.regs_reg1_read_address := 0.U
     io.regs_reg2_read_address := 0.U
     io.ex_op1 := io.instruction_address
     io.ex_op2 := 4.U
     io.ex_op1_jump := io.instruction_address
-    io.ex_op2_jump := Cat(Fill(12, io.instruction(31)), io.instruction(19, 12), io.instruction(20), io.instruction(30, 21), 0.U(1.W))
-  }.elsewhen(opcode === Instructions.jalr.id.U) {
+    io.ex_op2_jump := Cat(Fill(12, io.instruction(31)), io.instruction(19, 12), io.instruction(20), io.instruction
+    (30, 21), 0.U(1.W))
+  }.elsewhen(opcode === Instructions.jalr) {
     enable_write(rd)
     io.regs_reg1_read_address := rs1
     io.regs_reg2_read_address := 0.U
@@ -236,19 +262,19 @@ class InstructionDecode extends Module {
     io.ex_op2 := 4.U
     io.ex_op1_jump := io.reg1
     io.ex_op2_jump := Cat(Fill(20, io.instruction(31)), io.instruction(31, 20))
-  }.elsewhen(opcode === Instructions.lui.id.U) {
+  }.elsewhen(opcode === Instructions.lui) {
     enable_write(rd)
     io.regs_reg1_read_address := 0.U
     io.regs_reg2_read_address := 0.U
     io.ex_op1 := Cat(io.instruction(31, 12), Fill(12, 0.U(1.W)))
     io.ex_op2 := 0.U
-  }.elsewhen(opcode === Instructions.auipc.id.U) {
+  }.elsewhen(opcode === Instructions.auipc) {
     enable_write(rd)
     io.regs_reg1_read_address := 0.U
     io.regs_reg2_read_address := 0.U
     io.ex_op1 := io.instruction_address
     io.ex_op2 := Cat(io.instruction(31, 12), Fill(12, 0.U(1.W)))
-  }.elsewhen(opcode === Instructions.nop.id.U) {
+  }.elsewhen(opcode === Instructions.nop) {
     disable_regs()
   }.otherwise {
     disable_regs()

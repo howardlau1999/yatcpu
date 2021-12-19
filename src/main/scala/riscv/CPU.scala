@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util._
 
 class CPU extends Module {
-  val io = IO(new Bundle{
+  val io = IO(new Bundle {
     val instruction = Input(UInt(32.W))
     val instruction_address = Output(UInt(32.W))
 
@@ -13,9 +13,12 @@ class CPU extends Module {
 
     val debug_mem_read_address = Input(UInt(32.W))
     val debug_mem_read_data = Output(UInt(32.W))
+
+    val char_mem_read_address = Input(UInt(32.W))
+    val char_mem_read_data = Output(UInt(32.W))
   })
 
-  val data_mem = Module(new Memory(4096))
+  val data_mem = Module(new Memory(1024))
   val pc = Module(new ProgramCounter)
   val ctrl = Module(new Control)
   val regs = Module(new RegisterFile)
@@ -31,6 +34,7 @@ class CPU extends Module {
   ctrl.io.jump_flag := ex.io.ctrl_jump_flag
   ctrl.io.jump_address := ex.io.ctrl_jump_address
   ctrl.io.hold_flag_ex := ex.io.ctrl_hold_flag
+  ctrl.io.hold_flag_id := id.io.ctrl_hold_flag
 
   regs.io.write_enable := ex.io.regs_write_enable
   regs.io.write_address := ex.io.regs_write_address
@@ -79,8 +83,11 @@ class CPU extends Module {
   data_mem.io.write_enable := ex.io.mem_write_enable
   data_mem.io.write_address := ex.io.mem_write_address
   data_mem.io.write_data := ex.io.mem_write_data
-  data_mem.io.read_address := ex.io.mem_read_address
+  data_mem.io.read_address := id.io.ex_mem_read_address
 
   data_mem.io.debug_read_address := io.debug_mem_read_address
   io.debug_mem_read_data := data_mem.io.debug_read_data
+
+  data_mem.io.char_read_address := io.char_mem_read_address
+  io.char_mem_read_data := data_mem.io.char_read_data
 }
