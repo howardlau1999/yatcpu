@@ -29,6 +29,10 @@ object Instructions extends Bundle {
   val jalr = 0x67.U
   //          0b0010111
   val auipc = 0x17.U
+  //          0b1110011
+  val csr = 0x73.U
+  //          0b0001111
+  val fence = 0x0F.U
 }
 
 object InstructionsTypeL extends Bundle {
@@ -98,7 +102,6 @@ object InstructionsTypeM extends Bundle {
 }
 
 object InstructionsTypeB extends Bundle {
-
   // 0b000
   val beq = 0.U
   // 0b001
@@ -111,6 +114,25 @@ object InstructionsTypeB extends Bundle {
   val bltu = 6.U
   // 0b111
   val bgeu = 7.U
+}
+
+object InstructionsTypeCSR extends Bundle {
+  val csrrw = 0x1.U(3.W)
+  val csrrs = 0x2.U(3.W)
+  val csrrc = 0x3.U(3.W)
+  val csrrwi = 0x5.U(3.W)
+  val csrrsi = 0x6.U(3.W)
+  val csrrci = 0x7.U(3.W)
+}
+
+object InstructionsRet extends Bundle {
+  val mret = 0x30200073L.U(32.W)
+  val ret = 0x00008067L.U(32.W)
+}
+
+object InstructionsEnv extends Bundle {
+  val ecall = 0x00000073L.U(32.W)
+  val ebreak = 0x00100073L.U(32.W)
 }
 
 class InstructionDecode extends Module {
@@ -144,6 +166,7 @@ class InstructionDecode extends Module {
   val rd = io.instruction(11, 7)
   val rs1 = io.instruction(19, 15)
   val rs2 = io.instruction(24, 20)
+  val last_write_address = RegInit(UInt(32.W), 0.U)
 
   def disable_regs() = {
     disable_write()
@@ -160,8 +183,6 @@ class InstructionDecode extends Module {
     io.ex_reg_write_enable := true.B
     io.ex_reg_write_address := addr
   }
-
-  val last_write_address = RegInit(UInt(32.W), 0.U)
 
   io.ex_instruction := io.instruction
   io.ex_instruction_address := io.instruction_address

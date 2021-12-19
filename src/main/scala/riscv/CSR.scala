@@ -3,16 +3,9 @@ package riscv
 import chisel3._
 import chisel3.util._
 
-object CSRInstruction {
-  val csrrw = 0x1.U(3.W)
-  val csrrs = 0x2.U(3.W)
-  val csrrc = 0x3.U(3.W)
-  val csrrwi = 0x5.U(3.W)
-  val csrrsi = 0x6.U(3.W)
-  val csrrci = 0x7.U(3.W)
-}
 
-object CSRRegister {
+
+object CSRRegister extends Bundle {
   val CycleL = 0xc00.U(12.W)
   val CycleH = 0xc80.U(12.W)
   val MTVEC = 0x305.U(12.W)
