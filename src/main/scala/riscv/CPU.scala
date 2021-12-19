@@ -32,6 +32,7 @@ class CPU extends Module {
   id2ex.io.csr_write_enable := 0.U
   id2ex.io.csr_write_address := 0.U
   id2ex.io.csr_read_data := 0.U
+  id.io.csr_read_data := 0.U
 
   pc.io.hold_flag := ctrl.io.output_hold_flag
   pc.io.jump_enable := ctrl.io.pc_jump_flag

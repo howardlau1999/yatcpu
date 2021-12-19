@@ -3,8 +3,8 @@ package riscv
 import chisel3._
 import chisel3.util._
 
-object InstructionTypes extends Bundle {
 
+object InstructionTypes extends Bundle {
   //          0b0000011
   val L = 0x03.U
   //          0b0010011
@@ -18,7 +18,6 @@ object InstructionTypes extends Bundle {
 }
 
 object Instructions extends Bundle {
-
   //          0b0110111
   val lui = 0x37.U
   //          0b0000001
@@ -36,7 +35,6 @@ object Instructions extends Bundle {
 }
 
 object InstructionsTypeL extends Bundle {
-
   // 0b000
   val lb = 0.U
   // 0b001
@@ -50,7 +48,6 @@ object InstructionsTypeL extends Bundle {
 }
 
 object InstructionsTypeI extends Bundle {
-
   // 0b000
   val addi = 0.U
   // 0b001
@@ -70,7 +67,6 @@ object InstructionsTypeI extends Bundle {
 }
 
 object InstructionsTypeS extends Bundle {
-
   // 0b000
   val sb = 0.U
   // 0b001
@@ -143,6 +139,8 @@ class InstructionDecode extends Module {
     val reg1 = Input(UInt(32.W))
     val reg2 = Input(UInt(32.W))
 
+    val csr_read_data = Input(UInt(32.W))
+
     val regs_reg1_read_address = Output(UInt(32.W))
     val regs_reg2_read_address = Output(UInt(32.W))
 
@@ -159,6 +157,12 @@ class InstructionDecode extends Module {
     val ex_reg_write_enable = Output(UInt(32.W))
     val ex_reg_write_address = Output(UInt(5.W))
     val ex_mem_read_address = Output(UInt(32.W))
+
+
+    val csr_read_address = Output(UInt(32.W))
+    val csr_write_enable = Output(Bool())
+    val csr_write_address = Output(UInt(32.W))
+    val csr_write_data = Output(UInt(32.W))
   })
   val opcode = io.instruction(6, 0)
   val funct3 = io.instruction(14, 12)
@@ -194,6 +198,10 @@ class InstructionDecode extends Module {
   io.ex_op2_jump := 0.U
   io.ex_mem_read_address := 0.U
   io.ctrl_hold_flag := false.B
+  io.csr_read_address := 0.U
+  io.csr_write_enable := false.B
+  io.csr_write_data := 0.U
+  io.csr_write_address := 0.U
   last_write_address := 0.U
 
   when(opcode === InstructionTypes.L) {
