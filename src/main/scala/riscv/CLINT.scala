@@ -120,6 +120,8 @@ class CLINT extends Module {
     csr_state := CSRState.Idle
   }
 
+  io.csr_reg_write_enable := csr_state =/= CSRState.Idle
+
   io.csr_reg_write_address := Cat(Fill(20, 0.U(1.W)), MuxLookup(
     csr_state,
     0.U(12.W),
