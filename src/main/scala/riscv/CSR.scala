@@ -54,7 +54,7 @@ class CSR extends Module {
   val mstatus = RegInit(UInt(32.W), 0.U)
   val mscratch = RegInit(UInt(32.W), 0.U)
 
-  cycles := cycles + 1
+  cycles := cycles + 1.U
   io.clint_csr_mtvec := mtvec
   io.clint_csr_mepc := mepc
   io.clint_csr_mstatus := mstatus
