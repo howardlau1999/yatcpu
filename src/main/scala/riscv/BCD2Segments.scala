@@ -6,32 +6,32 @@ import chisel3.util._
 class BCD2Segments extends Module {
   val io = IO(new Bundle {
     val bcd = Input(UInt(4.W))
-    val segs = Output(UInt(7.W))
+    val segs = Output(UInt(8.W))
   })
 
   val bcd = io.bcd
-  val segs = Wire(UInt(7.W))
+  val segs = Wire(UInt(8.W))
 
   segs := MuxLookup(
     bcd,
     0xFF.U,
     Array(
-      0.U -> 0x01.U,
-      1.U -> 0x4F.U,
-      2.U -> 0x12.U,
-      3.U -> 0x06.U,
-      4.U -> 0x4C.U,
-      5.U -> 0x24.U,
-      6.U -> 0x20.U,
-      7.U -> 0x0F.U,
-      8.U -> 0x00.U,
-      9.U -> 0x04.U,
-      10.U -> 0x08.U,
-      11.U -> 0x60.U,
-      12.U -> 0x72.U,
-      13.U -> 0x42.U,
-      14.U -> 0x30.U,
-      15.U -> 0x38.U,
+      0.U -> "b10000001".U,
+      1.U -> "b11001111".U,
+      2.U -> "b10010010".U,
+      3.U -> "b10000110".U,
+      4.U -> "b11001100".U,
+      5.U -> "b10100100".U,
+      6.U -> "b10100000".U,
+      7.U -> "b10001111".U,
+      8.U -> "b10000000".U,
+      9.U -> "b10000100".U,
+      10.U -> "b00001000".U,
+      11.U -> "b00001000".U,
+      12.U -> "b00110001".U,
+      13.U -> "b01000010".U,
+      14.U -> "b00110000".U,
+      15.U -> "b00111000".U,
     )
   )
 

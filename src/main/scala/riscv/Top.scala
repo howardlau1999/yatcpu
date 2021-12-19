@@ -8,20 +8,14 @@ class Top extends Module {
   val io = IO(new Bundle {
     val switch = Input(UInt(16.W))
 
-    val segs = Output(UInt(7.W))
+    val segs = Output(UInt(8.W))
     val digit_mask = Output(UInt(4.W))
-    val dp = Output(Bool())
 
     val hsync = Output(Bool())
     val vsync = Output(Bool())
     val rgb = Output(UInt(12.W))
     val led = Output(UInt(16.W))
   })
-
-  val onboard_display = Module(new OnboardDigitDisplay)
-
-  io.segs := onboard_display.io.segs
-  io.digit_mask := onboard_display.io.digit_mask
 
   val instruction_rom = Module(new InstructionROM(binaryFilename))
   val cpu = Module(new CPU)
@@ -48,12 +42,28 @@ class Top extends Module {
   font_rom.io.glyph_y := vga_display.io.glyph_y
   io.rgb := Mux(vga_sync.io.video_on && font_rom.io.glyph_pixel_on, 0xFFFF.U, 0.U)
 
-  io.dp := true.B
-  cpu.io.debug_mem_read_address := io.switch(15, 1).asUInt() * 4.U
-  io.led := 0.U
-  onboard_display.io.numbers := Mux(
-    io.switch(0) === 0.U,
-    cpu.io.debug_mem_read_data(15, 0).asUInt(),
-    cpu.io.debug_mem_read_data(31, 16).asUInt()
+  cpu.io.debug_mem_read_address := io.switch(15, 1).asUInt() << 2
+  io.led := Mux(
+    io.switch(0),
+    cpu.io.debug_mem_read_data(31, 16).asUInt(),
+    cpu.io.debug_mem_read_data(15, 0).asUInt()
+  )
+
+  val onboard_display = Module(new OnboardDigitDisplay)
+  io.digit_mask := onboard_display.io.digit_mask
+
+  val sysu_logo = Module(new SYSULogo)
+  sysu_logo.io.digit_mask := io.digit_mask
+
+  val seg_mux = Module(new SegmentMux)
+  seg_mux.io.digit_mask := io.digit_mask
+  seg_mux.io.numbers := io.led
+
+  io.segs := MuxLookup(
+    io.switch,
+    seg_mux.io.segs,
+    Array(
+      0.U -> sysu_logo.io.segs
+    )
   )
 }
