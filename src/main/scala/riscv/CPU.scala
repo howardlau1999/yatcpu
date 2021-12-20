@@ -5,22 +5,20 @@ import chisel3.util._
 
 class CPU extends Module {
   val io = IO(new Bundle {
-    val instruction = Input(UInt(32.W))
-    val instruction_address = Output(UInt(32.W))
-
+    val interrupt_flag = Input(UInt(32.W))
     val debug_read_address = Input(UInt(32.W))
     val debug_read_data = Output(UInt(32.W))
 
-    val debug_mem_read_address = Input(UInt(32.W))
-    val debug_mem_read_data = Output(UInt(32.W))
+    val instruction_read_data = Input(UInt(32.W))
+    val instruction_read_address = Output(UInt(32.W))
 
-    val char_mem_read_address = Input(UInt(32.W))
-    val char_mem_read_data = Output(UInt(32.W))
-
-    val interrupt_flag = Input(UInt(32.W))
+    val mem_write_enable = Output(UInt(32.W))
+    val mem_write_address = Output(UInt(32.W))
+    val mem_write_data = Output(UInt(32.W))
+    val mem_read_data = Input(UInt(32.W))
+    val mem_read_address = Output(UInt(32.W))
   })
 
-  val data_mem = Module(new Memory(1024))
   val pc = Module(new ProgramCounter)
   val ctrl = Module(new Control)
   val regs = Module(new RegisterFile)
@@ -50,20 +48,23 @@ class CPU extends Module {
   regs.io.debug_read_address := io.debug_read_address
   io.debug_read_data := regs.io.debug_read_data
 
-  val instruction_valid = RegInit(Bool(), false.B)
+  val instruction_address = RegInit(UInt(32.W), ProgramCounter.EntryAddress)
+  val valid = RegInit(Bool(), false.B)
+  valid := true.B
 
-  when(ctrl.io.jump_flag) {
-    instruction_valid := false.B
-  }.otherwise {
-    instruction_valid := true.B
-  }
-
-  if2id.io.instruction := io.instruction
-  if2id.io.instruction_address := pc.io.pc
+  if2id.io.instruction := Mux(valid, io.instruction_read_data, 0x13.U)
+  if2id.io.instruction_address := instruction_address
   if2id.io.hold_flag := ctrl.io.output_hold_flag
   if2id.io.interrupt_flag := io.interrupt_flag
-  io.instruction_address := pc.io.pc
-  ctrl.io.hold_flag_if := !instruction_valid
+  when(ctrl.io.pc_jump_flag){
+    io.instruction_read_address := ctrl.io.pc_jump_address
+    valid := false.B
+  }.elsewhen(ctrl.io.output_hold_flag >= HoldStates.IF) {
+    io.instruction_read_address := instruction_address
+  }.otherwise {
+    instruction_address := pc.io.pc
+    io.instruction_read_address := pc.io.pc
+  }
 
   id.io.reg1 := regs.io.read_data1
   id.io.reg2 := regs.io.read_data2
@@ -100,20 +101,15 @@ class CPU extends Module {
   ex.io.reg2 := id2ex.io.output_reg2
   ex.io.write_enable := id2ex.io.output_write_enable
   ex.io.write_address := id2ex.io.output_write_address
-  ex.io.data := data_mem.io.read_data
+  ex.io.data := io.mem_read_data
   ex.io.interrupt_assert := clint.io.ex_interrupt_assert
   ex.io.interrupt_handler_address := clint.io.ex_interrupt_handler_address
 
-  data_mem.io.write_enable := ex.io.mem_write_enable
-  data_mem.io.write_address := ex.io.mem_write_address
-  data_mem.io.write_data := ex.io.mem_write_data
-  data_mem.io.read_address := id.io.ex_mem_read_address
+  io.mem_write_enable := ex.io.mem_write_enable
+  io.mem_write_address := ex.io.mem_write_address
+  io.mem_write_data := ex.io.mem_write_data
+  io.mem_read_address := id.io.ex_mem_read_address
 
-  data_mem.io.debug_read_address := io.debug_mem_read_address
-  io.debug_mem_read_data := data_mem.io.debug_read_data
-
-  data_mem.io.char_read_address := io.char_mem_read_address
-  io.char_mem_read_data := data_mem.io.char_read_data
 
   clint.io.instruction := id.io.ex_instruction
   clint.io.instruction_address := id.io.ex_instruction_address

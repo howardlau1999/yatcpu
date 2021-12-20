@@ -4,6 +4,10 @@ import chisel3._
 import chisel3.util.{MuxCase}
 import chisel3.stage.ChiselStage
 
+object ProgramCounter {
+  val EntryAddress = 0x1000.U(32.W)
+}
+
 class ProgramCounter extends Module {
   val io = IO(new Bundle {
     val jump_enable = Input(Bool())
@@ -13,7 +17,7 @@ class ProgramCounter extends Module {
     val pc = Output(UInt(32.W))
   })
 
-  val pc = RegInit(0.U(32.W))
+  val pc = RegInit(ProgramCounter.EntryAddress)
 
   pc := MuxCase(
     pc + 4.U,

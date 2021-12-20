@@ -13,7 +13,6 @@ object HoldStates {
 class Control extends Module {
   val io = IO(new Bundle {
     val jump_flag = Input(Bool())
-    val hold_flag_if = Input(Bool())
     val hold_flag_id = Input(Bool())
     val hold_flag_ex = Input(Bool())
     val hold_flag_clint = Input(Bool())
@@ -31,7 +30,6 @@ class Control extends Module {
   io.output_hold_flag := MuxCase(
     HoldStates.None,
     Array(
-      io.hold_flag_if -> HoldStates.IF,
       io.hold_flag_id -> HoldStates.IF,
       (io.jump_flag || io.hold_flag_ex || io.hold_flag_clint) -> HoldStates.ID,
     )

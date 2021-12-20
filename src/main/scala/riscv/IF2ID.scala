@@ -22,7 +22,7 @@ class IF2ID extends Module {
   instruction.io.hold_enable := hold_enable
   io.output_instruction := instruction.io.out
 
-  val instruction_address = Module(new PipelineRegister())
+  val instruction_address = Module(new PipelineRegister(defaultValue = ProgramCounter.EntryAddress))
   instruction_address.io.in := io.instruction_address
   instruction_address.io.hold_enable := hold_enable
   io.output_instruction_address := instruction_address.io.out
