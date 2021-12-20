@@ -14,6 +14,7 @@ class Control extends Module {
     val jump_flag = Input(Bool())
     val hold_flag_id = Input(Bool())
     val hold_flag_ex = Input(Bool())
+    val hold_flag_clint = Input(Bool())
     val jump_address = Input(UInt(32.W))
 
     val output_hold_flag = Output(UInt(3.W))
@@ -29,7 +30,7 @@ class Control extends Module {
     HoldStates.None.id.U, //default
     Array(
       io.hold_flag_id -> HoldStates.IF.id.U,
-      (io.jump_flag || io.hold_flag_ex) -> HoldStates.ID.id.U
+      (io.jump_flag || io.hold_flag_ex || io.hold_flag_clint) -> HoldStates.ID.id.U
     )
   )
 }

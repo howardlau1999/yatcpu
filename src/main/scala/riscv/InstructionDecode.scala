@@ -163,6 +163,7 @@ class InstructionDecode extends Module {
     val ex_csr_write_enable = Output(Bool())
     val ex_csr_write_address = Output(UInt(32.W))
     val ex_csr_write_data = Output(UInt(32.W))
+    val ex_csr_read_data = Output(UInt(32.W))
   })
   val opcode = io.instruction(6, 0)
   val funct3 = io.instruction(14, 12)
@@ -199,6 +200,7 @@ class InstructionDecode extends Module {
   io.ex_mem_read_address := 0.U
   io.ctrl_hold_flag := false.B
   io.csr_read_address := 0.U
+  io.ex_csr_read_data := io.csr_read_data
   io.ex_csr_write_enable := false.B
   io.ex_csr_write_data := 0.U
   io.ex_csr_write_address := 0.U

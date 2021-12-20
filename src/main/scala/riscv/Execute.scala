@@ -7,9 +7,11 @@ class Execute extends Module {
   val io = IO(new Bundle {
     val instruction = Input(UInt(32.W))
     val instruction_address = Input(UInt(32.W))
+    val interrupt_assert = Input(Bool())
+    val interrupt_handler_address = Input(UInt(32.W))
     val write_enable = Input(Bool())
     val write_address = Input(UInt(32.W))
-    val csr_reg_write_enable_id = Input(UInt(32.W))
+    val csr_reg_write_enable_id = Input(Bool())
     val csr_reg_write_address_id = Input(UInt(32.W))
     val csr_reg_data_id = Input(UInt(32.W))
     val reg1 = Input(UInt(32.W))
@@ -68,10 +70,10 @@ class Execute extends Module {
     io.mem_write_address := 0.U
   }
 
-  io.regs_write_enable := io.write_enable
+  io.regs_write_enable := io.write_enable && !io.interrupt_assert
   io.regs_write_address := io.write_address
   io.regs_write_data := 0.U
-  io.csr_reg_write_enable := io.csr_reg_write_enable_id
+  io.csr_reg_write_enable := io.csr_reg_write_enable_id && !io.interrupt_assert
   io.csr_reg_write_address := io.csr_reg_write_address_id
   io.csr_reg_write_data := 0.U
 

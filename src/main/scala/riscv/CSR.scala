@@ -19,7 +19,7 @@ object CSRRegister extends Bundle {
 class CSR extends Module {
   val io = IO(new Bundle {
     val reg_write_enable_ex = Input(Bool())
-    val reg_read_address_ex = Input(UInt(32.W))
+    val reg_read_address_id = Input(UInt(32.W))
     val reg_write_address_ex = Input(UInt(32.W))
     val reg_write_data_ex = Input(UInt(32.W))
 
@@ -28,9 +28,9 @@ class CSR extends Module {
     val reg_write_address_clint = Input(UInt(32.W))
     val reg_write_data_clint = Input(UInt(32.W))
 
-    val interrupt_enable = Input(Bool())
+    val interrupt_enable = Output(Bool())
 
-    val ex_reg_data = Output(UInt(32.W))
+    val id_reg_data = Output(UInt(32.W))
 
     val clint_reg_data = Output(UInt(32.W))
     val clint_csr_mtvec = Output(UInt(32.W))
@@ -55,9 +55,12 @@ class CSR extends Module {
 
   val reg_write_address = Wire(UInt(32.W))
   val reg_write_data = Wire(UInt(32.W))
+  reg_write_address := 0.U
+  reg_write_data := 0.U
 
   val reg_read_address = Wire(UInt(32.W))
   val reg_read_data = Wire(UInt(32.W))
+  reg_read_address := 0.U
   reg_read_data := 0.U
 
   when(io.reg_write_enable_ex) {
@@ -94,8 +97,8 @@ class CSR extends Module {
       CSRRegister.MSCRATCH -> mscratch,
     )
 
-  io.ex_reg_data := MuxLookup(
-    io.reg_read_address_ex,
+  io.id_reg_data := MuxLookup(
+    io.reg_read_address_id,
     0.U,
     regLUT,
   )

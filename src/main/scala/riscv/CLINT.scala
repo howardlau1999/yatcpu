@@ -38,9 +38,6 @@ class CLINT extends Module {
     val jump_flag = Input(Bool())
     val jump_address = Input(UInt(32.W))
 
-    val hold_flag = Input(UInt(3.W))
-
-    val csr_reg_data = Input(UInt(32.W))
     val csr_mtvec = Input(UInt(32.W))
     val csr_mepc = Input(UInt(32.W))
     val csr_mstatus = Input(UInt(32.W))
@@ -50,7 +47,6 @@ class CLINT extends Module {
     val ctrl_hold_flag = Output(Bool())
 
     val csr_reg_write_enable = Output(Bool())
-    val csr_reg_read_address = Output(UInt(32.W))
     val csr_reg_write_address = Output(UInt(32.W))
     val csr_reg_write_data = Output(UInt(32.W))
 

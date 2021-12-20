@@ -16,6 +16,8 @@ class CPU extends Module {
 
     val char_mem_read_address = Input(UInt(32.W))
     val char_mem_read_data = Output(UInt(32.W))
+
+    val interrupt_flag = Input(UInt(32.W))
   })
 
   val data_mem = Module(new Memory(1024))
@@ -26,16 +28,11 @@ class CPU extends Module {
   val id = Module(new InstructionDecode)
   val id2ex = Module(new ID2EX)
   val ex = Module(new Execute)
+  val clint = Module(new CLINT)
+  val csr_regs = Module(new CSR)
 
-  // TODO(howard): connect clint
-  if2id.io.interrupt_flag := 0.U
-  id2ex.io.csr_write_enable := 0.U
-  id2ex.io.csr_write_address := 0.U
-  id2ex.io.csr_read_data := 0.U
-  id.io.csr_read_data := 0.U
-  ex.io.csr_reg_data_id := id2ex.io.output_csr_read_data
-  ex.io.csr_reg_write_enable_id := id2ex.io.output_csr_write_enable
-  ex.io.csr_reg_write_address_id := id2ex.io.output_csr_write_address
+
+
 
   pc.io.hold_flag := ctrl.io.output_hold_flag
   pc.io.jump_enable := ctrl.io.pc_jump_flag
@@ -45,6 +42,7 @@ class CPU extends Module {
   ctrl.io.jump_address := ex.io.ctrl_jump_address
   ctrl.io.hold_flag_ex := ex.io.ctrl_hold_flag
   ctrl.io.hold_flag_id := id.io.ctrl_hold_flag
+  ctrl.io.hold_flag_clint := clint.io.ctrl_hold_flag
 
   regs.io.write_enable := ex.io.regs_write_enable
   regs.io.write_address := ex.io.regs_write_address
@@ -58,6 +56,7 @@ class CPU extends Module {
   if2id.io.instruction := io.instruction
   if2id.io.instruction_address := pc.io.pc
   if2id.io.hold_flag := ctrl.io.output_hold_flag
+  if2id.io.interrupt_flag := io.interrupt_flag
   io.instruction_address := pc.io.pc
 
   id.io.reg1 := regs.io.read_data1
@@ -65,9 +64,13 @@ class CPU extends Module {
   id.io.instruction := if2id.io.output_instruction
   id.io.instruction_address := if2id.io.output_instruction_address
   id.io.jump_flag := ex.io.ctrl_jump_flag
+  id.io.csr_read_data := csr_regs.io.id_reg_data
 
   id2ex.io.instruction := id.io.ex_instruction
   id2ex.io.instruction_address := id.io.ex_instruction_address
+  id2ex.io.csr_read_data := id.io.ex_csr_read_data
+  id2ex.io.csr_write_enable := id.io.ex_csr_write_enable
+  id2ex.io.csr_write_address := id.io.ex_reg_write_address
   id2ex.io.op1 := id.io.ex_op1
   id2ex.io.op2 := id.io.ex_op2
   id2ex.io.op1_jump := id.io.ex_op1_jump
@@ -80,6 +83,9 @@ class CPU extends Module {
 
   ex.io.instruction := id2ex.io.output_instruction
   ex.io.instruction_address := id2ex.io.output_instruction_address
+  ex.io.csr_reg_data_id := id2ex.io.output_csr_read_data
+  ex.io.csr_reg_write_enable_id := id2ex.io.output_csr_write_enable
+  ex.io.csr_reg_write_address_id := id2ex.io.output_csr_write_address
   ex.io.op1 := id2ex.io.output_op1
   ex.io.op2 := id2ex.io.output_op2
   ex.io.op1_jump := id2ex.io.output_op1_jump
@@ -89,6 +95,8 @@ class CPU extends Module {
   ex.io.write_enable := id2ex.io.output_write_enable
   ex.io.write_address := id2ex.io.output_write_address
   ex.io.data := data_mem.io.read_data
+  ex.io.interrupt_assert := clint.io.ex_interrupt_assert
+  ex.io.interrupt_handler_address := clint.io.ex_interrupt_handler_address
 
   data_mem.io.write_enable := ex.io.mem_write_enable
   data_mem.io.write_address := ex.io.mem_write_address
@@ -100,4 +108,23 @@ class CPU extends Module {
 
   data_mem.io.char_read_address := io.char_mem_read_address
   io.char_mem_read_data := data_mem.io.char_read_data
+
+  clint.io.instruction := id.io.ex_instruction
+  clint.io.instruction_address := id.io.ex_instruction_address
+  clint.io.jump_flag := ex.io.ctrl_jump_flag
+  clint.io.jump_address := ex.io.ctrl_jump_address
+  clint.io.csr_mepc := csr_regs.io.clint_csr_mepc
+  clint.io.csr_mtvec := csr_regs.io.clint_csr_mtvec
+  clint.io.csr_mstatus := csr_regs.io.clint_csr_mepc
+  clint.io.interrupt_enable := csr_regs.io.interrupt_enable
+  clint.io.interrupt_flag := if2id.io.output_interrupt_flag
+  
+  csr_regs.io.reg_write_enable_ex := ex.io.csr_reg_write_enable
+  csr_regs.io.reg_write_address_ex := ex.io.csr_reg_write_address
+  csr_regs.io.reg_write_data_ex := ex.io.csr_reg_write_data
+  csr_regs.io.reg_read_address_id := id.io.csr_read_address
+  csr_regs.io.reg_write_enable_clint := clint.io.csr_reg_write_enable
+  csr_regs.io.reg_write_address_clint := clint.io.csr_reg_write_address
+  csr_regs.io.reg_write_data_clint := clint.io.csr_reg_write_data
+  csr_regs.io.reg_read_address_clint := 0.U
 }
