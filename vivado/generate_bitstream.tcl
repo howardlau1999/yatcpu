@@ -1,4 +1,4 @@
-# Only tested on Vivado 2020.1 on Windows 10
+# Only tested on Vivado 2020.1 on Windows 10 and WSL Debian 11
 
 # set variables
 set project_dir riscv-basys3
