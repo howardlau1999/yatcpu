@@ -60,6 +60,12 @@ class Execute extends Module {
   val mem_write_address = Reg(UInt(32.W))
   val mem_write_data = Reg(UInt(32.W))
 
+  val jump_flag = Wire(Bool())
+  val jump_address = Wire(UInt(32.W))
+
+  io.ctrl_jump_flag := jump_flag || io.interrupt_assert
+  io.ctrl_jump_address := Mux(io.interrupt_assert, io.interrupt_handler_address, jump_address)
+
   def disable_memory() = {
     disable_memory_write()
   }
@@ -87,8 +93,8 @@ class Execute extends Module {
   }
 
   def disable_jump() = {
-    io.ctrl_jump_address := 0.U
-    io.ctrl_jump_flag := false.B
+    jump_address := 0.U
+    jump_flag := false.B
   }
 
   when(opcode === InstructionTypes.I) {
@@ -185,8 +191,8 @@ class Execute extends Module {
   }.elsewhen(opcode === InstructionTypes.S) {
     disable_control()
     io.mem_write_address := io.op1 + io.op2
-    io.mem_write_enable := true.B
-    writing_mem := true.B
+    io.mem_write_enable := !io.interrupt_assert
+    writing_mem := !io.interrupt_assert
     when(funct3 === InstructionsTypeS.sb) {
       io.mem_write_data := MuxLookup(
         mem_write_address_index,
@@ -232,8 +238,8 @@ class Execute extends Module {
   }.elsewhen(opcode === Instructions.jal || opcode === Instructions.jalr) {
     disable_memory()
     disable_hold()
-    io.ctrl_jump_flag := true.B
-    io.ctrl_jump_address := io.op1_jump + io.op2_jump
+    jump_flag := true.B
+    jump_address := io.op1_jump + io.op2_jump
     io.regs_write_data := io.op1 + io.op2
   }.elsewhen(opcode === Instructions.lui || opcode === Instructions.auipc) {
     disable_control()
