@@ -52,7 +52,7 @@ class CSR extends Module {
   io.clint_csr_mtvec := mtvec
   io.clint_csr_mepc := mepc
   io.clint_csr_mstatus := mstatus
-  io.interrupt_enable := mscratch(3) === 1.U
+  io.interrupt_enable := mstatus(3) === 1.U
 
   val reg_write_address = Wire(UInt(32.W))
   val reg_write_data = Wire(UInt(32.W))
