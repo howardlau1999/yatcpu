@@ -9,6 +9,9 @@ class Execute extends Module {
     val instruction_address = Input(UInt(32.W))
     val write_enable = Input(Bool())
     val write_address = Input(UInt(32.W))
+    val csr_reg_write_enable_id = Input(UInt(32.W))
+    val csr_reg_write_address_id = Input(UInt(32.W))
+    val csr_reg_data_id = Input(UInt(32.W))
     val reg1 = Input(UInt(32.W))
     val reg2 = Input(UInt(32.W))
     val op1 = Input(UInt(32.W))
@@ -29,6 +32,10 @@ class Execute extends Module {
     val ctrl_hold_flag = Output(Bool())
     val ctrl_jump_flag = Output(Bool())
     val ctrl_jump_address = Output(UInt(32.W))
+
+    val csr_reg_write_enable = Output(Bool())
+    val csr_reg_write_address = Output(UInt(32.W))
+    val csr_reg_write_data = Output(UInt(32.W))
   })
 
   val opcode = io.instruction(6, 0)
@@ -47,6 +54,9 @@ class Execute extends Module {
   val mem_read_address_aligned = ((io.reg1 + Cat(Fill(20, io.instruction(31)), io.instruction(31, 20))) / 4.U)
   val mem_write_address_aligned = ((io.reg1 + Cat(Fill(20, io.instruction(31)), io.instruction(31, 25), io.instruction
   (11, 7)))) / 4.U
+  val writing_mem = RegInit(Bool(), false.B)
+  val mem_write_address = Reg(UInt(32.W))
+  val mem_write_data = Reg(UInt(32.W))
 
   def disable_memory() = {
     disable_memory_write()
@@ -57,6 +67,13 @@ class Execute extends Module {
     io.mem_write_data := 0.U
     io.mem_write_address := 0.U
   }
+
+  io.regs_write_enable := io.write_enable
+  io.regs_write_address := io.write_address
+  io.regs_write_data := 0.U
+  io.csr_reg_write_enable := io.csr_reg_write_enable_id
+  io.csr_reg_write_address := io.csr_reg_write_address_id
+  io.csr_reg_write_data := 0.U
 
   def disable_control() = {
     disable_hold()
@@ -71,14 +88,6 @@ class Execute extends Module {
     io.ctrl_jump_address := 0.U
     io.ctrl_jump_flag := false.B
   }
-
-  io.regs_write_enable := io.write_enable
-  io.regs_write_address := io.write_address
-  io.regs_write_data := 0.U
-
-  val writing_mem = RegInit(Bool(), false.B)
-  val mem_write_address = Reg(UInt(32.W))
-  val mem_write_data = Reg(UInt(32.W))
 
   when(opcode === InstructionTypes.I) {
     disable_control()
@@ -228,6 +237,25 @@ class Execute extends Module {
     disable_control()
     disable_memory()
     io.regs_write_data := io.op1 + io.op2
+  }.elsewhen(opcode === Instructions.csr) {
+    disable_control()
+    disable_memory()
+    io.csr_reg_write_data := MuxLookup(funct3, 0.U, Array(
+      InstructionsTypeCSR.csrrw -> io.reg1,
+      InstructionsTypeCSR.csrrc -> io.csr_reg_data_id.&((~io.reg1).asUInt()),
+      InstructionsTypeCSR.csrrs -> io.csr_reg_data_id.|(io.reg1),
+      InstructionsTypeCSR.csrrwi -> Cat(0.U(20.W), uimm),
+      InstructionsTypeCSR.csrrci -> io.csr_reg_data_id.&((~Cat(0.U(20.W), uimm)).asUInt()),
+      InstructionsTypeCSR.csrrsi -> io.csr_reg_data_id.|(Cat(0.U(20.W), uimm)),
+    ))
+    io.regs_write_data := MuxLookup(funct3, 0.U, Array(
+      InstructionsTypeCSR.csrrw -> io.csr_reg_data_id,
+      InstructionsTypeCSR.csrrc -> io.csr_reg_data_id,
+      InstructionsTypeCSR.csrrs -> io.csr_reg_data_id,
+      InstructionsTypeCSR.csrrwi -> io.csr_reg_data_id,
+      InstructionsTypeCSR.csrrci -> io.csr_reg_data_id,
+      InstructionsTypeCSR.csrrsi -> io.csr_reg_data_id,
+    ))
   }.otherwise {
     disable_control()
     when(writing_mem) {
