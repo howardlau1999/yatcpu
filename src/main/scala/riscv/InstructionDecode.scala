@@ -3,8 +3,8 @@ package riscv
 import chisel3._
 import chisel3.util._
 
-object InstructionTypes extends Bundle {
 
+object InstructionTypes extends Bundle {
   //          0b0000011
   val L = 0x03.U
   //          0b0010011
@@ -18,7 +18,6 @@ object InstructionTypes extends Bundle {
 }
 
 object Instructions extends Bundle {
-
   //          0b0110111
   val lui = 0x37.U
   //          0b0000001
@@ -29,10 +28,13 @@ object Instructions extends Bundle {
   val jalr = 0x67.U
   //          0b0010111
   val auipc = 0x17.U
+  //          0b1110011
+  val csr = 0x73.U
+  //          0b0001111
+  val fence = 0x0F.U
 }
 
 object InstructionsTypeL extends Bundle {
-
   // 0b000
   val lb = 0.U
   // 0b001
@@ -46,7 +48,6 @@ object InstructionsTypeL extends Bundle {
 }
 
 object InstructionsTypeI extends Bundle {
-
   // 0b000
   val addi = 0.U
   // 0b001
@@ -66,7 +67,6 @@ object InstructionsTypeI extends Bundle {
 }
 
 object InstructionsTypeS extends Bundle {
-
   // 0b000
   val sb = 0.U
   // 0b001
@@ -98,7 +98,6 @@ object InstructionsTypeM extends Bundle {
 }
 
 object InstructionsTypeB extends Bundle {
-
   // 0b000
   val beq = 0.U
   // 0b001
@@ -113,6 +112,25 @@ object InstructionsTypeB extends Bundle {
   val bgeu = 7.U
 }
 
+object InstructionsTypeCSR extends Bundle {
+  val csrrw = 0x1.U(3.W)
+  val csrrs = 0x2.U(3.W)
+  val csrrc = 0x3.U(3.W)
+  val csrrwi = 0x5.U(3.W)
+  val csrrsi = 0x6.U(3.W)
+  val csrrci = 0x7.U(3.W)
+}
+
+object InstructionsRet extends Bundle {
+  val mret = 0x30200073L.U(32.W)
+  val ret = 0x00008067L.U(32.W)
+}
+
+object InstructionsEnv extends Bundle {
+  val ecall = 0x00000073L.U(32.W)
+  val ebreak = 0x00100073L.U(32.W)
+}
+
 class InstructionDecode extends Module {
   val io = IO(new Bundle {
     val instruction = Input(UInt(32.W))
@@ -120,6 +138,8 @@ class InstructionDecode extends Module {
     val jump_flag = Input(Bool())
     val reg1 = Input(UInt(32.W))
     val reg2 = Input(UInt(32.W))
+
+    val csr_read_data = Input(UInt(32.W))
 
     val regs_reg1_read_address = Output(UInt(32.W))
     val regs_reg2_read_address = Output(UInt(32.W))
@@ -137,6 +157,13 @@ class InstructionDecode extends Module {
     val ex_reg_write_enable = Output(UInt(32.W))
     val ex_reg_write_address = Output(UInt(5.W))
     val ex_mem_read_address = Output(UInt(32.W))
+
+
+    val csr_read_address = Output(UInt(32.W))
+    val ex_csr_write_enable = Output(Bool())
+    val ex_csr_write_address = Output(UInt(32.W))
+    val ex_csr_write_data = Output(UInt(32.W))
+    val ex_csr_read_data = Output(UInt(32.W))
   })
   val opcode = io.instruction(6, 0)
   val funct3 = io.instruction(14, 12)
@@ -144,6 +171,7 @@ class InstructionDecode extends Module {
   val rd = io.instruction(11, 7)
   val rs1 = io.instruction(19, 15)
   val rs2 = io.instruction(24, 20)
+  val last_write_address = RegInit(UInt(32.W), 0.U)
 
   def disable_regs() = {
     disable_write()
@@ -161,8 +189,6 @@ class InstructionDecode extends Module {
     io.ex_reg_write_address := addr
   }
 
-  val last_write_address = RegInit(UInt(32.W), 0.U)
-
   io.ex_instruction := io.instruction
   io.ex_instruction_address := io.instruction_address
   io.ex_reg1 := io.reg1
@@ -173,6 +199,11 @@ class InstructionDecode extends Module {
   io.ex_op2_jump := 0.U
   io.ex_mem_read_address := 0.U
   io.ctrl_hold_flag := false.B
+  io.csr_read_address := 0.U
+  io.ex_csr_read_data := io.csr_read_data
+  io.ex_csr_write_enable := false.B
+  io.ex_csr_write_data := 0.U
+  io.ex_csr_write_address := 0.U
   last_write_address := 0.U
 
   when(opcode === InstructionTypes.L) {
@@ -274,6 +305,35 @@ class InstructionDecode extends Module {
     io.regs_reg2_read_address := 0.U
     io.ex_op1 := io.instruction_address
     io.ex_op2 := Cat(io.instruction(31, 12), Fill(12, 0.U(1.W)))
+  }.elsewhen(opcode === Instructions.csr) {
+    disable_regs()
+    io.csr_read_address := Cat(0.U(20.W), io.instruction(31, 20))
+    io.ex_csr_write_address := Cat(0.U(20.W), io.instruction(31, 20))
+    when(
+      funct3 === InstructionsTypeCSR.csrrc ||
+        funct3 === InstructionsTypeCSR.csrrs ||
+        funct3 === InstructionsTypeCSR.csrrw
+    ) {
+      io.regs_reg1_read_address := rs1
+      io.regs_reg2_read_address := 0.U
+      io.ex_reg_write_enable := true.B
+      io.ex_reg_write_address := rd
+      io.ex_csr_write_enable := true.B
+    }.elsewhen(
+      funct3 === InstructionsTypeCSR.csrrci ||
+        funct3 === InstructionsTypeCSR.csrrsi ||
+        funct3 === InstructionsTypeCSR.csrrwi
+    ) {
+      io.regs_reg1_read_address := 0.U
+      io.regs_reg2_read_address := 0.U
+      io.ex_reg_write_enable := true.B
+      io.ex_reg_write_address := rd
+      io.ex_csr_write_enable := true.B
+    }.otherwise {
+      io.ex_csr_write_enable := false.B
+      io.ex_csr_write_data := 0.U
+      io.ex_csr_write_address := 0.U
+    }
   }.elsewhen(opcode === Instructions.nop) {
     disable_regs()
   }.otherwise {

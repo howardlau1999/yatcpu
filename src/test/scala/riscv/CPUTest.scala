@@ -24,26 +24,32 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
 
   def run_instructions(instructions: Array[UInt], c: CPU, cycles: Int) = {
     warned = false
+    var instruction = 0x13.U
     for (i <- 1 to cycles) {
       if (i % 1000 == 0) println(f"$i%d cycles...")
-      val pc = c.io.instruction_address.peek().litValue() >> 2
-      if (pc >= instructions.length) {
+      var pc = c.io.instruction_address.peek().litValue() >> 2
+//      println(pc)
+      c.io.instruction.poke(instruction)
+//      println(f"${instruction.litValue()}%x")
+      c.clock.step()
+      pc = c.io.instruction_address.peek().litValue() >> 2
+      if (pc < instructions.length) {
+        instruction = instructions(pc.toInt)
+      } else {
         if (!warned) {
           println(f"PC is out of range at cycle $i%d PC=0x${pc * 4}%x. This means the IF is trying to fetch code " +
             f"after the program has ended, which is normal.")
           warned = true
         }
-        c.io.instruction.poke(0x00000013.U)
-      } else {
-        c.io.instruction.poke(instructions(pc.toInt))
+        instruction = 0x13.U
       }
-      c.clock.step()
     }
   }
 
   "CPU " - {
-    "should execute lui and addi" in {
+    "should execute li and addi" in {
       test(new CPU) { c =>
+        c.clock.step()
         // li ra, 1
         c.io.instruction.poke(0x00100093L.U)
         // li ra, 1 now in IF->ID, decode unit reacts
@@ -81,9 +87,24 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
           0x00500223L.U,
           0x00400303L.U,
         )
-        run_instructions(instructions, c, 7)
+        run_instructions(instructions, c, 10)
         c.io.debug_read_address.poke(6.U)
         c.io.debug_read_data.expect(15.U)
+      }
+    }
+
+    "should jump to address" in {
+      test(new CPU) { c =>
+        val instructions: Array[UInt] = Array(
+          0x00c0006fL.U,
+          0x0000e2b7L.U,
+          0xead28293L.U,
+          0x0000c2b7L.U,
+          0xeef28293L.U,
+        )
+        run_instructions(instructions, c, 8)
+        c.io.debug_read_address.poke(5.U)
+        c.io.debug_read_data.expect(0xBEEF.U)
       }
     }
 
@@ -130,7 +151,8 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
                   *(int *)(4) = fib(10);
           }
          */
-        run_instructions(read_instructions("fibonacci.asmbin"), c, 4000)
+        c.clock.step()
+        run_instructions(read_instructions("fibonacci.asmbin"), c, 5000)
         c.io.debug_mem_read_address.poke(4.U)
         c.clock.step()
         c.io.debug_mem_read_data.expect(55.U)
@@ -208,6 +230,33 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
         c.io.debug_mem_read_address.poke(0x4.U)
         c.clock.step()
         c.io.debug_mem_read_data.expect(0xDEADBEEFL.U)
+      }
+    }
+
+    "should jump to trap when interrupt is asserted" in {
+      test(new CPU) { c =>
+        c.clock.step()
+        // Enable interrupt
+        // csrrsi t0, mstatus, 0x8
+        c.io.instruction.poke(0x300462f3L.U)
+        c.clock.step()
+        // Set trap vector base
+        // csrrwi t0, mtvec, 0xC
+        c.io.instruction.poke(0x305652f3L.U)
+        c.clock.step(20)
+
+        // It takes 5 cycles before jumping to the trap
+        // Cycle 1: if2id pipeline register is set
+        // Cycle 2: clint receives interrupt flag in if2id, interrupt_state Idle -> Async, pipeline stalls
+        // Cycle 3: csr_state Idle -> MEPC, interrupt_state Async -> Idle
+        // Cycle 4: csr_state MEPC -> MSTATUS
+        // Cycle 5: csr_state MSTATUS -> MCAUSE
+        // Cycle 6: csr_state MCAUSE -> Idle, pc = mtvec, pipeline resumes
+        c.io.interrupt_flag.poke(1.U)
+        c.clock.step()
+        c.io.interrupt_flag.poke(0.U)
+        c.clock.step(5)
+        c.io.instruction_address.expect(0xC.U)
       }
     }
   }

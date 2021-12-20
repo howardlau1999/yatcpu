@@ -19,7 +19,7 @@ class ProgramCounter extends Module {
     pc + 4.U,
     Array(
       io.jump_enable -> io.jump_address,
-      (io.hold_flag >= HoldStates.PC.id.U) -> pc
+      (io.hold_flag >= HoldStates.PC) -> pc
     )
   )
 

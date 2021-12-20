@@ -11,7 +11,9 @@ class InstructionROM(asmBinaryFilename: String) extends Module {
   })
 
   val instructions = readAsmBinary(asmBinaryFilename)
-  io.instruction := instructions(io.instruction_address / 4.U)
+  val instruction = RegInit(UInt(32.W), 0x13.U)
+  instruction := instructions(io.instruction_address / 4.U)
+  io.instruction := instruction
 
   def readAsmBinary(filename: String) = {
     val inputStream = getClass.getClassLoader.getResourceAsStream(filename)
