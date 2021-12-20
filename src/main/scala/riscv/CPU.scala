@@ -50,11 +50,20 @@ class CPU extends Module {
   regs.io.debug_read_address := io.debug_read_address
   io.debug_read_data := regs.io.debug_read_data
 
+  val instruction_valid = RegInit(Bool(), false.B)
+
+  when(ctrl.io.jump_flag) {
+    instruction_valid := false.B
+  }.otherwise {
+    instruction_valid := true.B
+  }
+
   if2id.io.instruction := io.instruction
   if2id.io.instruction_address := pc.io.pc
   if2id.io.hold_flag := ctrl.io.output_hold_flag
   if2id.io.interrupt_flag := io.interrupt_flag
   io.instruction_address := pc.io.pc
+  ctrl.io.hold_flag_if := !instruction_valid
 
   id.io.reg1 := regs.io.read_data1
   id.io.reg2 := regs.io.read_data2

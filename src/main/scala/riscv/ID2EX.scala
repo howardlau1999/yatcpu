@@ -34,7 +34,7 @@ class ID2EX extends Module {
     val output_csr_write_address = Output(UInt(32.W))
     val output_csr_read_data = Output(UInt(32.W))
   })
-  val hold_enable = io.hold_flag >= HoldStates.ID.id.U
+  val hold_enable = io.hold_flag >= HoldStates.ID
 
   val instruction = Module(new PipelineRegister(defaultValue = 0x00000013.U))
   instruction.io.in := io.instruction

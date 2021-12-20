@@ -15,7 +15,7 @@ class IF2ID extends Module {
     val output_interrupt_flag = Output(UInt(32.W))
   })
 
-  val hold_enable = io.hold_flag >= HoldStates.IF.id.U
+  val hold_enable = io.hold_flag >= HoldStates.IF
 
   val instruction = Module(new PipelineRegister(defaultValue = 0x00000013.U))
   instruction.io.in := io.instruction
