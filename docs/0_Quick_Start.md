@@ -12,7 +12,7 @@
 
 ```bash
 sudo apt install git  # 用于将本项目 clone 下来
-sudo apt install binutils-riscv64-unknown-elf gcc-riscv64-unknown-elf # 用于生成 risc-v 的测试指令
+sudo apt install gcc-riscv64-unknown-elf # 用于生成 risc-v 的测试指令
 sudo apt install make # build-essential
 sudo aot install curl # 下载工具
 sudo apt install scala # 本项目的语言
@@ -57,48 +57,26 @@ sbt test
 
 - [参考文档](https://china.xilinx.com/support/documentation/sw_manuals/xilinx2020_1/c_ug973-vivado-release-notes-install-license.pdf)
 
-根据[手册](https://www.stepfpga.com/doc/_media/basys3_ss.pdf)可得知，学校提供的 Basys3 实验板型号为 XC7A35T，只需要安装 Webpack 版本的 vivado 即可使用。我们在中山大学校园网内提供了 vivado 的镜像。
+我们在中山大学校园网内提供了 vivado 的镜像。
 
 ```bash
 sudo apt install libtinfo5 # 需要一个这个，否则启动报错
-cd ~
 curl -O https://mirrors.matrix.moe/software/Xilinx_Unified_2020.1_0602_1208.tar.gz
+# 也可以在 Xilinx 的官网下载
+# <https://china.xilinx.com/support/download/index.html/content/xilinx/zh/downloadNav/vivado-design-tools/archive.html>
 tar -zxf Xilinx_Unified_2020.1_0602_1208.tar.gz
 cd Xilinx_Unified_2020.1_0602_1208
-```
-
-```bash
 ./xsetup -b ConfigGen
-Running in batch mode...
-Copyright (c) 1986-2021 Xilinx, Inc.  All rights reserved.
+```
 
-INFO : Log file location - /home/wuk/.Xilinx/xinstall/xinstall_1639577389784.log
-Select a Product from the list:
-1. Vitis
-2. Vivado
-3. On-Premises Install for Cloud Deployments
-4. BootGen
-5. Lab Edition
-6. Hardware Server
-7. Documentation Navigator (Standalone)
+根据[手册](https://www.stepfpga.com/doc/_media/basys3_ss.pdf)可得知，学校提供的 Basys3 实验板型号为 XC7A35T，只需要安装 `Vivado HL WebPACK` 即可使用。因此先输入 `2` 再输入 `1`，会产生一个默认配置文件 `~/.Xilinx/install_config.txt`。
 
-Please choose: Vivado
-
-ERROR: Not a valid choice. Please enter a number corresponding to the product you would like to install.
-Please choose: 2
-
-Select an Edition from the list:
-1. Vivado HL WebPACK
-2. Vivado HL Design Edition
-3. Vivado HL System Edition
-
-Please choose: 1
+```bash
+./xsetup -a XilinxEULA,3rdPartyEULA,WebTalkTerms -b Install -c ~/.Xilinx/install_config.txt -l ~/Xilinx
 ```
 
 ```bash
-./xsetup -a XilinxEULA,3rdPartyEULA,WebTalkTerms -b Install -c ~/.Xilinx/install_config.txt -l ~/Xilinx/vivado
-```
-
-```bash
-source ~/Xilinx/vivado/Vivado/2020.1/settings64.sh
+cd ~/Xilinx/Vivado/2020.1/data/xicom/cable_drivers/lin64/install_script/install_drivers
+sudo ./install_drivers
+source ~/Xilinx/Vivado/2020.1/settings64.sh
 ```
