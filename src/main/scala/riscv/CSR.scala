@@ -6,6 +6,7 @@ import chisel3.util._
 
 
 object CSRRegister extends Bundle {
+  // Refer to Spec. Vol.II Page 8-10
   val CycleL = 0xc00.U(12.W)
   val CycleH = 0xc80.U(12.W)
   val MTVEC = 0x305.U(12.W)
