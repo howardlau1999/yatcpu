@@ -1,7 +1,6 @@
-package riscv
+package board.basys3
 
 import chisel3._
-import chisel3.util._
 
 class OnboardDigitDisplay extends Module {
   val io = IO(new Bundle {
@@ -13,7 +12,7 @@ class OnboardDigitDisplay extends Module {
 
   counter := counter + 1.U
   when(counter === 0.U) {
-    digit_mask := (digit_mask << 1) + digit_mask(3)
+    digit_mask := (digit_mask << 1.U) + digit_mask(3)
   }
   io.digit_mask := digit_mask
 }

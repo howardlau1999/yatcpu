@@ -1,7 +1,6 @@
-package riscv
+package board.common
 
 import chisel3._
-import chisel3.util._
 
 object ScreenInfo {
   val DisplayHorizontal = 640

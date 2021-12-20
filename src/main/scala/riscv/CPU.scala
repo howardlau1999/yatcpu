@@ -31,9 +31,6 @@ class CPU extends Module {
   val clint = Module(new CLINT)
   val csr_regs = Module(new CSR)
 
-
-
-
   pc.io.hold_flag := ctrl.io.output_hold_flag
   pc.io.jump_enable := ctrl.io.pc_jump_flag
   pc.io.jump_address := ctrl.io.pc_jump_address
@@ -118,7 +115,7 @@ class CPU extends Module {
   clint.io.csr_mstatus := csr_regs.io.clint_csr_mepc
   clint.io.interrupt_enable := csr_regs.io.interrupt_enable
   clint.io.interrupt_flag := if2id.io.output_interrupt_flag
-  
+
   csr_regs.io.reg_write_enable_ex := ex.io.csr_reg_write_enable
   csr_regs.io.reg_write_address_ex := ex.io.csr_reg_write_address
   csr_regs.io.reg_write_data_ex := ex.io.csr_reg_write_data

@@ -1,7 +1,9 @@
-package riscv
+package board.basys3
 
+import board.common.{VGADisplay, VGASync}
 import chisel3._
 import chisel3.util._
+import riscv._
 
 class Top extends Module {
   val binaryFilename = "hello.asmbin"
@@ -22,6 +24,7 @@ class Top extends Module {
 
   instruction_rom.io.instruction_address := cpu.io.instruction_address
   cpu.io.instruction := instruction_rom.io.instruction
+  cpu.io.interrupt_flag := false.B
 
   cpu.io.debug_read_address := 0.U
   cpu.io.debug_mem_read_address := 0.U

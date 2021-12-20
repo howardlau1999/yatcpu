@@ -1,4 +1,4 @@
-package riscv
+package board.basys3
 
 import chisel3._
 import chisel3.util._

@@ -1,7 +1,8 @@
-package riscv
+package board.common
 
 import chisel3._
 import chisel3.util._
+import riscv.GlyphInfo
 
 class VGADisplay extends Module {
   val io = IO(new Bundle() {
