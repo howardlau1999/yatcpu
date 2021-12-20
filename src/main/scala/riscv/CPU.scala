@@ -67,7 +67,7 @@ class CPU extends Module {
   id2ex.io.instruction_address := id.io.ex_instruction_address
   id2ex.io.csr_read_data := id.io.ex_csr_read_data
   id2ex.io.csr_write_enable := id.io.ex_csr_write_enable
-  id2ex.io.csr_write_address := id.io.ex_reg_write_address
+  id2ex.io.csr_write_address := id.io.ex_csr_write_address
   id2ex.io.op1 := id.io.ex_op1
   id2ex.io.op2 := id.io.ex_op2
   id2ex.io.op1_jump := id.io.ex_op1_jump

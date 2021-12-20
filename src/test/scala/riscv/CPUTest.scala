@@ -210,5 +210,31 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
         c.io.debug_mem_read_data.expect(0xDEADBEEFL.U)
       }
     }
+
+    "should jump to trap when interrupt is asserted" in {
+      test(new CPU) { c =>
+        // Enable interrupt
+        // csrrsi t0, mstatus, 0x8
+        c.io.instruction.poke(0x300462f3L.U)
+        c.clock.step()
+        // Set trap vector base
+        // csrrwi t0, mtvec, 0xC
+        c.io.instruction.poke(0x305652f3L.U)
+        c.clock.step(20)
+
+        // It takes 5 cycles before jumping to the trap
+        // Cycle 1: if2id pipeline register is set
+        // Cycle 2: clint receives interrupt flag in if2id, interrupt_state Idle -> Async, pipeline stalls
+        // Cycle 3: csr_state Idle -> MEPC, interrupt_state Async -> Idle
+        // Cycle 4: csr_state MEPC -> MSTATUS
+        // Cycle 5: csr_state MSTATUS -> MCAUSE
+        // Cycle 6: csr_state MCAUSE -> Idle, pc = mtvec, pipeline resumes
+        c.io.interrupt_flag.poke(1.U)
+        c.clock.step()
+        c.io.interrupt_flag.poke(0.U)
+        c.clock.step(5)
+        c.io.instruction_address.expect(0xC.U)
+      }
+    }
   }
 }
