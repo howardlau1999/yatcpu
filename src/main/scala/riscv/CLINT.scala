@@ -58,6 +58,11 @@ class CLINT extends Module {
   val csr_state = RegInit(CSRState.Idle)
   val instruction_address = RegInit(UInt(32.W), 0.U)
   val cause = RegInit(UInt(32.W), 0.U)
+  val interrupt_assert = RegInit(Bool(), false.B)
+  val interrupt_handler_address = RegInit(UInt(32.W), 0.U)
+  val csr_reg_write_enable = RegInit(Bool(), false.B)
+  val csr_reg_write_address = RegInit(UInt(32.W), 0.U)
+  val csr_reg_write_data = RegInit(UInt(32.W), 0.U)
 
   io.ctrl_hold_flag := interrupt_state =/= InterruptState.Idle || csr_state =/= CSRState.Idle
 
@@ -116,9 +121,8 @@ class CLINT extends Module {
     csr_state := CSRState.Idle
   }
 
-  io.csr_reg_write_enable := csr_state =/= CSRState.Idle
-
-  io.csr_reg_write_address := Cat(Fill(20, 0.U(1.W)), MuxLookup(
+  csr_reg_write_enable := csr_state =/= CSRState.Idle
+  csr_reg_write_address := Cat(Fill(20, 0.U(1.W)), MuxLookup(
     csr_state,
     0.U(12.W),
     Array(
@@ -128,8 +132,7 @@ class CLINT extends Module {
       CSRState.MRET -> CSRRegister.MSTATUS,
     )
   ))
-
-  io.csr_reg_write_data := MuxLookup(
+  csr_reg_write_data := MuxLookup(
     csr_state,
     0.U(32.W),
     Array(
@@ -139,9 +142,12 @@ class CLINT extends Module {
       CSRState.MRET -> Cat(io.csr_mstatus(31, 4), io.csr_mstatus(7), io.csr_mstatus(2, 0)),
     )
   )
+  io.csr_reg_write_enable := csr_reg_write_enable
+  io.csr_reg_write_address := csr_reg_write_address
+  io.csr_reg_write_data := csr_reg_write_data
 
-  io.ex_interrupt_assert := csr_state === CSRState.MCAUSE || csr_state === CSRState.MRET
-  io.ex_interrupt_handler_address := MuxLookup(
+  interrupt_assert := csr_state === CSRState.MCAUSE || csr_state === CSRState.MRET
+  interrupt_handler_address := MuxLookup(
     csr_state,
     0.U(32.W),
     Array(
@@ -149,4 +155,7 @@ class CLINT extends Module {
       CSRState.MRET -> io.csr_mepc,
     )
   )
+
+  io.ex_interrupt_assert := interrupt_assert
+  io.ex_interrupt_handler_address := interrupt_handler_address
 }

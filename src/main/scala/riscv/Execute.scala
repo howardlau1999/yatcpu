@@ -252,9 +252,9 @@ class Execute extends Module {
       InstructionsTypeCSR.csrrw -> io.reg1,
       InstructionsTypeCSR.csrrc -> io.csr_reg_data_id.&((~io.reg1).asUInt()),
       InstructionsTypeCSR.csrrs -> io.csr_reg_data_id.|(io.reg1),
-      InstructionsTypeCSR.csrrwi -> Cat(0.U(20.W), uimm),
-      InstructionsTypeCSR.csrrci -> io.csr_reg_data_id.&((~Cat(0.U(20.W), uimm)).asUInt()),
-      InstructionsTypeCSR.csrrsi -> io.csr_reg_data_id.|(Cat(0.U(20.W), uimm)),
+      InstructionsTypeCSR.csrrwi -> Cat(0.U(27.W), uimm),
+      InstructionsTypeCSR.csrrci -> io.csr_reg_data_id.&((~Cat(0.U(27.W), uimm)).asUInt()),
+      InstructionsTypeCSR.csrrsi -> io.csr_reg_data_id.|(Cat(0.U(27.W), uimm)),
     ))
     io.regs_write_data := MuxLookup(funct3, 0.U, Array(
       InstructionsTypeCSR.csrrw -> io.csr_reg_data_id,
