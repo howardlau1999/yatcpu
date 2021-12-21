@@ -112,7 +112,7 @@ class CPU extends Module {
   clint.io.jump_address := ex.io.ctrl_jump_address
   clint.io.csr_mepc := csr_regs.io.clint_csr_mepc
   clint.io.csr_mtvec := csr_regs.io.clint_csr_mtvec
-  clint.io.csr_mstatus := csr_regs.io.clint_csr_mepc
+  clint.io.csr_mstatus := csr_regs.io.clint_csr_mstatus
   clint.io.interrupt_enable := csr_regs.io.interrupt_enable
   clint.io.interrupt_flag := if2id.io.output_interrupt_flag
 

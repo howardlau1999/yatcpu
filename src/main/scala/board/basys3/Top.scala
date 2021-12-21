@@ -21,8 +21,9 @@ class Top extends Module {
 
   val cpu = Module(new CPU)
   val mem = Module(new Memory(8192, binaryFilename))
+  val timer = Module(new Timer)
 
-  cpu.io.interrupt_flag := false.B
+  cpu.io.interrupt_flag := timer.io.signal_interrupt
   cpu.io.instruction_read_data := mem.io.instruction_read_data
   cpu.io.mem_read_data := mem.io.read_data
   mem.io.read_address := cpu.io.mem_read_address
