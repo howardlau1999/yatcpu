@@ -22,6 +22,7 @@ class CPU extends Module {
   val pc = Module(new ProgramCounter)
   val ctrl = Module(new Control)
   val regs = Module(new RegisterFile)
+  val inst_fetch = Module(new InstructionFetch)
   val if2id = Module(new IF2ID)
   val id = Module(new InstructionDecode)
   val id2ex = Module(new ID2EX)
@@ -48,23 +49,17 @@ class CPU extends Module {
   regs.io.debug_read_address := io.debug_read_address
   io.debug_read_data := regs.io.debug_read_data
 
-  val instruction_address = RegInit(UInt(32.W), ProgramCounter.EntryAddress)
-  val valid = RegInit(Bool(), false.B)
-  valid := true.B
+  inst_fetch.io.pc_pc := pc.io.pc
+  io.instruction_read_address := inst_fetch.io.mem_instruction_address
+  inst_fetch.io.instruction_mem := io.instruction_read_data
+  inst_fetch.io.hold_flag_ctrl := ctrl.io.output_hold_flag
+  inst_fetch.io.jump_flag_ctrl := ctrl.io.pc_jump_flag
+  inst_fetch.io.jump_address_ctrl := ctrl.io.pc_jump_address
 
-  if2id.io.instruction := Mux(valid, io.instruction_read_data, 0x13.U)
-  if2id.io.instruction_address := instruction_address
+  if2id.io.instruction := inst_fetch.io.id_instruction
+  if2id.io.instruction_address := inst_fetch.io.id_instruction_address
   if2id.io.hold_flag := ctrl.io.output_hold_flag
   if2id.io.interrupt_flag := io.interrupt_flag
-  when(ctrl.io.pc_jump_flag){
-    io.instruction_read_address := ctrl.io.pc_jump_address
-    valid := false.B
-  }.elsewhen(ctrl.io.output_hold_flag >= HoldStates.IF) {
-    io.instruction_read_address := instruction_address
-  }.otherwise {
-    instruction_address := pc.io.pc
-    io.instruction_read_address := pc.io.pc
-  }
 
   id.io.reg1 := regs.io.read_data1
   id.io.reg2 := regs.io.read_data2
