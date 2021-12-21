@@ -60,12 +60,11 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
       val regs_debug_read_data = Output(UInt(32.W))
       val mem_debug_read_data = Output(UInt(32.W))
 
-      val a = Output(UInt(32.W))
       val interrupt = Input(UInt(32.W))
     })
     val mem = Module(new TestMemory(8192, exeFilename))
     val cpu = Module(new CPU)
-    io.a := cpu.io.instruction_read_address
+    
     mem.io.debug_read_address := io.mem_debug_read_address
     mem.io.instruction_read_address := cpu.io.instruction_read_address
     cpu.io.instruction_read_data := mem.io.instruction_read_data
