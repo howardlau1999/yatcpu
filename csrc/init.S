@@ -9,7 +9,10 @@ _start:
   call main   # Jump to main function
 loop:
   j loop      # Loop forever
-
+.globl get_epc
+get_epc:
+  csrr a0, mepc
+  ret
 __trap_entry:
   li t0, 8080
   sw ra, 4(t0)
