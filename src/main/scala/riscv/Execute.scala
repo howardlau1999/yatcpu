@@ -266,14 +266,7 @@ class Execute extends Module {
     ))
   }.otherwise {
     disable_control()
-    when(writing_mem) {
-      io.mem_write_enable := true.B
-      io.mem_write_data := mem_write_data
-      io.mem_write_address := mem_write_address
-      writing_mem := false.B
-    }.otherwise {
-      disable_memory()
-    }
+    disable_memory()
     io.regs_write_data := 0.U
   }
 }

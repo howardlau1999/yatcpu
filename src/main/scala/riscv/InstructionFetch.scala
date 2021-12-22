@@ -23,6 +23,7 @@ class InstructionFetch extends Module {
   io.id_instruction_address := instruction_address
   when(io.jump_flag_ctrl) {
     io.mem_instruction_address := io.jump_address_ctrl
+    instruction_address := io.jump_address_ctrl
     instruction_valid := false.B
   }.elsewhen(io.hold_flag_ctrl >= HoldStates.IF) {
     io.mem_instruction_address := instruction_address

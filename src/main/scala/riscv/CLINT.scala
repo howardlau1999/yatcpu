@@ -35,8 +35,7 @@ class CLINT extends Module {
 
     // Current instruction from instruction decode
     val instruction = Input(UInt(32.W))
-    // The address of the next instruction to be executed
-    val instruction_address = Input(UInt(32.W))
+    val instruction_address_id = Input(UInt(32.W))
 
     val jump_flag = Input(Bool())
     val jump_address = Input(UInt(32.W))
@@ -58,7 +57,7 @@ class CLINT extends Module {
     val ex_interrupt_assert = Output(Bool())
   })
 
-  val interrupt_state = RegInit(InterruptState.Idle)
+  val interrupt_state = Wire(UInt(32.W))
   val csr_state = RegInit(CSRState.Idle)
   val instruction_address = RegInit(UInt(32.W), 0.U)
   val cause = RegInit(UInt(32.W), 0.U)
@@ -89,7 +88,7 @@ class CLINT extends Module {
       instruction_address := Mux(
         io.jump_flag,
         io.jump_address - 4.U,
-        io.instruction_address,
+        io.instruction_address_id
       )
 
       cause := MuxLookup(
@@ -107,7 +106,7 @@ class CLINT extends Module {
       instruction_address := Mux(
         io.jump_flag,
         io.jump_address,
-        io.instruction_address,
+        io.instruction_address_id,
       )
     }.elsewhen(interrupt_state === InterruptState.MRET) {
       // Interrupt Return

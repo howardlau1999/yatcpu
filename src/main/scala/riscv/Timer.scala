@@ -10,9 +10,9 @@ class Timer extends Module{
     val signal_interrupt = Output(Bool())
   })
   val count = RegInit(0.U(32.W))
-  val limit = 50000000.U(32.W)
+  val limit = 100000000.U(32.W)
 
-  io.signal_interrupt := count >= limit
+  io.signal_interrupt := count >= (limit - 10.U)
 
   when(count >= limit) {
     count := 0.U
