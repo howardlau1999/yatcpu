@@ -30,9 +30,12 @@ object CSRState extends Bundle {
 
 class CLINT extends Module {
   val io = IO(new Bundle {
+    // Interrupt signals from peripherals
     val interrupt_flag = Input(UInt(8.W))
 
+    // Current instruction from instruction decode
     val instruction = Input(UInt(32.W))
+    // The address of the next instruction to be executed
     val instruction_address = Input(UInt(32.W))
 
     val jump_flag = Input(Bool())
@@ -42,6 +45,7 @@ class CLINT extends Module {
     val csr_mepc = Input(UInt(32.W))
     val csr_mstatus = Input(UInt(32.W))
 
+    // Is global interrupt enabled (from MSTATUS)?
     val interrupt_enable = Input(Bool())
 
     val ctrl_hold_flag = Output(Bool())
@@ -82,11 +86,11 @@ class CLINT extends Module {
     when(interrupt_state === InterruptState.SyncAssert) {
       // Synchronous Interrupt
       csr_state := CSRState.MEPC
-      when(io.jump_flag) {
-        instruction_address := io.jump_address - 4.U
-      }.otherwise {
-        instruction_address := io.instruction_address
-      }
+      instruction_address := Mux(
+        io.jump_flag,
+        io.jump_address - 4.U,
+        io.instruction_address,
+      )
 
       cause := MuxLookup(
         io.instruction,
@@ -100,11 +104,11 @@ class CLINT extends Module {
       // Asynchronous Interrupt
       cause := 0x80000004L.U
       csr_state := CSRState.MEPC
-      when(io.jump_flag) {
-        instruction_address := io.jump_address
-      }.otherwise {
-        instruction_address := io.instruction_address
-      }
+      instruction_address := Mux(
+        io.jump_flag,
+        io.jump_address,
+        io.instruction_address,
+      )
     }.elsewhen(interrupt_state === InterruptState.MRET) {
       // Interrupt Return
       csr_state := CSRState.MRET

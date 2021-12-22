@@ -83,18 +83,21 @@ void trap_handler(void *epc) {
 	print_hex(hc++);
 	putch('\n');
 }
-
+extern unsigned int get_epc();
 int main() {
 	clear_screen();
 	char mystr[] = "Software counter = ";
 	putch(137);
 	putstr("2021 Howard Lau\n");
 	putstr("Hello, world!\n");
+	putstr("Last EPC = ");
+	print_hex(get_epc());
+	putch('\n');
 	*((int *) 0x4) = 0xDEADBEEF;
 	unsigned int counter = 0;
 	for (;;) {
 		putstr("$ ");
-		for (register int i = 0; i < 1000000; ++i);
+		for (register int i = 0; i < 3000000; ++i);
 		++counter;
 		putstr(mystr);
 		print_hex(counter);

@@ -107,7 +107,11 @@ class CPU extends Module {
 
 
   clint.io.instruction := id.io.ex_instruction
-  clint.io.instruction_address := id.io.ex_instruction_address
+  clint.io.instruction_address := Mux(
+    ctrl.io.output_hold_flag >= HoldStates.IF,
+    inst_fetch.io.id_instruction_address,
+    id.io.instruction_address,
+  )
   clint.io.jump_flag := ex.io.ctrl_jump_flag
   clint.io.jump_address := ex.io.ctrl_jump_address
   clint.io.csr_mepc := csr_regs.io.clint_csr_mepc
