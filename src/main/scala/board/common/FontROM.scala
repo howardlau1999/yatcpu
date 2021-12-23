@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package riscv
+package board.common
 
 import chisel3._
 import chisel3.experimental.{ChiselAnnotation, annotate}
-import chisel3.util._
 import chisel3.util.experimental.loadMemoryFromFileInline
 import firrtl.annotations.MemorySynthInit
 
@@ -37,10 +36,9 @@ class FontROM(fontBitmapFilename: String = "vga_font_8x16.bmp") extends Module {
 
   val io = IO(new Bundle {
     val glyph_index = Input(UInt(7.W))
-    val glyph_x = Input(UInt(4.W))
     val glyph_y = Input(UInt(4.W))
 
-    val glyph_pixel_byte = Output(Bool())
+    val glyph_pixel_byte = Output(UInt(8.W))
   })
 
   annotate(new ChiselAnnotation {
@@ -82,6 +80,6 @@ class FontROM(fontBitmapFilename: String = "vga_font_8x16.bmp") extends Module {
       writer.write(f"@$i%x\n${glyphs(i).litValue()}%02x\n")
     }
     writer.close()
-    (hexTxtPath, glyphCount)
+    (hexTxtPath, glyphs.length)
   }
 }

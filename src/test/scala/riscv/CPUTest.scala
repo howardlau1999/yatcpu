@@ -23,24 +23,24 @@ import java.nio.{ByteBuffer, ByteOrder}
 class CPUTest extends FreeSpec with ChiselScalatestTester {
   class TestMemory(capacity: Int = 8192, asmBin: String) extends Module {
     val io = IO(new Bundle {
-      val read_address = Input(UInt(32.W))
-      val debug_read_address = Input(UInt(32.W))
-      val instruction_read_address = Input(UInt(32.W))
+      val read_address = Input(UInt(Parameters.AddrWidth))
+      val debug_read_address = Input(UInt(Parameters.AddrWidth))
+      val instruction_read_address = Input(UInt(Parameters.AddrWidth))
 
-      val write_address = Input(UInt(32.W))
+      val write_address = Input(UInt(Parameters.AddrWidth))
       val write_enable = Input(Bool())
-      val write_data = Input(UInt(32.W))
+      val write_data = Input(UInt(Parameters.DataWidth))
 
-      val read_data = Output(UInt(32.W))
-      val debug_read_data = Output(UInt(32.W))
-      val instruction_read_data = Output(UInt(32.W))
+      val read_data = Output(UInt(Parameters.DataWidth))
+      val debug_read_data = Output(UInt(Parameters.DataWidth))
+      val instruction_read_data = Output(UInt(Parameters.DataWidth))
     })
     val mem = RegInit(loadAsmBinary(asmBin))
-    val read_data = Reg(UInt(32.W))
-    val inst_data = Reg(UInt(32.W))
-    val dbg_data = Reg(UInt(32.W))
+    val read_data = Reg(UInt(Parameters.DataWidth))
+    val inst_data = Reg(UInt(Parameters.DataWidth))
+    val dbg_data = Reg(UInt(Parameters.DataWidth))
     read_data := mem(io.read_address / 4.U)
-    inst_data := mem((io.instruction_read_address - 0x1000.U + 1024.U) / 4.U)
+    inst_data := mem((io.instruction_read_address - Parameters.EntryAddress + 1024.U) / 4.U)
     dbg_data := mem(io.debug_read_address / 4.U)
     io.read_data := read_data
     io.instruction_read_data := inst_data
@@ -60,21 +60,18 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
         val inst = BigInt(instBuf.getInt() & 0xFFFFFFFFL)
         instructions = instructions :+ inst
       }
-      instructions = instructions :+ BigInt(0x00000013L)
-      instructions = instructions :+ BigInt(0x00000013L)
-      instructions = instructions :+ BigInt(0x00000013L)
       VecInit((Seq.fill(256)(BigInt(0)) ++ instructions).map(inst => inst.U(32.W)))
     }
   }
 
   class TestTopModule(exeFilename: String) extends Module {
     val io = IO(new Bundle {
-      val mem_debug_read_address = Input(UInt(32.W))
-      val regs_debug_read_address = Input(UInt(5.W))
-      val regs_debug_read_data = Output(UInt(32.W))
-      val mem_debug_read_data = Output(UInt(32.W))
+      val mem_debug_read_address = Input(UInt(Parameters.AddrWidth))
+      val regs_debug_read_address = Input(UInt(Parameters.PhysicalRegisterAddrWidth))
+      val regs_debug_read_data = Output(UInt(Parameters.DataWidth))
+      val mem_debug_read_data = Output(UInt(Parameters.DataWidth))
 
-      val interrupt = Input(UInt(32.W))
+      val interrupt = Input(UInt(Parameters.InterruptFlagWidth))
     })
     val mem = Module(new TestMemory(8192, exeFilename))
     val cpu = Module(new CPU)

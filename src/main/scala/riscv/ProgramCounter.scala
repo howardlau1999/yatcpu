@@ -19,16 +19,16 @@ import chisel3.util.{MuxCase}
 import chisel3.stage.ChiselStage
 
 object ProgramCounter {
-  val EntryAddress = 0x1000.U(32.W)
+  val EntryAddress = Parameters.EntryAddress
 }
 
 class ProgramCounter extends Module {
   val io = IO(new Bundle {
     val jump_enable = Input(Bool())
-    val jump_address = Input(UInt(32.W))
-    val hold_flag = Input(UInt(3.W))
+    val jump_address = Input(UInt(Parameters.AddrWidth))
+    val hold_flag = Input(UInt(Parameters.HoldStateWidth))
 
-    val pc = Output(UInt(32.W))
+    val pc = Output(UInt(Parameters.AddrWidth))
   })
 
   val pc = RegInit(ProgramCounter.EntryAddress)

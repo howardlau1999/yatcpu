@@ -19,38 +19,38 @@ import chisel3.util._
 
 class ID2EX extends Module {
   val io = IO(new Bundle {
-    val instruction = Input(UInt(32.W))
-    val instruction_address = Input(UInt(32.W))
+    val instruction = Input(UInt(Parameters.DataWidth))
+    val instruction_address = Input(UInt(Parameters.AddrWidth))
     val write_enable = Input(Bool())
-    val write_address = Input(UInt(5.W))
-    val reg1 = Input(UInt(32.W))
-    val reg2 = Input(UInt(32.W))
-    val op1 = Input(UInt(32.W))
-    val op2 = Input(UInt(32.W))
-    val op1_jump = Input(UInt(32.W))
-    val op2_jump = Input(UInt(32.W))
+    val write_address = Input(UInt(Parameters.PhysicalRegisterAddrWidth))
+    val reg1 = Input(UInt(Parameters.DataWidth))
+    val reg2 = Input(UInt(Parameters.DataWidth))
+    val op1 = Input(UInt(Parameters.DataWidth))
+    val op2 = Input(UInt(Parameters.DataWidth))
+    val op1_jump = Input(UInt(Parameters.DataWidth))
+    val op2_jump = Input(UInt(Parameters.DataWidth))
     val csr_write_enable = Input(Bool())
-    val csr_write_address = Input(UInt(32.W))
-    val csr_read_data = Input(UInt(32.W))
+    val csr_write_address = Input(UInt(Parameters.CSRRegisterAddrWidth))
+    val csr_read_data = Input(UInt(Parameters.DataWidth))
     val hold_flag = Input(UInt(3.W))
 
-    val output_instruction = Output(UInt(32.W))
-    val output_instruction_address = Output(UInt(32.W))
+    val output_instruction = Output(UInt(Parameters.DataWidth))
+    val output_instruction_address = Output(UInt(Parameters.AddrWidth))
     val output_write_enable = Output(Bool())
-    val output_write_address = Output(UInt(5.W))
-    val output_reg1 = Output(UInt(32.W))
-    val output_reg2 = Output(UInt(32.W))
-    val output_op1 = Output(UInt(32.W))
-    val output_op2 = Output(UInt(32.W))
-    val output_op1_jump = Output(UInt(32.W))
-    val output_op2_jump = Output(UInt(32.W))
+    val output_write_address = Output(UInt(Parameters.PhysicalRegisterAddrWidth))
+    val output_reg1 = Output(UInt(Parameters.DataWidth))
+    val output_reg2 = Output(UInt(Parameters.DataWidth))
+    val output_op1 = Output(UInt(Parameters.DataWidth))
+    val output_op2 = Output(UInt(Parameters.DataWidth))
+    val output_op1_jump = Output(UInt(Parameters.DataWidth))
+    val output_op2_jump = Output(UInt(Parameters.DataWidth))
     val output_csr_write_enable = Output(Bool())
-    val output_csr_write_address = Output(UInt(32.W))
-    val output_csr_read_data = Output(UInt(32.W))
+    val output_csr_write_address = Output(UInt(Parameters.CSRRegisterAddrWidth))
+    val output_csr_read_data = Output(UInt(Parameters.DataWidth))
   })
   val hold_enable = io.hold_flag >= HoldStates.ID
 
-  val instruction = Module(new PipelineRegister(defaultValue = 0x00000013.U))
+  val instruction = Module(new PipelineRegister(defaultValue = InstructionsNop.nop))
   instruction.io.in := io.instruction
   instruction.io.hold_enable := hold_enable
   io.output_instruction := instruction.io.out
@@ -65,7 +65,7 @@ class ID2EX extends Module {
   write_enable.io.hold_enable := hold_enable
   io.output_write_enable := write_enable.io.out
 
-  val write_address = Module(new PipelineRegister(5))
+  val write_address = Module(new PipelineRegister(Parameters.PhysicalRegisterAddrBits))
   write_address.io.in := io.write_address
   write_address.io.hold_enable := hold_enable
   io.output_write_address := write_address.io.out

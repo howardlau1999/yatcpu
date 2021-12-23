@@ -19,39 +19,39 @@ import chisel3.util._
 
 class Execute extends Module {
   val io = IO(new Bundle {
-    val instruction = Input(UInt(32.W))
-    val instruction_address = Input(UInt(32.W))
+    val instruction = Input(UInt(Parameters.DataWidth))
+    val instruction_address = Input(UInt(Parameters.AddrWidth))
     val interrupt_assert = Input(Bool())
-    val interrupt_handler_address = Input(UInt(32.W))
+    val interrupt_handler_address = Input(UInt(Parameters.AddrWidth))
     val write_enable = Input(Bool())
-    val write_address = Input(UInt(32.W))
+    val write_address = Input(UInt(Parameters.PhysicalRegisterAddrWidth))
     val csr_reg_write_enable_id = Input(Bool())
-    val csr_reg_write_address_id = Input(UInt(32.W))
-    val csr_reg_data_id = Input(UInt(32.W))
-    val reg1 = Input(UInt(32.W))
-    val reg2 = Input(UInt(32.W))
-    val op1 = Input(UInt(32.W))
-    val op2 = Input(UInt(32.W))
-    val op1_jump = Input(UInt(32.W))
-    val op2_jump = Input(UInt(32.W))
+    val csr_reg_write_address_id = Input(UInt(Parameters.CSRRegisterAddrWidth))
+    val csr_reg_data_id = Input(UInt(Parameters.DataWidth))
+    val reg1 = Input(UInt(Parameters.DataWidth))
+    val reg2 = Input(UInt(Parameters.DataWidth))
+    val op1 = Input(UInt(Parameters.DataWidth))
+    val op2 = Input(UInt(Parameters.DataWidth))
+    val op1_jump = Input(UInt(Parameters.DataWidth))
+    val op2_jump = Input(UInt(Parameters.DataWidth))
 
-    val data = Input(UInt(32.W))
+    val data = Input(UInt(Parameters.DataWidth))
 
     val mem_write_enable = Output(Bool())
-    val mem_write_address = Output(UInt(32.W))
-    val mem_write_data = Output(UInt(32.W))
+    val mem_write_address = Output(UInt(Parameters.AddrWidth))
+    val mem_write_data = Output(UInt(Parameters.DataWidth))
 
     val regs_write_enable = Output(Bool())
-    val regs_write_address = Output(UInt(32.W))
-    val regs_write_data = Output(UInt(32.W))
+    val regs_write_address = Output(UInt(Parameters.PhysicalRegisterAddrWidth))
+    val regs_write_data = Output(UInt(Parameters.DataWidth))
 
     val ctrl_hold_flag = Output(Bool())
     val ctrl_jump_flag = Output(Bool())
-    val ctrl_jump_address = Output(UInt(32.W))
+    val ctrl_jump_address = Output(UInt(Parameters.AddrWidth))
 
     val csr_reg_write_enable = Output(Bool())
-    val csr_reg_write_address = Output(UInt(32.W))
-    val csr_reg_write_data = Output(UInt(32.W))
+    val csr_reg_write_address = Output(UInt(Parameters.CSRRegisterAddrWidth))
+    val csr_reg_write_data = Output(UInt(Parameters.DataWidth))
   })
 
   val opcode = io.instruction(6, 0)
@@ -71,11 +71,11 @@ class Execute extends Module {
   val mem_write_address_aligned = ((io.reg1 + Cat(Fill(20, io.instruction(31)), io.instruction(31, 25), io.instruction
   (11, 7)))) / 4.U
   val writing_mem = RegInit(Bool(), false.B)
-  val mem_write_address = Reg(UInt(32.W))
-  val mem_write_data = Reg(UInt(32.W))
+  val mem_write_address = Reg(UInt(Parameters.AddrWidth))
+  val mem_write_data = Reg(UInt(Parameters.DataWidth))
 
   val jump_flag = Wire(Bool())
-  val jump_address = Wire(UInt(32.W))
+  val jump_address = Wire(UInt(Parameters.AddrWidth))
 
   io.ctrl_jump_flag := jump_flag || io.interrupt_assert
   io.ctrl_jump_address := Mux(io.interrupt_assert, io.interrupt_handler_address, jump_address)

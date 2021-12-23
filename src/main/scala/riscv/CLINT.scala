@@ -45,18 +45,18 @@ object CSRState extends Bundle {
 class CLINT extends Module {
   val io = IO(new Bundle {
     // Interrupt signals from peripherals
-    val interrupt_flag = Input(UInt(8.W))
+    val interrupt_flag = Input(UInt(Parameters.InterruptFlagWidth))
 
     // Current instruction from instruction decode
-    val instruction = Input(UInt(32.W))
-    val instruction_address_id = Input(UInt(32.W))
+    val instruction = Input(UInt(Parameters.DataWidth))
+    val instruction_address_id = Input(UInt(Parameters.AddrWidth))
 
     val jump_flag = Input(Bool())
-    val jump_address = Input(UInt(32.W))
+    val jump_address = Input(UInt(Parameters.AddrWidth))
 
-    val csr_mtvec = Input(UInt(32.W))
-    val csr_mepc = Input(UInt(32.W))
-    val csr_mstatus = Input(UInt(32.W))
+    val csr_mtvec = Input(UInt(Parameters.DataWidth))
+    val csr_mepc = Input(UInt(Parameters.DataWidth))
+    val csr_mstatus = Input(UInt(Parameters.DataWidth))
 
     // Is global interrupt enabled (from MSTATUS)?
     val interrupt_enable = Input(Bool())
@@ -64,22 +64,22 @@ class CLINT extends Module {
     val ctrl_hold_flag = Output(Bool())
 
     val csr_reg_write_enable = Output(Bool())
-    val csr_reg_write_address = Output(UInt(32.W))
-    val csr_reg_write_data = Output(UInt(32.W))
+    val csr_reg_write_address = Output(UInt(Parameters.CSRRegisterAddrWidth))
+    val csr_reg_write_data = Output(UInt(Parameters.DataWidth))
 
-    val ex_interrupt_handler_address = Output(UInt(32.W))
+    val ex_interrupt_handler_address = Output(UInt(Parameters.AddrWidth))
     val ex_interrupt_assert = Output(Bool())
   })
 
-  val interrupt_state = Wire(UInt(32.W))
+  val interrupt_state = Wire(UInt())
   val csr_state = RegInit(CSRState.Idle)
-  val instruction_address = RegInit(UInt(32.W), 0.U)
-  val cause = RegInit(UInt(32.W), 0.U)
+  val instruction_address = RegInit(UInt(Parameters.AddrWidth), 0.U)
+  val cause = RegInit(UInt(Parameters.DataWidth), 0.U)
   val interrupt_assert = RegInit(Bool(), false.B)
-  val interrupt_handler_address = RegInit(UInt(32.W), 0.U)
+  val interrupt_handler_address = RegInit(UInt(Parameters.AddrWidth), 0.U)
   val csr_reg_write_enable = RegInit(Bool(), false.B)
-  val csr_reg_write_address = RegInit(UInt(32.W), 0.U)
-  val csr_reg_write_data = RegInit(UInt(32.W), 0.U)
+  val csr_reg_write_address = RegInit(UInt(Parameters.CSRRegisterAddrWidth), 0.U)
+  val csr_reg_write_data = RegInit(UInt(Parameters.DataWidth), 0.U)
 
   io.ctrl_hold_flag := interrupt_state =/= InterruptState.Idle || csr_state =/= CSRState.Idle
 
@@ -141,7 +141,7 @@ class CLINT extends Module {
   csr_reg_write_enable := csr_state =/= CSRState.Idle
   csr_reg_write_address := Cat(Fill(20, 0.U(1.W)), MuxLookup(
     csr_state,
-    0.U(12.W),
+    0.U(Parameters.CSRRegisterAddrWidth),
     Array(
       CSRState.MEPC -> CSRRegister.MEPC,
       CSRState.MCAUSE -> CSRRegister.MCAUSE,
@@ -151,7 +151,7 @@ class CLINT extends Module {
   ))
   csr_reg_write_data := MuxLookup(
     csr_state,
-    0.U(32.W),
+    0.U(Parameters.DataWidth),
     Array(
       CSRState.MEPC -> instruction_address,
       CSRState.MCAUSE -> cause,
@@ -166,7 +166,7 @@ class CLINT extends Module {
   interrupt_assert := csr_state === CSRState.MCAUSE || csr_state === CSRState.MRET
   interrupt_handler_address := MuxLookup(
     csr_state,
-    0.U(32.W),
+    0.U(Parameters.AddrWidth),
     Array(
       CSRState.MCAUSE -> io.csr_mtvec,
       CSRState.MRET -> io.csr_mepc,

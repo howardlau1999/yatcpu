@@ -26,19 +26,19 @@ import java.nio.{ByteBuffer, ByteOrder}
 
 class Memory(capacity: Int, instructionFilename: String = "hello.asmbin") extends Module {
   val io = IO(new Bundle {
-    val read_address = Input(UInt(32.W))
-    val debug_read_address = Input(UInt(32.W))
-    val char_read_address = Input(UInt(32.W))
-    val instruction_read_address = Input(UInt(32.W))
+    val read_address = Input(UInt(Parameters.AddrWidth))
+    val debug_read_address = Input(UInt(Parameters.AddrWidth))
+    val char_read_address = Input(UInt(Parameters.AddrWidth))
+    val instruction_read_address = Input(UInt(Parameters.AddrWidth))
 
-    val write_address = Input(UInt(32.W))
+    val write_address = Input(UInt(Parameters.AddrWidth))
     val write_enable = Input(Bool())
-    val write_data = Input(UInt(32.W))
+    val write_data = Input(UInt(Parameters.DataWidth))
 
-    val read_data = Output(UInt(32.W))
-    val debug_read_data = Output(UInt(32.W))
-    val char_read_data = Output(UInt(32.W))
-    val instruction_read_data = Output(UInt(32.W))
+    val read_data = Output(UInt(Parameters.DataWidth))
+    val debug_read_data = Output(UInt(Parameters.DataWidth))
+    val char_read_data = Output(UInt(Parameters.DataWidth))
+    val instruction_read_data = Output(UInt(Parameters.DataWidth))
   })
 
   annotate(new ChiselAnnotation {
@@ -47,9 +47,11 @@ class Memory(capacity: Int, instructionFilename: String = "hello.asmbin") extend
   })
 
   val instructions = readAsmBinary(instructionFilename)
-  val mem = SyncReadMem(capacity, UInt(32.W))
+  val mem = SyncReadMem(capacity, UInt(Parameters.DataWidth))
 
-  mem.write((io.write_address / 4.U) & Fill(32, io.write_enable), io.write_data)
+  when(io.write_enable) {
+    mem.write(io.write_address / 4.U, io.write_data)
+  }
   loadMemoryFromFileInline(mem, instructions.toString.replaceAll("\\\\", "/"))
 
   io.read_data := mem.read(io.read_address / 4.U, true.B)

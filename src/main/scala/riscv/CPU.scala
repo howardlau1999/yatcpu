@@ -19,18 +19,18 @@ import chisel3.util._
 
 class CPU extends Module {
   val io = IO(new Bundle {
-    val interrupt_flag = Input(UInt(32.W))
-    val debug_read_address = Input(UInt(32.W))
-    val debug_read_data = Output(UInt(32.W))
+    val interrupt_flag = Input(UInt(Parameters.InterruptFlagWidth))
+    val debug_read_address = Input(UInt(Parameters.PhysicalRegisterAddrWidth))
+    val debug_read_data = Output(UInt(Parameters.DataWidth))
 
-    val instruction_read_data = Input(UInt(32.W))
-    val instruction_read_address = Output(UInt(32.W))
+    val instruction_read_data = Input(UInt(Parameters.DataWidth))
+    val instruction_read_address = Output(UInt(Parameters.AddrWidth))
 
-    val mem_write_enable = Output(UInt(32.W))
-    val mem_write_address = Output(UInt(32.W))
-    val mem_write_data = Output(UInt(32.W))
-    val mem_read_data = Input(UInt(32.W))
-    val mem_read_address = Output(UInt(32.W))
+    val mem_write_enable = Output(Bool())
+    val mem_write_address = Output(UInt(Parameters.AddrWidth))
+    val mem_write_data = Output(UInt(Parameters.DataWidth))
+    val mem_read_data = Input(UInt(Parameters.DataWidth))
+    val mem_read_address = Output(UInt(Parameters.AddrWidth))
   })
 
   val pc = Module(new ProgramCounter)

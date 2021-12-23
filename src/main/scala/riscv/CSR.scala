@@ -18,49 +18,48 @@ import chisel3._
 import chisel3.util._
 
 
-
 object CSRRegister extends Bundle {
   // Refer to Spec. Vol.II Page 8-10
-  val CycleL = 0xc00.U(12.W)
-  val CycleH = 0xc80.U(12.W)
-  val MTVEC = 0x305.U(12.W)
-  val MCAUSE = 0x342.U(12.W)
-  val MEPC = 0x341.U(12.W)
-  val MIE = 0x304.U(12.W)
-  val MSTATUS = 0x300.U(12.W)
-  val MSCRATCH = 0x340.U(12.W)
+  val CycleL = 0xc00.U(Parameters.CSRRegisterAddrWidth)
+  val CycleH = 0xc80.U(Parameters.CSRRegisterAddrWidth)
+  val MTVEC = 0x305.U(Parameters.CSRRegisterAddrWidth)
+  val MCAUSE = 0x342.U(Parameters.CSRRegisterAddrWidth)
+  val MEPC = 0x341.U(Parameters.CSRRegisterAddrWidth)
+  val MIE = 0x304.U(Parameters.CSRRegisterAddrWidth)
+  val MSTATUS = 0x300.U(Parameters.CSRRegisterAddrWidth)
+  val MSCRATCH = 0x340.U(Parameters.CSRRegisterAddrWidth)
 }
 
 class CSR extends Module {
   val io = IO(new Bundle {
     val reg_write_enable_ex = Input(Bool())
-    val reg_read_address_id = Input(UInt(32.W))
-    val reg_write_address_ex = Input(UInt(32.W))
-    val reg_write_data_ex = Input(UInt(32.W))
+    val reg_read_address_id = Input(UInt(Parameters.CSRRegisterAddrWidth))
+    val reg_write_address_ex = Input(UInt(Parameters.CSRRegisterAddrWidth))
+    val reg_write_data_ex = Input(UInt(Parameters.DataWidth))
 
     val reg_write_enable_clint = Input(Bool())
-    val reg_read_address_clint = Input(UInt(32.W))
-    val reg_write_address_clint = Input(UInt(32.W))
-    val reg_write_data_clint = Input(UInt(32.W))
+    val reg_read_address_clint = Input(UInt(Parameters.CSRRegisterAddrWidth))
+    val reg_write_address_clint = Input(UInt(Parameters.CSRRegisterAddrWidth))
+    val reg_write_data_clint = Input(UInt(Parameters.DataWidth))
 
     val interrupt_enable = Output(Bool())
 
-    val id_reg_data = Output(UInt(32.W))
+    val id_reg_data = Output(UInt(Parameters.DataWidth))
 
-    val clint_reg_data = Output(UInt(32.W))
-    val clint_csr_mtvec = Output(UInt(32.W))
-    val clint_csr_mepc = Output(UInt(32.W))
-    val clint_csr_mstatus = Output(UInt(32.W))
+    val clint_reg_data = Output(UInt(Parameters.DataWidth))
+    val clint_csr_mtvec = Output(UInt(Parameters.DataWidth))
+    val clint_csr_mepc = Output(UInt(Parameters.DataWidth))
+    val clint_csr_mstatus = Output(UInt(Parameters.DataWidth))
   })
 
 
   val cycles = RegInit(UInt(64.W), 0.U)
-  val mtvec = RegInit(UInt(32.W), 0.U)
-  val mcause = RegInit(UInt(32.W), 0.U)
-  val mepc = RegInit(UInt(32.W), 0.U)
-  val mie = RegInit(UInt(32.W), 0.U)
-  val mstatus = RegInit(UInt(32.W), 0.U)
-  val mscratch = RegInit(UInt(32.W), 0.U)
+  val mtvec = RegInit(UInt(Parameters.DataWidth), 0.U)
+  val mcause = RegInit(UInt(Parameters.DataWidth), 0.U)
+  val mepc = RegInit(UInt(Parameters.DataWidth), 0.U)
+  val mie = RegInit(UInt(Parameters.DataWidth), 0.U)
+  val mstatus = RegInit(UInt(Parameters.DataWidth), 0.U)
+  val mscratch = RegInit(UInt(Parameters.DataWidth), 0.U)
 
   cycles := cycles + 1.U
   io.clint_csr_mtvec := mtvec
@@ -68,13 +67,13 @@ class CSR extends Module {
   io.clint_csr_mstatus := mstatus
   io.interrupt_enable := mstatus(3) === 1.U
 
-  val reg_write_address = Wire(UInt(32.W))
-  val reg_write_data = Wire(UInt(32.W))
+  val reg_write_address = Wire(UInt(Parameters.CSRRegisterAddrWidth))
+  val reg_write_data = Wire(UInt(Parameters.DataWidth))
   reg_write_address := 0.U
   reg_write_data := 0.U
 
-  val reg_read_address = Wire(UInt(32.W))
-  val reg_read_data = Wire(UInt(32.W))
+  val reg_read_address = Wire(UInt(Parameters.CSRRegisterAddrWidth))
+  val reg_read_data = Wire(UInt(Parameters.DataWidth))
   reg_read_address := 0.U
   reg_read_data := 0.U
 

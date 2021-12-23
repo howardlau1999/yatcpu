@@ -35,7 +35,7 @@ object Instructions extends Bundle {
   //          0b0110111
   val lui = 0x37.U
   //          0b0000001
-  val nop = 0x01.U
+  val nop = 0x13.U
   //          0b1101111
   val jal = 0x6f.U
   //          0b1100111
@@ -135,49 +135,53 @@ object InstructionsTypeCSR extends Bundle {
   val csrrci = 0x7.U(3.W)
 }
 
+object InstructionsNop extends Bundle {
+  val nop = 0x00000013L.U(Parameters.DataWidth)
+}
+
 object InstructionsRet extends Bundle {
-  val mret = 0x30200073L.U(32.W)
-  val ret = 0x00008067L.U(32.W)
+  val mret = 0x30200073L.U(Parameters.DataWidth)
+  val ret = 0x00008067L.U(Parameters.DataWidth)
 }
 
 object InstructionsEnv extends Bundle {
-  val ecall = 0x00000073L.U(32.W)
-  val ebreak = 0x00100073L.U(32.W)
+  val ecall = 0x00000073L.U(Parameters.DataWidth)
+  val ebreak = 0x00100073L.U(Parameters.DataWidth)
 }
 
 class InstructionDecode extends Module {
   val io = IO(new Bundle {
-    val instruction = Input(UInt(32.W))
-    val instruction_address = Input(UInt(32.W))
+    val instruction = Input(UInt(Parameters.DataWidth))
+    val instruction_address = Input(UInt(Parameters.AddrWidth))
     val jump_flag = Input(Bool())
-    val reg1 = Input(UInt(32.W))
-    val reg2 = Input(UInt(32.W))
+    val reg1 = Input(UInt(Parameters.DataWidth))
+    val reg2 = Input(UInt(Parameters.DataWidth))
 
-    val csr_read_data = Input(UInt(32.W))
+    val csr_read_data = Input(UInt(Parameters.DataWidth))
 
-    val regs_reg1_read_address = Output(UInt(32.W))
-    val regs_reg2_read_address = Output(UInt(32.W))
+    val regs_reg1_read_address = Output(UInt(Parameters.PhysicalRegisterAddrWidth))
+    val regs_reg2_read_address = Output(UInt(Parameters.PhysicalRegisterAddrWidth))
 
-    val ctrl_hold_flag = Output(UInt(32.W))
+    val ctrl_hold_flag = Output(UInt(Parameters.HoldStateWidth))
 
-    val ex_op1 = Output(UInt(32.W))
-    val ex_op2 = Output(UInt(32.W))
-    val ex_op1_jump = Output(UInt(32.W))
-    val ex_op2_jump = Output(UInt(32.W))
-    val ex_instruction = Output(UInt(32.W))
-    val ex_instruction_address = Output(UInt(32.W))
-    val ex_reg1 = Output(UInt(32.W))
-    val ex_reg2 = Output(UInt(32.W))
-    val ex_reg_write_enable = Output(UInt(32.W))
-    val ex_reg_write_address = Output(UInt(5.W))
-    val ex_mem_read_address = Output(UInt(32.W))
+    val ex_op1 = Output(UInt(Parameters.DataWidth))
+    val ex_op2 = Output(UInt(Parameters.DataWidth))
+    val ex_op1_jump = Output(UInt(Parameters.DataWidth))
+    val ex_op2_jump = Output(UInt(Parameters.DataWidth))
+    val ex_instruction = Output(UInt(Parameters.DataWidth))
+    val ex_instruction_address = Output(UInt(Parameters.AddrWidth))
+    val ex_reg1 = Output(UInt(Parameters.DataWidth))
+    val ex_reg2 = Output(UInt(Parameters.DataWidth))
+    val ex_reg_write_enable = Output(Bool())
+    val ex_reg_write_address = Output(UInt(Parameters.PhysicalRegisterAddrWidth))
+    val ex_mem_read_address = Output(UInt(Parameters.AddrWidth))
 
 
-    val csr_read_address = Output(UInt(32.W))
+    val csr_read_address = Output(UInt(Parameters.CSRRegisterAddrWidth))
     val ex_csr_write_enable = Output(Bool())
-    val ex_csr_write_address = Output(UInt(32.W))
-    val ex_csr_write_data = Output(UInt(32.W))
-    val ex_csr_read_data = Output(UInt(32.W))
+    val ex_csr_write_address = Output(UInt(Parameters.CSRRegisterAddrWidth))
+    val ex_csr_write_data = Output(UInt(Parameters.DataWidth))
+    val ex_csr_read_data = Output(UInt(Parameters.DataWidth))
   })
   val opcode = io.instruction(6, 0)
   val funct3 = io.instruction(14, 12)
@@ -185,7 +189,7 @@ class InstructionDecode extends Module {
   val rd = io.instruction(11, 7)
   val rs1 = io.instruction(19, 15)
   val rs2 = io.instruction(24, 20)
-  val last_write_address = RegInit(UInt(32.W), 0.U)
+  val last_write_address = RegInit(UInt(Parameters.AddrWidth), 0.U)
 
   def disable_regs() = {
     disable_write()

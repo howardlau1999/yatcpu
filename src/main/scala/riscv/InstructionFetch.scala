@@ -19,21 +19,21 @@ import chisel3.util._
 
 class InstructionFetch extends Module {
   val io = IO(new Bundle {
-    val pc_pc = Input(UInt(32.W))
-    val hold_flag_ctrl = Input(UInt(3.W))
+    val pc_pc = Input(UInt(Parameters.AddrWidth))
+    val hold_flag_ctrl = Input(UInt(Parameters.HoldStateWidth))
     val jump_flag_ctrl = Input(Bool())
-    val jump_address_ctrl = Input(UInt(32.W))
-    val instruction_mem = Input(UInt(32.W))
+    val jump_address_ctrl = Input(UInt(Parameters.AddrWidth))
+    val instruction_mem = Input(UInt(Parameters.DataWidth))
 
-    val mem_instruction_address = Output(UInt(32.W))
-    val id_instruction_address = Output(UInt(32.W))
-    val id_instruction = Output(UInt(32.W))
+    val mem_instruction_address = Output(UInt(Parameters.AddrWidth))
+    val id_instruction_address = Output(UInt(Parameters.AddrWidth))
+    val id_instruction = Output(UInt(Parameters.DataWidth))
   })
   val instruction_address = RegInit(ProgramCounter.EntryAddress)
   val instruction_valid = RegInit(false.B)
   instruction_valid := true.B
 
-  io.id_instruction := Mux(instruction_valid, io.instruction_mem, 0x13.U)
+  io.id_instruction := Mux(instruction_valid, io.instruction_mem, InstructionsNop.nop)
   io.id_instruction_address := instruction_address
   when(io.jump_flag_ctrl) {
     io.mem_instruction_address := io.jump_address_ctrl

@@ -19,19 +19,19 @@ import chisel3.util._
 
 class IF2ID extends Module {
   val io = IO(new Bundle {
-    val instruction = Input(UInt(32.W))
-    val instruction_address = Input(UInt(32.W))
-    val hold_flag = Input(UInt(3.W))
-    val interrupt_flag = Input(UInt(32.W))
+    val instruction = Input(UInt(Parameters.DataWidth))
+    val instruction_address = Input(UInt(Parameters.AddrWidth))
+    val hold_flag = Input(UInt(Parameters.HoldStateWidth))
+    val interrupt_flag = Input(UInt(Parameters.InterruptFlagWidth))
 
-    val output_instruction = Output(UInt(32.W))
-    val output_instruction_address = Output(UInt(32.W))
-    val output_interrupt_flag = Output(UInt(32.W))
+    val output_instruction = Output(UInt(Parameters.DataWidth))
+    val output_instruction_address = Output(UInt(Parameters.AddrWidth))
+    val output_interrupt_flag = Output(UInt(Parameters.InterruptFlagWidth))
   })
 
   val hold_enable = io.hold_flag >= HoldStates.IF
 
-  val instruction = Module(new PipelineRegister(defaultValue = 0x00000013.U))
+  val instruction = Module(new PipelineRegister(defaultValue = InstructionsNop.nop))
   instruction.io.in := io.instruction
   instruction.io.hold_enable := hold_enable
   io.output_instruction := instruction.io.out

@@ -30,12 +30,12 @@ class Control extends Module {
     val hold_flag_id = Input(Bool())
     val hold_flag_ex = Input(Bool())
     val hold_flag_clint = Input(Bool())
-    val jump_address = Input(UInt(32.W))
+    val jump_address = Input(UInt(Parameters.AddrWidth))
 
-    val output_hold_flag = Output(UInt(3.W))
+    val output_hold_flag = Output(UInt(Parameters.HoldStateWidth))
 
     val pc_jump_flag = Output(Bool())
-    val pc_jump_address = Output(UInt(32.W))
+    val pc_jump_address = Output(UInt(Parameters.AddrWidth))
   })
 
   io.pc_jump_flag := io.jump_flag

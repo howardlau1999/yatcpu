@@ -31,18 +31,18 @@ object Registers extends Enumeration {
 class RegisterFile extends Module {
   val io = IO(new Bundle {
     val write_enable = Input(Bool())
-    val write_address = Input(UInt(32.W))
-    val write_data = Input(UInt(32.W))
+    val write_address = Input(UInt(Parameters.PhysicalRegisterAddrWidth))
+    val write_data = Input(UInt(Parameters.DataWidth))
 
-    val read_address1 = Input(UInt(32.W))
-    val read_address2 = Input(UInt(32.W))
-    val read_data1 = Output(UInt(32.W))
-    val read_data2 = Output(UInt(32.W))
+    val read_address1 = Input(UInt(Parameters.PhysicalRegisterAddrWidth))
+    val read_address2 = Input(UInt(Parameters.PhysicalRegisterAddrWidth))
+    val read_data1 = Output(UInt(Parameters.DataWidth))
+    val read_data2 = Output(UInt(Parameters.DataWidth))
 
-    val debug_read_address = Input(UInt(32.W))
-    val debug_read_data = Output(UInt(32.W))
+    val debug_read_address = Input(UInt(Parameters.PhysicalRegisterAddrWidth))
+    val debug_read_data = Output(UInt(Parameters.DataWidth))
   })
-  val registers = RegInit(VecInit(Seq.fill(32)(0.U(32.W))))
+  val registers = RegInit(VecInit(Seq.fill(Parameters.PhysicalRegisters)(0.U(Parameters.DataWidth))))
 
   when(!reset.asBool()) {
     when(io.write_enable && io.write_address =/= 0.U) {
