@@ -75,8 +75,8 @@ class CPU extends Module {
   if2id.io.hold_flag := ctrl.io.output_hold_flag
   if2id.io.interrupt_flag := io.interrupt_flag
 
-  id.io.reg1 := regs.io.read_data1
-  id.io.reg2 := regs.io.read_data2
+  id.io.reg1_data := regs.io.read_data1
+  id.io.reg2_data := regs.io.read_data2
   id.io.instruction := if2id.io.output_instruction
   id.io.instruction_address := if2id.io.output_instruction_address
   id.io.jump_flag := ex.io.ctrl_jump_flag
@@ -91,10 +91,10 @@ class CPU extends Module {
   id2ex.io.op2 := id.io.ex_op2
   id2ex.io.op1_jump := id.io.ex_op1_jump
   id2ex.io.op2_jump := id.io.ex_op2_jump
-  id2ex.io.reg1 := id.io.ex_reg1
-  id2ex.io.reg2 := id.io.ex_reg2
-  id2ex.io.write_enable := id.io.ex_reg_write_enable
-  id2ex.io.write_address := id.io.ex_reg_write_address
+  id2ex.io.reg1_data := id.io.ex_reg1_data
+  id2ex.io.reg2_data := id.io.ex_reg2_data
+  id2ex.io.regs_write_enable := id.io.ex_reg_write_enable
+  id2ex.io.regs_write_address := id.io.ex_reg_write_address
   id2ex.io.hold_flag := ctrl.io.output_hold_flag
 
   ex.io.instruction := id2ex.io.output_instruction
@@ -106,11 +106,11 @@ class CPU extends Module {
   ex.io.op2 := id2ex.io.output_op2
   ex.io.op1_jump := id2ex.io.output_op1_jump
   ex.io.op2_jump := id2ex.io.output_op2_jump
-  ex.io.reg1 := id2ex.io.output_reg1
-  ex.io.reg2 := id2ex.io.output_reg2
-  ex.io.write_enable := id2ex.io.output_write_enable
-  ex.io.write_address := id2ex.io.output_write_address
-  ex.io.data := io.mem_read_data
+  ex.io.reg1_data := id2ex.io.output_reg1_data
+  ex.io.reg2_data := id2ex.io.output_reg2_data
+  ex.io.regs_write_enable_id := id2ex.io.output_regs_write_enable
+  ex.io.regs_write_address_id := id2ex.io.output_regs_write_address
+  ex.io.mem_read_data := io.mem_read_data
   ex.io.interrupt_assert := clint.io.ex_interrupt_assert
   ex.io.interrupt_handler_address := clint.io.ex_interrupt_handler_address
 

@@ -21,10 +21,10 @@ class ID2EX extends Module {
   val io = IO(new Bundle {
     val instruction = Input(UInt(Parameters.DataWidth))
     val instruction_address = Input(UInt(Parameters.AddrWidth))
-    val write_enable = Input(Bool())
-    val write_address = Input(UInt(Parameters.PhysicalRegisterAddrWidth))
-    val reg1 = Input(UInt(Parameters.DataWidth))
-    val reg2 = Input(UInt(Parameters.DataWidth))
+    val regs_write_enable = Input(Bool())
+    val regs_write_address = Input(UInt(Parameters.PhysicalRegisterAddrWidth))
+    val reg1_data = Input(UInt(Parameters.DataWidth))
+    val reg2_data = Input(UInt(Parameters.DataWidth))
     val op1 = Input(UInt(Parameters.DataWidth))
     val op2 = Input(UInt(Parameters.DataWidth))
     val op1_jump = Input(UInt(Parameters.DataWidth))
@@ -36,10 +36,10 @@ class ID2EX extends Module {
 
     val output_instruction = Output(UInt(Parameters.DataWidth))
     val output_instruction_address = Output(UInt(Parameters.AddrWidth))
-    val output_write_enable = Output(Bool())
-    val output_write_address = Output(UInt(Parameters.PhysicalRegisterAddrWidth))
-    val output_reg1 = Output(UInt(Parameters.DataWidth))
-    val output_reg2 = Output(UInt(Parameters.DataWidth))
+    val output_regs_write_enable = Output(Bool())
+    val output_regs_write_address = Output(UInt(Parameters.PhysicalRegisterAddrWidth))
+    val output_reg1_data = Output(UInt(Parameters.DataWidth))
+    val output_reg2_data = Output(UInt(Parameters.DataWidth))
     val output_op1 = Output(UInt(Parameters.DataWidth))
     val output_op2 = Output(UInt(Parameters.DataWidth))
     val output_op1_jump = Output(UInt(Parameters.DataWidth))
@@ -60,25 +60,25 @@ class ID2EX extends Module {
   instruction_address.io.hold_enable := hold_enable
   io.output_instruction_address := instruction_address.io.out
 
-  val write_enable = Module(new PipelineRegister(1))
-  write_enable.io.in := io.write_enable
-  write_enable.io.hold_enable := hold_enable
-  io.output_write_enable := write_enable.io.out
+  val regs_write_enable = Module(new PipelineRegister(1))
+  regs_write_enable.io.in := io.regs_write_enable
+  regs_write_enable.io.hold_enable := hold_enable
+  io.output_regs_write_enable := regs_write_enable.io.out
 
-  val write_address = Module(new PipelineRegister(Parameters.PhysicalRegisterAddrBits))
-  write_address.io.in := io.write_address
-  write_address.io.hold_enable := hold_enable
-  io.output_write_address := write_address.io.out
+  val regs_write_address = Module(new PipelineRegister(Parameters.PhysicalRegisterAddrBits))
+  regs_write_address.io.in := io.regs_write_address
+  regs_write_address.io.hold_enable := hold_enable
+  io.output_regs_write_address := regs_write_address.io.out
 
-  val reg1 = Module(new PipelineRegister())
-  reg1.io.in := io.reg1
-  reg1.io.hold_enable := hold_enable
-  io.output_reg1 := reg1.io.out
+  val reg1_data = Module(new PipelineRegister())
+  reg1_data.io.in := io.reg1_data
+  reg1_data.io.hold_enable := hold_enable
+  io.output_reg1_data := reg1_data.io.out
 
-  val reg2 = Module(new PipelineRegister())
-  reg2.io.in := io.reg2
-  reg2.io.hold_enable := hold_enable
-  io.output_reg2 := reg2.io.out
+  val reg2_data = Module(new PipelineRegister())
+  reg2_data.io.in := io.reg2_data
+  reg2_data.io.hold_enable := hold_enable
+  io.output_reg2_data := reg2_data.io.out
 
   val op1 = Module(new PipelineRegister())
   op1.io.in := io.op1
