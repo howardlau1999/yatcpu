@@ -15,6 +15,26 @@
 package riscv.debug
 
 import chisel3._
+import chisel3.experimental.ChiselEnum
+
+object JTAGStates extends ChiselEnum {
+  val TestLogicReset,
+  RunTestIdle,
+  SelectDRScan,
+  CaptureDR,
+  ShiftDR,
+  Exit1DR,
+  PauseDR,
+  Exit2DR,
+  UpdateDR,
+  SelectIRScan,
+  CaptureIR,
+  ShiftIR,
+  Exit1IR,
+  PauseIR,
+  Exit2IR,
+  UpdateIR = Value
+}
 
 class JTAGStateMachine extends Module {
   val io = IO(new Bundle {
