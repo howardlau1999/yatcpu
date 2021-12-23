@@ -15,8 +15,13 @@
 package riscv
 
 import chisel3._
+import chisel3.experimental.{ChiselAnnotation, annotate}
 import chisel3.util._
+import chisel3.util.experimental.loadMemoryFromFileInline
+import firrtl.annotations.MemorySynthInit
 
+import java.io.FileWriter
+import java.nio.file.Paths
 import javax.imageio.ImageIO
 
 object GlyphInfo {
@@ -26,7 +31,7 @@ object GlyphInfo {
   val spaceIndex = 1
 }
 
-class FontROM extends Module {
+class FontROM(fontBitmapFilename: String = "vga_font_8x16.bmp") extends Module {
   val glyphWidth = GlyphInfo.glyphWidth
   val glyphHeight = GlyphInfo.glyphHeight
 
@@ -35,15 +40,21 @@ class FontROM extends Module {
     val glyph_x = Input(UInt(4.W))
     val glyph_y = Input(UInt(4.W))
 
-    val glyph_pixel_on = Output(Bool())
+    val glyph_pixel_byte = Output(Bool())
   })
 
-  val glyphs = readFontBitmap()
-  io.glyph_pixel_on := glyphs(io.glyph_index * GlyphInfo.glyphHeight.U + io.glyph_y)(io
-    .glyph_x).asBool()
+  annotate(new ChiselAnnotation {
+    override def toFirrtl =
+      MemorySynthInit
+  })
+
+  val (hexTxtPath, glyphCount) = readFontBitmap()
+  val mem = SyncReadMem(glyphCount, UInt(8.W))
+  loadMemoryFromFileInline(mem, hexTxtPath.toString.replaceAll("\\\\", "/"))
+  io.glyph_pixel_byte := mem.read(io.glyph_index * GlyphInfo.glyphHeight.U + io.glyph_y, true.B)
 
   def readFontBitmap() = {
-    val inputStream = getClass.getClassLoader.getResourceAsStream("vga_font_8x16.bmp")
+    val inputStream = getClass.getClassLoader.getResourceAsStream(fontBitmapFilename)
     val image = ImageIO.read(inputStream)
 
     val glyphColumns = image.getWidth() / glyphWidth
@@ -64,6 +75,13 @@ class FontROM extends Module {
         }
       }
     }
-    VecInit(glyphs)
+    val currentDir = System.getProperty("user.dir")
+    val hexTxtPath = Paths.get(currentDir, "verilog", f"${fontBitmapFilename}.txt")
+    val writer = new FileWriter(hexTxtPath.toString)
+    for (i <- glyphs.indices) {
+      writer.write(f"@$i%x\n${glyphs(i).litValue()}%02x\n")
+    }
+    writer.close()
+    (hexTxtPath, glyphCount)
   }
 }

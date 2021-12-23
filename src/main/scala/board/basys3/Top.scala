@@ -34,7 +34,7 @@ class Top extends Module {
   })
 
   val cpu = Module(new CPU)
-  val mem = Module(new Memory(16384, binaryFilename))
+  val mem = Module(new Memory(8192, binaryFilename))
   val timer = Module(new Timer)
 
   cpu.io.interrupt_flag := timer.io.signal_interrupt
@@ -63,7 +63,7 @@ class Top extends Module {
   font_rom.io.glyph_index := vga_display.io.glyph_rom_index
   font_rom.io.glyph_x := vga_display.io.glyph_x
   font_rom.io.glyph_y := vga_display.io.glyph_y
-  io.rgb := Mux(vga_sync.io.video_on && font_rom.io.glyph_pixel_on, 0xFFFF.U, 0.U)
+  io.rgb := Mux(vga_sync.io.video_on && font_rom.io.glyph_pixel_byte(vga_display.io.glyph_x), 0xFFFF.U, 0.U)
 
   mem.io.debug_read_address := io.switch(15, 1).asUInt() << 2
   io.led := Mux(
