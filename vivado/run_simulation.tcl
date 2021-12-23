@@ -17,6 +17,8 @@ source open_project.tcl
 launch_simulation
 restart
 open_vcd
+log_wave -recursive [get_object /test/top/cpu/*]
 log_vcd [get_object /test/top/cpu/*]
 run 1000ns
 close_vcd
+close_sim
