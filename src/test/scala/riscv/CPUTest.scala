@@ -80,6 +80,7 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
     mem.io.instruction_read_address := cpu.io.instruction_read_address
     cpu.io.instruction_read_data := mem.io.instruction_read_data
     cpu.io.debug_read_address := io.regs_debug_read_address
+    cpu.io.hold_flag_bus := false.B
     mem.io.read_address := cpu.io.mem_read_address
     cpu.io.mem_read_data := mem.io.read_data
     mem.io.write_enable := cpu.io.mem_write_enable
