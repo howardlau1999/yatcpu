@@ -20,6 +20,7 @@ import chisel3.util._
 class CPU extends Module {
   val io = IO(new Bundle {
     val interrupt_flag = Input(UInt(Parameters.InterruptFlagWidth))
+    val hold_flag_bus = Input(Bool())
     val debug_read_address = Input(UInt(Parameters.PhysicalRegisterAddrWidth))
     val debug_read_data = Output(UInt(Parameters.DataWidth))
 
@@ -53,6 +54,7 @@ class CPU extends Module {
   ctrl.io.hold_flag_ex := ex.io.ctrl_hold_flag
   ctrl.io.hold_flag_id := id.io.ctrl_hold_flag
   ctrl.io.hold_flag_clint := clint.io.ctrl_hold_flag
+  ctrl.io.hold_flag_bus := io.hold_flag_bus
 
   regs.io.write_enable := ex.io.regs_write_enable
   regs.io.write_address := ex.io.regs_write_address
@@ -118,7 +120,6 @@ class CPU extends Module {
   io.mem_write_address := ex.io.mem_write_address
   io.mem_write_data := ex.io.mem_write_data
   io.mem_read_address := id.io.ex_mem_read_address
-
 
   clint.io.instruction := id.io.ex_instruction
   clint.io.instruction_address_id := id.io.instruction_address

@@ -30,6 +30,7 @@ class Control extends Module {
     val hold_flag_id = Input(Bool())
     val hold_flag_ex = Input(Bool())
     val hold_flag_clint = Input(Bool())
+    val hold_flag_bus = Input(Bool())
     val jump_address = Input(UInt(Parameters.AddrWidth))
 
     val output_hold_flag = Output(UInt(Parameters.HoldStateWidth))
@@ -44,8 +45,9 @@ class Control extends Module {
   io.output_hold_flag := MuxCase(
     HoldStates.None,
     Array(
-      io.hold_flag_id -> HoldStates.IF,
       (io.jump_flag || io.hold_flag_ex || io.hold_flag_clint) -> HoldStates.ID,
+      io.hold_flag_id -> HoldStates.IF,
+      io.hold_flag_bus -> HoldStates.PC,
     )
   )
 }
