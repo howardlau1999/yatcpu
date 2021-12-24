@@ -56,7 +56,7 @@ class ALU extends  Module {
       io.result := io.op1 & io.op2
     }
     is(ALUFunctions.sr) {
-      io.result := io.op1 >> io.op2
+      io.result := io.op1 >> io.op2(4, 0)
     }
     is(ALUFunctions.sltu) {
       io.result := io.op1 < io.op2

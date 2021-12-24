@@ -130,11 +130,10 @@ class Execute extends Module {
     when(funct3 === InstructionsTypeI.slli) {
       alu.io.op2 := io.instruction(24, 20)
     }.elsewhen(funct3 === InstructionsTypeI.sri) {
+      alu.io.op2 := io.instruction(24, 20)
       when(funct7(5).asBool()) {
-        io.regs_write_data := (io.op1 >> io.instruction(24, 20)).asUInt() & mask |
+        io.regs_write_data := alu.io.result & mask |
           (Fill(32, io.op1(31)) & (~mask).asUInt()).asUInt()
-      }.otherwise {
-        alu.io.op2 := io.instruction(24, 20)
       }
     }
   }.elsewhen(opcode === InstructionTypes.RM) {
@@ -144,14 +143,10 @@ class Execute extends Module {
     when(funct7 === 0.U || funct7 === 0x20.U) {
       val mask = (0xFFFFFFFFL.U >> io.reg2_data(4, 0)).asUInt()
       io.regs_write_data := alu.io.result
-      when(funct3 === InstructionsTypeR.sll) {
-        alu.io.op2 := io.op2(4, 0)
-      }.elsewhen(funct3 === InstructionsTypeR.sr) {
+      when(funct3 === InstructionsTypeR.sr) {
         when(funct7(5).asBool()) {
-          io.regs_write_data := (io.op1 >> io.op2(4, 0)).asUInt() & mask |
+          io.regs_write_data := alu.io.result & mask |
             (Fill(32, io.op1(31)) & (~mask).asUInt()).asUInt()
-        }.otherwise {
-          alu.io.op2 := io.op2(4, 0)
         }
       }
     }
