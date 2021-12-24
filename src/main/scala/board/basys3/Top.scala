@@ -18,6 +18,7 @@ import board.common.{FontROM, VGADisplay, VGASync}
 import chisel3._
 import chisel3.util._
 import riscv._
+import riscv.debug.UartMain
 
 class Top extends Module {
   val binaryFilename = "hello.asmbin"
@@ -31,7 +32,13 @@ class Top extends Module {
     val vsync = Output(Bool())
     val rgb = Output(UInt(12.W))
     val led = Output(UInt(16.W))
+
+    val tx = Output(Bool())
+    val rx = Input(Bool())
   })
+  val uart = Module(new UartMain(100000000, 115200))
+  io.tx := uart.io.txd
+  uart.io.rxd := io.rx
 
   val cpu = Module(new CPU)
   val mem = Module(new Memory(Parameters.MemorySizeInWords, binaryFilename))
