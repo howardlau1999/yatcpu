@@ -77,14 +77,6 @@ class Execute extends Module {
     .instruction
     (11, 7))) & 0x3.U).asUInt()
 
-  val mem_read_address_aligned = ((io.reg1_data + Cat(Fill(20, io.instruction(31)), io.instruction(31, 20))) / 4.U)
-  val mem_write_address_aligned = ((io.reg1_data + Cat(Fill(20, io.instruction(31)), io.instruction(31, 25), io
-    .instruction
-    (11, 7)))) / 4.U
-  val writing_mem = RegInit(Bool(), false.B)
-  val mem_write_address = Reg(UInt(Parameters.AddrWidth))
-  val mem_write_data = Reg(UInt(Parameters.DataWidth))
-
   val jump_flag = Wire(Bool())
   val jump_address = Wire(UInt(Parameters.AddrWidth))
 
@@ -192,7 +184,6 @@ class Execute extends Module {
     disable_control()
     io.mem_write_address := io.op1 + io.op2
     io.mem_write_enable := !io.interrupt_assert
-    writing_mem := !io.interrupt_assert
     when(funct3 === InstructionsTypeS.sb) {
       io.mem_write_data := MuxLookup(
         mem_write_address_index,
@@ -215,10 +206,7 @@ class Execute extends Module {
       io.mem_write_data := io.reg2_data
     }.otherwise {
       disable_memory()
-      writing_mem := false.B
     }
-    mem_write_address := io.mem_write_address
-    mem_write_data := io.mem_write_data
   }.elsewhen(opcode === InstructionTypes.B) {
     disable_control()
     disable_memory()
