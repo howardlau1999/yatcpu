@@ -15,19 +15,21 @@
 package riscv.debug
 
 import chisel3._
+import chisel3.util._
 
-object DMRegisters {
-  val DATA0 = 0x04.U
-  val DATA11 = 0x0F.U
-  val DMCONTROL = 0x10.U
-  val DMSTATUS = 0x11.U
-  val HARTINFO = 0x12.U
-  val ABSTRACTCS = 0x16.U
-  val COMMAND = 0x17.U
+object DTMRegisters {
+  val IDCODE = 0x01.U
+  val DTMCS = 0x10.U
+  val DMI = 0x11.U
+  val BYPASS1F = 0x1F.U
 }
 
-class DebugModule extends Module {
+class DebugTransportModule extends Module {
   val io = IO(new Bundle {
 
   })
+
+  val idcode = 0x1e200151.U
+  val dtmcs = RegInit("b00000000000000000101000011100001".U)
+  val dmi = RegInit(UInt(48.W))
 }
