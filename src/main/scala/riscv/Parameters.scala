@@ -44,4 +44,8 @@ object Parameters {
   val MemorySizeInWords = MemorySizeInBytes / 4
 
   val EntryAddress = 0x1000.U(Parameters.AddrWidth)
+
+  val MasterDeviceCount = 2
+  val SlaveDeviceCount = 2
+  val SlaveDeviceCountBits = log2Up(Parameters.SlaveDeviceCount)
 }
