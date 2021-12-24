@@ -119,10 +119,7 @@ class Execute extends Module {
     disable_memory()
     val mask = (0xFFFFFFFFL.U >> io.instruction(24, 20)).asUInt()
     io.regs_write_data := alu.io.result
-    when(funct3 === InstructionsTypeI.slli) {
-      alu.io.op2 := io.instruction(24, 20)
-    }.elsewhen(funct3 === InstructionsTypeI.sri) {
-      alu.io.op2 := io.instruction(24, 20)
+    when(funct3 === InstructionsTypeI.sri) {
       when(funct7(5).asBool()) {
         io.regs_write_data := alu.io.result & mask |
           (Fill(32, io.op1(31)) & (~mask).asUInt()).asUInt()
