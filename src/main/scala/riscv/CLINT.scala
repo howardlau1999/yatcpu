@@ -61,7 +61,7 @@ class CLINT extends Module {
     // Is global interrupt enabled (from MSTATUS)?
     val interrupt_enable = Input(Bool())
 
-    val ctrl_hold_flag = Output(Bool())
+    val ctrl_stall_flag = Output(Bool())
 
     val csr_reg_write_enable = Output(Bool())
     val csr_reg_write_address = Output(UInt(Parameters.CSRRegisterAddrWidth))
@@ -81,7 +81,7 @@ class CLINT extends Module {
   val csr_reg_write_address = RegInit(UInt(Parameters.CSRRegisterAddrWidth), 0.U)
   val csr_reg_write_data = RegInit(UInt(Parameters.DataWidth), 0.U)
 
-  io.ctrl_hold_flag := interrupt_state =/= InterruptState.Idle || csr_state =/= CSRState.Idle
+  io.ctrl_stall_flag := interrupt_state =/= InterruptState.Idle || csr_state =/= CSRState.Idle
 
   // Interrupt FSM
   when(io.instruction === InstructionsEnv.ecall || io.instruction === InstructionsEnv.ebreak) {

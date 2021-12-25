@@ -21,28 +21,33 @@ class IF2ID extends Module {
   val io = IO(new Bundle {
     val instruction = Input(UInt(Parameters.DataWidth))
     val instruction_address = Input(UInt(Parameters.AddrWidth))
-    val hold_flag = Input(UInt(Parameters.HoldStateWidth))
+    val stall_flag = Input(UInt(Parameters.StallStateWidth))
     val interrupt_flag = Input(UInt(Parameters.InterruptFlagWidth))
+    val jump_flag = Input(Bool())
 
     val output_instruction = Output(UInt(Parameters.DataWidth))
     val output_instruction_address = Output(UInt(Parameters.AddrWidth))
     val output_interrupt_flag = Output(UInt(Parameters.InterruptFlagWidth))
   })
 
-  val hold_enable = io.hold_flag >= HoldStates.IF
+  val write_enable = io.stall_flag < StallStates.IF
+  val flush_enable = io.jump_flag
 
   val instruction = Module(new PipelineRegister(defaultValue = InstructionsNop.nop))
   instruction.io.in := io.instruction
-  instruction.io.hold_enable := hold_enable
+  instruction.io.write_enable := write_enable
+  instruction.io.flush_enable := flush_enable
   io.output_instruction := instruction.io.out
 
   val instruction_address = Module(new PipelineRegister(defaultValue = ProgramCounter.EntryAddress))
   instruction_address.io.in := io.instruction_address
-  instruction_address.io.hold_enable := hold_enable
+  instruction_address.io.write_enable := write_enable
+  instruction_address.io.flush_enable := flush_enable
   io.output_instruction_address := instruction_address.io.out
 
   val interrupt_flag = Module(new PipelineRegister())
   interrupt_flag.io.in := io.interrupt_flag
-  interrupt_flag.io.hold_enable := hold_enable
+  interrupt_flag.io.write_enable := write_enable
+  interrupt_flag.io.flush_enable := flush_enable
   io.output_interrupt_flag := interrupt_flag.io.out
 }

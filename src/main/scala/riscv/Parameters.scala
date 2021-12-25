@@ -38,7 +38,7 @@ object Parameters {
   val InterruptFlagWidth = InterruptFlagBits.W
 
   val HoldStateBits = 3
-  val HoldStateWidth = HoldStateBits.W
+  val StallStateWidth = HoldStateBits.W
 
   val MemorySizeInBytes = 32768
   val MemorySizeInWords = MemorySizeInBytes / 4

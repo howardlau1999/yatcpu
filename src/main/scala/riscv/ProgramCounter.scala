@@ -26,7 +26,7 @@ class ProgramCounter extends Module {
   val io = IO(new Bundle {
     val jump_enable = Input(Bool())
     val jump_address = Input(UInt(Parameters.AddrWidth))
-    val hold_flag = Input(UInt(Parameters.HoldStateWidth))
+    val stall_flag = Input(UInt(Parameters.StallStateWidth))
 
     val pc = Output(UInt(Parameters.AddrWidth))
   })
@@ -37,7 +37,7 @@ class ProgramCounter extends Module {
     pc + 4.U,
     Array(
       io.jump_enable -> io.jump_address,
-      (io.hold_flag >= HoldStates.PC) -> pc
+      (io.stall_flag >= StallStates.PC) -> pc
     )
   )
 

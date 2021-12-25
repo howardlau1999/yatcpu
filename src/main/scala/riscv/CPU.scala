@@ -20,7 +20,7 @@ import chisel3.util._
 class CPU extends Module {
   val io = IO(new Bundle {
     val interrupt_flag = Input(UInt(Parameters.InterruptFlagWidth))
-    val hold_flag_bus = Input(Bool())
+    val stall_flag_bus = Input(Bool())
     val debug_read_address = Input(UInt(Parameters.PhysicalRegisterAddrWidth))
     val debug_read_data = Output(UInt(Parameters.DataWidth))
 
@@ -45,16 +45,16 @@ class CPU extends Module {
   val clint = Module(new CLINT)
   val csr_regs = Module(new CSR)
 
-  pc.io.hold_flag := ctrl.io.output_hold_flag
+  pc.io.stall_flag := ctrl.io.output_stall_flag
   pc.io.jump_enable := ctrl.io.pc_jump_flag
   pc.io.jump_address := ctrl.io.pc_jump_address
 
   ctrl.io.jump_flag := ex.io.ctrl_jump_flag
   ctrl.io.jump_address := ex.io.ctrl_jump_address
-  ctrl.io.hold_flag_ex := ex.io.ctrl_hold_flag
-  ctrl.io.hold_flag_id := id.io.ctrl_hold_flag
-  ctrl.io.hold_flag_clint := clint.io.ctrl_hold_flag
-  ctrl.io.hold_flag_bus := io.hold_flag_bus
+  ctrl.io.stall_flag_ex := ex.io.ctrl_stall_flag
+  ctrl.io.stall_flag_id := id.io.ctrl_stall_flag
+  ctrl.io.stall_flag_clint := clint.io.ctrl_stall_flag
+  ctrl.io.stall_flag_bus := io.stall_flag_bus
 
   regs.io.write_enable := ex.io.regs_write_enable
   regs.io.write_address := ex.io.regs_write_address
@@ -68,13 +68,14 @@ class CPU extends Module {
   inst_fetch.io.pc_pc := pc.io.pc
   io.instruction_read_address := inst_fetch.io.mem_instruction_address
   inst_fetch.io.instruction_mem := io.instruction_read_data
-  inst_fetch.io.hold_flag_ctrl := ctrl.io.output_hold_flag
+  inst_fetch.io.stall_flag_ctrl := ctrl.io.output_stall_flag
   inst_fetch.io.jump_flag_ctrl := ctrl.io.pc_jump_flag
   inst_fetch.io.jump_address_ctrl := ctrl.io.pc_jump_address
 
   if2id.io.instruction := inst_fetch.io.id_instruction
   if2id.io.instruction_address := inst_fetch.io.id_instruction_address
-  if2id.io.hold_flag := ctrl.io.output_hold_flag
+  if2id.io.stall_flag := ctrl.io.output_stall_flag
+  if2id.io.jump_flag := ctrl.io.pc_jump_flag
   if2id.io.interrupt_flag := io.interrupt_flag
 
   id.io.reg1_data := regs.io.read_data1
@@ -97,7 +98,8 @@ class CPU extends Module {
   id2ex.io.reg2_data := id.io.ex_reg2_data
   id2ex.io.regs_write_enable := id.io.ex_reg_write_enable
   id2ex.io.regs_write_address := id.io.ex_reg_write_address
-  id2ex.io.hold_flag := ctrl.io.output_hold_flag
+  id2ex.io.stall_flag := ctrl.io.output_stall_flag
+  id2ex.io.jump_flag := ctrl.io.pc_jump_flag
 
   ex.io.instruction := id2ex.io.output_instruction
   ex.io.instruction_address := id2ex.io.output_instruction_address

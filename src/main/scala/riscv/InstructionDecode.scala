@@ -128,7 +128,7 @@ class InstructionDecode extends Module {
     val regs_reg1_read_address = Output(UInt(Parameters.PhysicalRegisterAddrWidth))
     val regs_reg2_read_address = Output(UInt(Parameters.PhysicalRegisterAddrWidth))
 
-    val ctrl_hold_flag = Output(UInt(Parameters.HoldStateWidth))
+    val ctrl_stall_flag = Output(UInt(Parameters.StallStateWidth))
 
     val ex_op1 = Output(UInt(Parameters.DataWidth))
     val ex_op2 = Output(UInt(Parameters.DataWidth))
@@ -182,7 +182,7 @@ class InstructionDecode extends Module {
   io.ex_op1_jump := 0.U
   io.ex_op2_jump := 0.U
   io.ex_mem_read_address := 0.U
-  io.ctrl_hold_flag := false.B
+  io.ctrl_stall_flag := false.B
   io.csr_read_address := 0.U
   io.ex_csr_read_data := io.csr_read_data
   io.ex_csr_write_enable := false.B
@@ -204,7 +204,7 @@ class InstructionDecode extends Module {
       io.ex_op1 := io.reg1_data
       io.ex_op2 := Cat(Fill(20, io.instruction(31)), io.instruction(31, 20))
       io.ex_mem_read_address := io.ex_op1 + io.ex_op2
-      io.ctrl_hold_flag := io.ex_mem_read_address === last_write_address
+      io.ctrl_stall_flag := io.ex_mem_read_address === last_write_address
     }.otherwise {
       disable_regs()
     }
@@ -225,7 +225,6 @@ class InstructionDecode extends Module {
       io.ex_op2 := Cat(Fill(20, io.instruction(31)), io.instruction(31, 25), io.instruction(11, 7))
       io.ex_mem_read_address := io.ex_op1 + io.ex_op2
       last_write_address := io.ex_op1 + io.ex_op2
-      io.ctrl_hold_flag := true.B
     }.otherwise {
       disable_regs()
     }

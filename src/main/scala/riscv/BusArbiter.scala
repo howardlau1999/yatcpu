@@ -22,7 +22,7 @@ class BusArbiter extends Module {
     val bus_request = Input(Vec(Parameters.MasterDeviceCount, Bool()))
     val bus_granted = Output(Vec(Parameters.MasterDeviceCount, Bool()))
 
-    val ctrl_hold_flag = Output(Bool())
+    val ctrl_stall_flag = Output(Bool())
   })
   val granted = Wire(UInt())
   // Static Priority Arbitration
@@ -36,5 +36,5 @@ class BusArbiter extends Module {
   for (i <- 0 until Parameters.MasterDeviceCount) {
     io.bus_granted(i.U) := i.U === granted
   }
-  io.ctrl_hold_flag := !io.bus_granted(0.U)
+  io.ctrl_stall_flag := !io.bus_granted(0.U)
 }

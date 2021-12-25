@@ -20,7 +20,7 @@ import chisel3.util._
 class InstructionFetch extends Module {
   val io = IO(new Bundle {
     val pc_pc = Input(UInt(Parameters.AddrWidth))
-    val hold_flag_ctrl = Input(UInt(Parameters.HoldStateWidth))
+    val stall_flag_ctrl = Input(UInt(Parameters.StallStateWidth))
     val jump_flag_ctrl = Input(Bool())
     val jump_address_ctrl = Input(UInt(Parameters.AddrWidth))
     val instruction_mem = Input(UInt(Parameters.DataWidth))
@@ -39,7 +39,7 @@ class InstructionFetch extends Module {
     io.mem_instruction_address := io.jump_address_ctrl
     instruction_address := io.jump_address_ctrl
     instruction_valid := false.B
-  }.elsewhen(io.hold_flag_ctrl >= HoldStates.IF) {
+  }.elsewhen(io.stall_flag_ctrl >= StallStates.IF) {
     io.mem_instruction_address := instruction_address
   }.otherwise {
     instruction_address := io.pc_pc

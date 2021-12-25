@@ -42,15 +42,14 @@ class Top extends Module {
 
   val cpu = Module(new CPU)
   val mem = Module(new Memory(Parameters.MemorySizeInWords, binaryFilename))
-  val timer = Module(new Timer)
   val bus_arbiter = Module(new BusArbiter)
 
   bus_arbiter.io.bus_request(0) := true.B
 
-  cpu.io.interrupt_flag := timer.io.signal_interrupt
+  cpu.io.interrupt_flag := io.switch(15)
   cpu.io.instruction_read_data := mem.io.instruction_read_data
   cpu.io.mem_read_data := mem.io.read_data
-  cpu.io.hold_flag_bus := bus_arbiter.io.ctrl_hold_flag
+  cpu.io.stall_flag_bus := bus_arbiter.io.ctrl_stall_flag
   mem.io.read_address := cpu.io.mem_read_address
   mem.io.instruction_read_address := cpu.io.instruction_read_address
   mem.io.write_enable := cpu.io.mem_write_enable

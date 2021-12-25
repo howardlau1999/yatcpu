@@ -17,7 +17,7 @@ package riscv
 import chisel3._
 import chisel3.util._
 
-object HoldStates {
+object StallStates {
   val None = 0.U
   val PC = 1.U
   val IF = 2.U
@@ -27,13 +27,13 @@ object HoldStates {
 class Control extends Module {
   val io = IO(new Bundle {
     val jump_flag = Input(Bool())
-    val hold_flag_id = Input(Bool())
-    val hold_flag_ex = Input(Bool())
-    val hold_flag_clint = Input(Bool())
-    val hold_flag_bus = Input(Bool())
+    val stall_flag_id = Input(Bool())
+    val stall_flag_ex = Input(Bool())
+    val stall_flag_clint = Input(Bool())
+    val stall_flag_bus = Input(Bool())
     val jump_address = Input(UInt(Parameters.AddrWidth))
 
-    val output_hold_flag = Output(UInt(Parameters.HoldStateWidth))
+    val output_stall_flag = Output(UInt(Parameters.StallStateWidth))
 
     val pc_jump_flag = Output(Bool())
     val pc_jump_address = Output(UInt(Parameters.AddrWidth))
@@ -42,12 +42,12 @@ class Control extends Module {
   io.pc_jump_flag := io.jump_flag
   io.pc_jump_address := io.jump_address
 
-  io.output_hold_flag := MuxCase(
-    HoldStates.None,
+  io.output_stall_flag := MuxCase(
+    StallStates.None,
     Array(
-      (io.jump_flag || io.hold_flag_ex || io.hold_flag_clint) -> HoldStates.ID,
-      io.hold_flag_id -> HoldStates.IF,
-      io.hold_flag_bus -> HoldStates.PC,
+      (io.jump_flag || io.stall_flag_ex || io.stall_flag_clint) -> StallStates.ID,
+      io.stall_flag_id -> StallStates.IF,
+      io.stall_flag_bus -> StallStates.PC,
     )
   )
 }

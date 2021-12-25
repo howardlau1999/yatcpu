@@ -45,7 +45,7 @@ class Execute extends Module {
     val regs_write_address = Output(UInt(Parameters.PhysicalRegisterAddrWidth))
     val regs_write_data = Output(UInt(Parameters.DataWidth))
 
-    val ctrl_hold_flag = Output(Bool())
+    val ctrl_stall_flag = Output(Bool())
     val ctrl_jump_flag = Output(Bool())
     val ctrl_jump_address = Output(UInt(Parameters.AddrWidth))
 
@@ -101,12 +101,12 @@ class Execute extends Module {
   io.csr_reg_write_data := 0.U
 
   def disable_control() = {
-    disable_hold()
+    disable_stall()
     disable_jump()
   }
 
-  def disable_hold() = {
-    io.ctrl_hold_flag := false.B
+  def disable_stall() = {
+    io.ctrl_stall_flag := false.B
   }
 
   def disable_jump() = {
@@ -222,7 +222,7 @@ class Execute extends Module {
     io.ctrl_jump_address := Fill(32, io.ctrl_jump_flag) & (io.op1_jump + io.op2_jump)
   }.elsewhen(opcode === Instructions.jal || opcode === Instructions.jalr) {
     disable_memory()
-    disable_hold()
+    disable_stall()
     jump_flag := true.B
     jump_address := io.op1_jump + io.op2_jump
     io.regs_write_data := io.op1 + io.op2
