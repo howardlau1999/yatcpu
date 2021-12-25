@@ -97,6 +97,7 @@ class AXI4LiteStateMachine(addrWidth: Int, dataWidth: Int) extends Module {
   val write = RegInit(false.B)
   io.write := write
   val write_data = RegInit(0.U(dataWidth.W))
+  io.write_data := write_data
 
   val ARREADY = RegInit(false.B)
   io.channels.read_address_channel.io.ARREADY := ARREADY
