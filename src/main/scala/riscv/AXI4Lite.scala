@@ -79,7 +79,7 @@ object AXI4LiteStates extends ChiselEnum {
   val Idle, ReadAddr, ReadData, WriteAddr, WriteData, WriteResp = Value
 }
 
-class AXI4LiteStateMachine(addrWidth: Int, dataWidth: Int) extends Module {
+class AXI4LiteSlave(addrWidth: Int, dataWidth: Int) extends Module {
   val io = IO(new Bundle {
     val channels = Flipped(new AXI4LiteChannels(addrWidth, dataWidth))
 
@@ -169,6 +169,105 @@ class AXI4LiteStateMachine(addrWidth: Int, dataWidth: Int) extends Module {
       when(io.channels.write_response_channel.io.BREADY && BVALID) {
         state := AXI4LiteStates.Idle
         BVALID := false.B
+      }
+    }
+  }
+}
+
+class AXI4LiteMaster(addrWidth: Int, dataWidth: Int) extends Module {
+  val io = IO(new Bundle {
+    val channels = new AXI4LiteChannels(addrWidth, dataWidth)
+
+    val read = Input(Bool())
+    val write = Input(Bool())
+    val read_data = Output(UInt(dataWidth.W))
+    val write_data = Input(UInt(dataWidth.W))
+    val address = Input(UInt(addrWidth.W))
+
+    val busy = Output(Bool())
+    val read_ok = Output(Bool())
+    val write_ok = Output(Bool())
+  })
+  val state = RegInit(AXI4LiteStates.Idle)
+  io.busy := state =/= AXI4LiteStates.Idle
+
+  val addr = RegInit(0.U(dataWidth.W))
+  val read_ok = RegInit(false.B)
+  io.read_ok := read_ok
+  val write_ok = RegInit(false.B)
+  io.write_ok := write_ok
+  val write_data = RegInit(0.U(dataWidth.W))
+  val read_data = RegInit(0.U(dataWidth.W))
+
+  val ARVALID = RegInit(false.B)
+  io.channels.read_address_channel.io.ARVALID := ARVALID
+  val RREADY = RegInit(false.B)
+  io.channels.read_data_channel.io.RREADY := RREADY
+
+  io.read_data := io.channels.read_data_channel.io.RDATA
+  val AWVALID = RegInit(false.B)
+  io.channels.write_address_channel.io.AWVALID := AWVALID
+  val WVALID = RegInit(false.B)
+  io.channels.write_data_channel.io.WVALID := WVALID
+  io.channels.write_data_channel.io.WDATA := write_data
+  val BREADY = RegInit(false.B)
+  io.channels.write_response_channel.io.BREADY := BREADY
+
+  switch(state) {
+    is(AXI4LiteStates.Idle) {
+      WVALID := false.B
+      AWVALID := false.B
+      ARVALID := false.B
+      read_ok := false.B
+      write_ok := false.B
+      when(io.write) {
+        state := AXI4LiteStates.WriteAddr
+        addr := io.address
+        write_data := io.write_data
+      }.elsewhen(io.read) {
+        state := AXI4LiteStates.ReadAddr
+        addr := io.address
+      }
+    }
+    is(AXI4LiteStates.ReadAddr) {
+      ARVALID := true.B
+      when(io.channels.read_address_channel.io.ARREADY && ARVALID) {
+        state := AXI4LiteStates.ReadData
+        io.channels.read_address_channel.io.ARADDR := addr
+        ARVALID := false.B
+      }
+    }
+    is(AXI4LiteStates.ReadData) {
+      RREADY := true.B
+      when(io.channels.read_data_channel.io.RVALID && RREADY) {
+        state := AXI4LiteStates.Idle
+        read_ok := true.B
+        read_data := io.channels.read_data_channel.io.RDATA
+        RREADY := false.B
+      }
+    }
+    is(AXI4LiteStates.WriteAddr) {
+      AWVALID := true.B
+      when(io.channels.write_address_channel.io.AWREADY && AWVALID) {
+        state := AXI4LiteStates.WriteData
+        io.channels.write_address_channel.io.AWADDR := addr
+        AWVALID := false.B
+      }
+    }
+    is(AXI4LiteStates.WriteData) {
+      WVALID := true.B
+      when(io.channels.write_data_channel.io.WREADY && WVALID) {
+        state := AXI4LiteStates.WriteResp
+        io.channels.write_data_channel.io.WDATA := write_data
+        WVALID := false.B
+      }
+    }
+    is(AXI4LiteStates.WriteResp) {
+      BREADY := true.B
+      when(io.channels.write_response_channel.io.BVALID && BREADY) {
+        state := AXI4LiteStates.Idle
+        write_ok := true.B
+        BREADY := false.B
       }
     }
   }
