@@ -21,10 +21,40 @@ import chisel3.util._
 // TODO(howard): allow setting different frequency
 class Timer extends Module{
   val io = IO(new Bundle{
+    val channels = Flipped(new AXI4LiteChannels(Parameters.AddrBits, Parameters.DataBits))
     val signal_interrupt = Output(Bool())
+
+    val debug_limit = Output(UInt(Parameters.DataWidth))
+    val debug_enabled = Output(Bool())
   })
+  val slave = Module(new AXI4LiteSlave(Parameters.AddrBits, Parameters.DataBits))
+  slave.io.channels <> io.channels
+
   val count = RegInit(0.U(32.W))
-  val limit = 100000000.U(32.W)
+  val limit = RegInit(100000000.U(32.W))
+  io.debug_limit := limit
+  val enabled = RegInit(true.B)
+  io.debug_enabled := enabled
+
+  slave.io.bundle.read_data := 0.U
+  when(slave.io.bundle.read) {
+    slave.io.bundle.read_data := MuxLookup(
+      slave.io.bundle.address,
+      0.U,
+      Array(
+        0x4.U -> limit,
+        0x8.U -> enabled,
+      )
+    )
+  }
+  when(slave.io.bundle.write) {
+    when(slave.io.bundle.address === 0x4.U) {
+      limit := slave.io.bundle.write_data
+      count := 0.U
+    }.elsewhen(slave.io.bundle.address === 0x8.U) {
+      enabled := slave.io.bundle.write_data =/= 0.U
+    }
+  }
 
   io.signal_interrupt := count >= (limit - 10.U)
 
