@@ -22,7 +22,7 @@ object ALUFunctions extends ChiselEnum {
   val zero, add, sub, sll, slt, xor, or, and, sr, sltu = Value
 }
 
-class ALU extends  Module {
+class ALU extends Module {
   val io = IO(new Bundle {
     val func = Input(ALUFunctions())
 

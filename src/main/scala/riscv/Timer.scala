@@ -19,8 +19,8 @@ import chisel3.util._
 
 // TODO(howard): connect to the bus
 // TODO(howard): allow setting different frequency
-class Timer extends Module{
-  val io = IO(new Bundle{
+class Timer extends Module {
+  val io = IO(new Bundle {
     val channels = Flipped(new AXI4LiteChannels(Parameters.AddrBits, Parameters.DataBits))
     val signal_interrupt = Output(Bool())
 
