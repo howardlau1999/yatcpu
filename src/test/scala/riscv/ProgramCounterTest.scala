@@ -24,7 +24,7 @@ class ProgramCounterTest extends FreeSpec with ChiselScalatestTester {
       test(new ProgramCounter) { c =>
         c.io.jump_enable.poke(false.B)
         c.io.jump_address.poke(0.U)
-        c.io.hold_flag.poke(0.U)
+        c.io.stall_flag.poke(0.U)
         c.clock.step()
         c.io.pc.expect((ProgramCounter.EntryAddress.litValue() + 0x4).U)
         c.reset.poke(true.B)
@@ -38,20 +38,20 @@ class ProgramCounterTest extends FreeSpec with ChiselScalatestTester {
       test(new ProgramCounter) { c =>
         c.io.jump_address.poke(0xDEADBEEFL.U)
         c.io.jump_enable.poke(true.B)
-        c.io.hold_flag.poke(0.U)
+        c.io.stall_flag.poke(0.U)
         c.clock.step()
         c.io.pc.expect(0xDEADBEEFL.U)
       }
     }
 
-    "hold when hold flag is true" in {
+    "stall when stall flag is true" in {
       test(new ProgramCounter) { c =>
         c.io.jump_enable.poke(false.B)
-        c.io.hold_flag.poke(0.U)
+        c.io.stall_flag.poke(0.U)
         c.clock.step()
         c.io.pc.expect((ProgramCounter.EntryAddress.litValue() + 0x4).U)
 
-        c.io.hold_flag.poke(1.U)
+        c.io.stall_flag.poke(1.U)
         c.clock.step()
         c.io.pc.expect((ProgramCounter.EntryAddress.litValue() + 0x4).U)
       }
