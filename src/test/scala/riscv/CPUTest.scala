@@ -75,8 +75,8 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
     })
     val mem = Module(new TestMemory(8192, exeFilename))
     val cpu = Module(new CPU)
-    val dummy = Module(new DummySlave)
-    cpu.io.axi4_channels <> dummy.io.channels
+    val timer = Module(new Timer)
+    cpu.io.axi4_channels <> timer.io.channels
 
     mem.io.debug_read_address := io.mem_debug_read_address
     mem.io.instruction_read_address := cpu.io.instruction_read_address
@@ -120,6 +120,20 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
           c.clock.step()
           c.io.mem_debug_read_data.expect((i - 1).U)
         }
+      }
+    }
+
+    "should read and write timer register" in {
+      test(new TestTopModule("mmio.asmbin")) { c =>
+        c.io.interrupt.poke(0.U)
+        for (i <- 1 to 50) {
+          c.clock.step()
+          c.io.mem_debug_read_address.poke((i * 4).U) // Avoid timeout
+        }
+        c.io.regs_debug_read_address.poke(5.U)
+        c.io.regs_debug_read_data.expect(100000000.U)
+        c.io.regs_debug_read_address.poke(6.U)
+        c.io.regs_debug_read_data.expect(0xBEEF.U)
       }
     }
   }

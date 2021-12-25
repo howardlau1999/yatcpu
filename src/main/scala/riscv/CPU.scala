@@ -48,10 +48,13 @@ class CPU extends Module {
   val axi4_master = Module(new AXI4LiteMaster(Parameters.AddrBits, Parameters.DataBits))
 
   axi4_master.io.channels <> io.axi4_channels
-  axi4_master.io.bundle.read := false.B
-  axi4_master.io.bundle.write := false.B
-  axi4_master.io.bundle.address := 0.U
-  axi4_master.io.bundle.write_data := 0.U
+  axi4_master.io.bundle.read := ex.io.bus_read
+  axi4_master.io.bundle.write := ex.io.bus_write
+  axi4_master.io.bundle.address := ex.io.bus_address
+  axi4_master.io.bundle.write_data := ex.io.bus_write_data
+  ex.io.bus_read_data := axi4_master.io.bundle.read_data
+  ex.io.bus_read_valid := axi4_master.io.bundle.read_ok
+  ex.io.bus_write_valid := axi4_master.io.bundle.write_ok
 
   pc.io.stall_flag := ctrl.io.output_stall_flag
   pc.io.jump_enable := ctrl.io.pc_jump_flag
