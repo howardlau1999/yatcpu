@@ -20,8 +20,8 @@ import chisel3.util._
 class BusSwitch extends Module {
   val io = IO(new Bundle {
     val address = Input(UInt(Parameters.AddrWidth))
-    val slaves = Vec(Parameters.SlaveDeviceCount, new AXI4Lite(Parameters.AddrBits, Parameters.DataBits))
-    val slave = new AXI4Lite(Parameters.AddrBits, Parameters.DataBits)
+    val slaves = Vec(Parameters.SlaveDeviceCount, new AXI4LiteChannels(Parameters.AddrBits, Parameters.DataBits))
+    val slave = new AXI4LiteChannels(Parameters.AddrBits, Parameters.DataBits)
   })
   io.slave <> io.slaves(io.address(Parameters.AddrBits - 1, Parameters.AddrBits - 1 - Parameters.SlaveDeviceCountBits))
 }
