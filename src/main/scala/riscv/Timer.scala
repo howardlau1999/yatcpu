@@ -21,13 +21,13 @@ import chisel3.util._
 // TODO(howard): allow setting different frequency
 class Timer extends Module {
   val io = IO(new Bundle {
-    val channels = Flipped(new AXI4LiteChannels(Parameters.AddrBits, Parameters.DataBits))
+    val channels = Flipped(new AXI4LiteChannels(4, Parameters.DataBits))
     val signal_interrupt = Output(Bool())
 
     val debug_limit = Output(UInt(Parameters.DataWidth))
     val debug_enabled = Output(Bool())
   })
-  val slave = Module(new AXI4LiteSlave(Parameters.AddrBits, Parameters.DataBits))
+  val slave = Module(new AXI4LiteSlave(4, Parameters.DataBits))
   slave.io.channels <> io.channels
 
   val count = RegInit(0.U(32.W))

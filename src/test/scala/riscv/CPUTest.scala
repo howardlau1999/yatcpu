@@ -75,6 +75,8 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
     })
     val mem = Module(new TestMemory(8192, exeFilename))
     val cpu = Module(new CPU)
+    val dummy = Module(new DummySlave)
+    cpu.io.axi4_channels <> dummy.io.channels
 
     mem.io.debug_read_address := io.mem_debug_read_address
     mem.io.instruction_read_address := cpu.io.instruction_read_address

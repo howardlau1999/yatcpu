@@ -17,21 +17,12 @@ package riscv
 import chisel3._
 import chisel3.util._
 
-class BusSwitch extends Module {
+class DummySlave extends Module {
   val io = IO(new Bundle {
-    val address = Input(UInt(Parameters.AddrWidth))
-    val slaves = Vec(Parameters.SlaveDeviceCount, new AXI4LiteChannels(Parameters.AddrBits, Parameters.DataBits))
-    val master = Flipped(new AXI4LiteChannels(Parameters.AddrBits, Parameters.DataBits))
+    val channels = Flipped(new AXI4LiteChannels(4, Parameters.DataBits))
   })
-  val dummy = Module(new DummyMaster)
-  val index = io.address(Parameters.AddrBits - 1, Parameters.AddrBits - 1 - Parameters.SlaveDeviceCountBits)
-  io.master <> io.slaves(0)
-  dummy.io.channels <> io.slaves(0)
-  for (i <- 0 until Parameters.SlaveDeviceCount) {
-    when(index === i.U) {
-      io.slaves(i) <> io.master
-    }.otherwise{
-      io.slaves(i) <> dummy.io.channels
-    }
-  }
+
+  val slave = Module(new AXI4LiteSlave(Parameters.AddrBits, Parameters.DataBits))
+  slave.io.channels <> io.channels
+  slave.io.bundle.read_data := 0.U
 }

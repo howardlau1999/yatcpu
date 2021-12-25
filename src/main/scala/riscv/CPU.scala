@@ -19,6 +19,7 @@ import chisel3.util._
 
 class CPU extends Module {
   val io = IO(new Bundle {
+    val axi4_channels = new AXI4LiteChannels(Parameters.AddrBits, Parameters.DataBits)
     val interrupt_flag = Input(UInt(Parameters.InterruptFlagWidth))
     val stall_flag_bus = Input(Bool())
     val debug_read_address = Input(UInt(Parameters.PhysicalRegisterAddrWidth))
@@ -44,6 +45,13 @@ class CPU extends Module {
   val ex = Module(new Execute)
   val clint = Module(new CLINT)
   val csr_regs = Module(new CSR)
+  val axi4_master = Module(new AXI4LiteMaster(Parameters.AddrBits, Parameters.DataBits))
+
+  axi4_master.io.channels <> io.axi4_channels
+  axi4_master.io.bundle.read := false.B
+  axi4_master.io.bundle.write := false.B
+  axi4_master.io.bundle.address := 0.U
+  axi4_master.io.bundle.write_data := 0.U
 
   pc.io.stall_flag := ctrl.io.output_stall_flag
   pc.io.jump_enable := ctrl.io.pc_jump_flag
