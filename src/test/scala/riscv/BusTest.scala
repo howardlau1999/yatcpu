@@ -20,19 +20,19 @@ import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
 import chisel3.tester._
 import org.scalatest._
 
-class TestTimerLimit extends Module {
-  val io = IO(new Bundle {
-    val limit = Output(UInt())
-    val bundle = new AXI4LiteMasterBundle(Parameters.AddrBits, Parameters.DataBits)
-  })
-  val timer = Module(new Timer)
-  val master = Module(new AXI4LiteMaster(Parameters.AddrBits, Parameters.DataBits))
-  io.limit := timer.io.debug_limit
-  master.io.bundle <> io.bundle
-  timer.io.channels <> master.io.channels
-}
-
 class BusTest extends FreeSpec with ChiselScalatestTester {
+  class TestTimerLimit extends Module {
+    val io = IO(new Bundle {
+      val limit = Output(UInt())
+      val bundle = new AXI4LiteMasterBundle(Parameters.AddrBits, Parameters.DataBits)
+    })
+    val timer = Module(new Timer)
+    val master = Module(new AXI4LiteMaster(Parameters.AddrBits, Parameters.DataBits))
+    io.limit := timer.io.debug_limit
+    master.io.bundle <> io.bundle
+    timer.io.channels <> master.io.channels
+  }
+
   "Timer" - {
     "should be able to read and write limit" in {
       test(new TestTimerLimit) { c =>
