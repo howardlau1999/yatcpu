@@ -43,17 +43,16 @@ class Top extends Module {
   val cpu = Module(new CPU)
   val mem = Module(new Memory(Parameters.MemorySizeInWords, binaryFilename))
   val timer = Module(new Timer)
-  //  val dummy = Module(new DummySlave)
+  val dummy = Module(new DummySlave)
   val bus_arbiter = Module(new BusArbiter)
-  //  val bus_switch = Module(new BusSwitch)
+  val bus_switch = Module(new BusSwitch)
 
   bus_arbiter.io.bus_request(0) := true.B
 
-  //  bus_switch.io.master <> cpu.io.axi4_channels
-  //  bus_switch.io.address := Mux(cpu.io.mem_write_enable, cpu.io.mem_write_address, cpu.io.mem_read_address)
-  //  bus_switch.io.slaves(0) <> dummy.io.channels
-  //  bus_switch.io.slaves(1) <> timer.io.channels
-  cpu.io.axi4_channels <> timer.io.channels
+  bus_switch.io.master <> cpu.io.axi4_channels
+  bus_switch.io.address := cpu.io.bus_address
+  bus_switch.io.slaves(0) <> dummy.io.channels
+  bus_switch.io.slaves(1) <> timer.io.channels
 
   cpu.io.interrupt_flag := timer.io.signal_interrupt
   cpu.io.instruction_read_data := mem.io.instruction_read_data
