@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package riscv
+package riscv.peripheral
 
 import chisel3._
 import chisel3.util._
+import riscv.Parameters
+import riscv.bus.{AXI4LiteChannels, AXI4LiteSlave}
 
-// TODO(howard): connect to the bus
-// TODO(howard): allow setting different frequency
 class Timer extends Module {
   val io = IO(new Bundle {
     val channels = Flipped(new AXI4LiteChannels(4, Parameters.DataBits))

@@ -75,7 +75,7 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
     })
     val mem = Module(new TestMemory(8192, exeFilename))
     val cpu = Module(new CPU)
-    val timer = Module(new Timer)
+    val timer = Module(new peripheral.Timer)
     cpu.io.axi4_channels <> timer.io.channels
 
     mem.io.debug_read_address := io.mem_debug_read_address

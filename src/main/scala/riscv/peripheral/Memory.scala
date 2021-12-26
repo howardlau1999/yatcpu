@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package riscv
+package riscv.peripheral
 
 import chisel3._
 import chisel3.experimental._
-import chisel3.util._
 import chisel3.util.experimental._
 import firrtl.annotations.MemorySynthInit
+import riscv.{Parameters, ProgramCounter}
 
 import java.io.FileWriter
-import java.nio.file.{Path, Paths}
+import java.nio.file.Paths
 import java.nio.{ByteBuffer, ByteOrder}
 
 class Memory(capacity: Int, instructionFilename: String = "hello.asmbin") extends Module {

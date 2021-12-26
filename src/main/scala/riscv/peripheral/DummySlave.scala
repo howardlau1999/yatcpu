@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package riscv
+package riscv.peripheral
 
 import chisel3._
-import chisel3.util._
+import riscv.Parameters
+import riscv.bus.{AXI4LiteChannels, AXI4LiteSlave}
 
 class DummySlave extends Module {
   val io = IO(new Bundle {

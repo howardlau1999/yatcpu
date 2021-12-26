@@ -18,7 +18,9 @@ import board.common.{FontROM, VGADisplay, VGASync}
 import chisel3._
 import chisel3.util._
 import riscv._
+import riscv.bus.{BusArbiter, BusSwitch}
 import riscv.debug.UartMain
+import riscv.peripheral.{DummySlave, Memory, Timer}
 
 class Top extends Module {
   val binaryFilename = "hello.asmbin"

@@ -16,6 +16,7 @@ package riscv
 
 import chisel3._
 import chisel3.util._
+import riscv.bus.{AXI4LiteChannels, AXI4LiteMaster}
 
 class CPU extends Module {
   val io = IO(new Bundle {

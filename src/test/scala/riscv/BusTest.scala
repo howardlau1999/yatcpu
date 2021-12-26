@@ -19,6 +19,7 @@ import chisel3._
 import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
 import chisel3.tester._
 import org.scalatest._
+import riscv.bus.{AXI4LiteMaster, AXI4LiteMasterBundle}
 
 class BusTest extends FreeSpec with ChiselScalatestTester {
   class TestTimerLimit extends Module {
@@ -26,7 +27,7 @@ class BusTest extends FreeSpec with ChiselScalatestTester {
       val limit = Output(UInt())
       val bundle = new AXI4LiteMasterBundle(Parameters.AddrBits, Parameters.DataBits)
     })
-    val timer = Module(new Timer)
+    val timer = Module(new peripheral.Timer)
     val master = Module(new AXI4LiteMaster(Parameters.AddrBits, Parameters.DataBits))
     io.limit := timer.io.debug_limit
     master.io.bundle <> io.bundle
