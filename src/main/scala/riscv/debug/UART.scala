@@ -27,13 +27,16 @@ class UartIO extends DecoupledIO(UInt(8.W)) {
  * A minimal version without any additional buffering.
  * Use a ready/valid handshaking.
  */
-class Tx(frequency: Int, baudRate: Int) extends Module {
+class Tx extends Module {
   val io = IO(new Bundle {
     val txd = Output(UInt(1.W))
     val channel = Flipped(new UartIO())
+
+    val frequency = Input(UInt())
+    val baudRate = Input(UInt())
   })
 
-  val BIT_CNT = ((frequency + baudRate / 2) / baudRate - 1).asUInt()
+  val BIT_CNT = (io.frequency + io.baudRate / 2.U) / io.baudRate - 1.U
 
   val shiftReg = RegInit(0x7ff.U)
   val cntReg = RegInit(0.U(20.W))
@@ -71,14 +74,17 @@ class Tx(frequency: Int, baudRate: Int) extends Module {
  * The following code is inspired by Tommy's receive code at:
  * https://github.com/tommythorn/yarvi
  */
-class Rx(frequency: Int, baudRate: Int) extends Module {
+class Rx extends Module {
   val io = IO(new Bundle {
     val rxd = Input(UInt(1.W))
     val channel = new UartIO()
+
+    val frequency = Input(UInt())
+    val baudRate = Input(UInt())
   })
 
-  val BIT_CNT = ((frequency + baudRate / 2) / baudRate - 1).U
-  val START_CNT = ((3 * frequency / 2 + baudRate / 2) / baudRate - 1).U
+  val BIT_CNT = ((io.frequency + io.baudRate / 2.U) / io.baudRate - 1.U)
+  val START_CNT = ((3.U * io.frequency / 2.U + io.baudRate / 2.U) / io.baudRate - 1.U)
 
   // Sync in the asynchronous RX data, reset to 1 to not start reading after a reset
   val rxReg = RegNext(RegNext(io.rxd, 1.U), 1.U)
@@ -143,39 +149,58 @@ class Buffer extends Module {
 /**
  * A transmitter with a single buffer.
  */
-class BufferedTx(frequency: Int, baudRate: Int) extends Module {
+class BufferedTx extends Module {
   val io = IO(new Bundle {
     val txd = Output(UInt(1.W))
     val channel = Flipped(new UartIO())
+
+    val frequency = Input(UInt())
+    val baudRate = Input(UInt())
   })
-  val tx = Module(new Tx(frequency, baudRate))
-  val buf = Module(new Buffer())
+  val tx = Module(new Tx)
+  val buf = Module(new Buffer)
+
+  tx.io.frequency := io.frequency
+  tx.io.baudRate := io.baudRate
 
   buf.io.in <> io.channel
   tx.io.channel <> buf.io.out
   io.txd <> tx.io.txd
 }
 
-class Echo(frequency: Int, baudRate: Int) extends Module {
+class Echo extends Module {
   val io = IO(new Bundle {
     val txd = Output(UInt(1.W))
     val rxd = Input(UInt(1.W))
+
+    val frequency = Input(UInt())
+    val baudRate = Input(UInt())
   })
 
-  val tx = Module(new BufferedTx(frequency, baudRate))
-  val rx = Module(new Rx(frequency, baudRate))
+  val tx = Module(new BufferedTx)
+  val rx = Module(new Rx)
+  tx.io.frequency := io.frequency
+  tx.io.baudRate := io.baudRate
+  rx.io.frequency := io.frequency
+  rx.io.baudRate := io.baudRate
+
   io.txd := tx.io.txd
   rx.io.rxd := io.rxd
   tx.io.channel <> rx.io.channel
 }
 
-class UartMain(frequency: Int, baudRate: Int) extends Module {
+class UartMain extends Module {
   val io = IO(new Bundle {
     val rxd = Input(UInt(1.W))
     val txd = Output(UInt(1.W))
+
+    val frequency = Input(UInt())
+    val baudRate = Input(UInt())
   })
 
-  val e = Module(new Echo(frequency, baudRate))
-  e.io.rxd := io.rxd
-  io.txd := e.io.txd
+  val echo = Module(new Echo)
+  echo.io.frequency := io.frequency
+  echo.io.baudRate := io.baudRate
+  echo.io.rxd := io.rxd
+  io.txd := echo.io.txd
 }

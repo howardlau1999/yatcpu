@@ -36,7 +36,9 @@ class Top extends Module {
     val tx = Output(Bool())
     val rx = Input(Bool())
   })
-  val uart = Module(new UartMain(100000000, 115200))
+  val uart = Module(new UartMain)
+  uart.io.frequency := 100000000.U
+  uart.io.baudRate := 115200.U
   io.tx := uart.io.txd
   uart.io.rxd := io.rx
 
