@@ -23,15 +23,19 @@ class BusSwitch extends Module {
     val slaves = Vec(Parameters.SlaveDeviceCount, new AXI4LiteChannels(Parameters.AddrBits, Parameters.DataBits))
     val master = Flipped(new AXI4LiteChannels(Parameters.AddrBits, Parameters.DataBits))
   })
-  val dummy = Module(new DummyMaster)
   val index = io.address(Parameters.AddrBits - 1, Parameters.AddrBits - 1 - Parameters.SlaveDeviceCountBits)
-  io.master <> io.slaves(0)
-  dummy.io.channels <> io.slaves(0)
   for (i <- 0 until Parameters.SlaveDeviceCount) {
-    when(index === i.U) {
-      io.slaves(i) <> io.master
-    }.otherwise{
-      io.slaves(i) <> dummy.io.channels
-    }
+    io.slaves(i).write_address_channel.AWVALID := false.B
+    io.slaves(i).write_address_channel.AWADDR := 0.U
+    io.slaves(i).write_address_channel.AWPROT := false.B
+    io.slaves(i).read_address_channel.ARVALID := 0.U
+    io.slaves(i).read_address_channel.ARADDR := 0.U
+    io.slaves(i).read_address_channel.ARPROT := 0.U
+    io.slaves(i).read_data_channel.RREADY := false.B
+    io.slaves(i).write_data_channel.WSTRB := 0.U
+    io.slaves(i).write_data_channel.WDATA := 0.U
+    io.slaves(i).write_data_channel.WVALID := false.B
+    io.slaves(i).write_response_channel.BREADY := false.B
   }
+  io.master <> io.slaves(index)
 }
