@@ -168,6 +168,7 @@ class Execute extends Module {
       }.elsewhen(mem_access_state === MemoryAccessStates.Read) {
         io.bus_read := false.B
         io.ctrl_stall_flag := true.B
+        io.bus_address := io.op1 + io.op2
         when(io.bus_read_valid) {
           io.regs_write_enable := true.B
           io.regs_write_data := io.bus_read_data
@@ -226,6 +227,7 @@ class Execute extends Module {
       }.elsewhen(mem_access_state === MemoryAccessStates.Write) {
         io.ctrl_stall_flag := true.B
         io.bus_write := false.B
+        io.bus_address := io.op1 + io.op2
         when(io.bus_write_valid) {
           mem_access_state := MemoryAccessStates.Idle
           io.ctrl_stall_flag := false.B

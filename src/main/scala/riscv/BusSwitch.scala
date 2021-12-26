@@ -23,7 +23,7 @@ class BusSwitch extends Module {
     val slaves = Vec(Parameters.SlaveDeviceCount, new AXI4LiteChannels(Parameters.AddrBits, Parameters.DataBits))
     val master = Flipped(new AXI4LiteChannels(Parameters.AddrBits, Parameters.DataBits))
   })
-  val index = io.address(Parameters.AddrBits - 1, Parameters.AddrBits - 1 - Parameters.SlaveDeviceCountBits)
+  val index = io.address(Parameters.AddrBits - 1, Parameters.AddrBits - Parameters.SlaveDeviceCountBits)
   for (i <- 0 until Parameters.SlaveDeviceCount) {
     io.slaves(i).write_address_channel.AWVALID := false.B
     io.slaves(i).write_address_channel.AWADDR := 0.U
