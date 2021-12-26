@@ -86,7 +86,7 @@ class Execute extends Module {
 
   val mem_read_address_index = ((io.op1 + io.op2) & 0x3.U).asUInt()
   val mem_write_address_index = ((io.op1 + io.op2) & 0x3.U).asUInt()
-  val slave_index = (io.op1 + io.op2) (Parameters.AddrBits - 1)
+  val slave_index = (io.op1 + io.op2) (Parameters.AddrBits - 1, Parameters.AddrBits - Parameters.SlaveDeviceCountBits)
   val mem_access_state = RegInit(MemoryAccessStates.Idle)
 
   val jump_flag = Wire(Bool())

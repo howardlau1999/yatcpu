@@ -115,7 +115,10 @@ class CLINT extends Module {
       )
     }.elsewhen(interrupt_state === InterruptState.AsyncAssert) {
       // Asynchronous Interrupt
-      cause := 0x80000004L.U
+      cause := 0x8000000BL.U
+      when(io.interrupt_flag(0)) {
+        cause := 0x80000007L.U
+      }
       csr_state := CSRState.MEPC
       instruction_address := Mux(
         io.jump_flag,

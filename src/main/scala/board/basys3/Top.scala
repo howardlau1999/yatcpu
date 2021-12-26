@@ -19,8 +19,7 @@ import chisel3._
 import chisel3.util._
 import riscv._
 import riscv.bus.{BusArbiter, BusSwitch}
-import riscv.debug.UartMain
-import riscv.peripheral.{DummySlave, Memory, Timer}
+import riscv.peripheral.{DummySlave, Memory, Timer, Uart}
 
 class Top extends Module {
   val binaryFilename = "hello.asmbin"
@@ -38,9 +37,7 @@ class Top extends Module {
     val tx = Output(Bool())
     val rx = Input(Bool())
   })
-  val uart = Module(new UartMain)
-  uart.io.frequency := 100000000.U
-  uart.io.baudRate := 115200.U
+  val uart = Module(new Uart(100000000, 115200))
   io.tx := uart.io.txd
   uart.io.rxd := io.rx
 
@@ -58,9 +55,10 @@ class Top extends Module {
   for (i <- 0 until Parameters.SlaveDeviceCount) {
     bus_switch.io.slaves(i) <> dummy.io.channels
   }
-  bus_switch.io.slaves(1) <> timer.io.channels
+  bus_switch.io.slaves(2) <> uart.io.channels
+  bus_switch.io.slaves(4) <> timer.io.channels
 
-  cpu.io.interrupt_flag := timer.io.signal_interrupt
+  cpu.io.interrupt_flag := Cat(uart.io.signal_interrupt, timer.io.signal_interrupt)
   cpu.io.instruction_read_data := mem.io.instruction_read_data
   cpu.io.mem_read_data := mem.io.read_data
   cpu.io.stall_flag_bus := bus_arbiter.io.ctrl_stall_flag

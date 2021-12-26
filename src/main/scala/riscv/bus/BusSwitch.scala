@@ -16,6 +16,7 @@ package riscv.bus
 
 import chisel3._
 import riscv.Parameters
+import riscv.peripheral.DummyMaster
 
 class BusSwitch extends Module {
   val io = IO(new Bundle {
@@ -23,19 +24,10 @@ class BusSwitch extends Module {
     val slaves = Vec(Parameters.SlaveDeviceCount, new AXI4LiteChannels(Parameters.AddrBits, Parameters.DataBits))
     val master = Flipped(new AXI4LiteChannels(Parameters.AddrBits, Parameters.DataBits))
   })
+  val dummy = Module(new DummyMaster)
   val index = io.address(Parameters.AddrBits - 1, Parameters.AddrBits - Parameters.SlaveDeviceCountBits)
   for (i <- 0 until Parameters.SlaveDeviceCount) {
-    io.slaves(i).write_address_channel.AWVALID := false.B
-    io.slaves(i).write_address_channel.AWADDR := 0.U
-    io.slaves(i).write_address_channel.AWPROT := false.B
-    io.slaves(i).read_address_channel.ARVALID := 0.U
-    io.slaves(i).read_address_channel.ARADDR := 0.U
-    io.slaves(i).read_address_channel.ARPROT := 0.U
-    io.slaves(i).read_data_channel.RREADY := false.B
-    io.slaves(i).write_data_channel.WSTRB := 0.U
-    io.slaves(i).write_data_channel.WDATA := 0.U
-    io.slaves(i).write_data_channel.WVALID := false.B
-    io.slaves(i).write_response_channel.BREADY := false.B
+    io.slaves(i) <> dummy.io.channels
   }
   io.master <> io.slaves(index)
 }

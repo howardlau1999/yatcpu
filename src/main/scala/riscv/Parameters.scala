@@ -46,6 +46,6 @@ object Parameters {
   val EntryAddress = 0x1000.U(Parameters.AddrWidth)
 
   val MasterDeviceCount = 1
-  val SlaveDeviceCount = 2
+  val SlaveDeviceCount = 8
   val SlaveDeviceCountBits = log2Up(Parameters.SlaveDeviceCount)
 }

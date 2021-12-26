@@ -89,32 +89,84 @@ void putstr(const char *s) {
 }
 
 int hc = 1;
+int fast = 0;
 
-void trap_handler(void *epc) {
-	putstr("Hardware timer ticks! EPC = ");
-	print_hex((unsigned int) epc);
-	putstr(", Hardware counter = ");
-	print_hex(hc++);
+void print_timer() {
+	putstr("Hardware timer count limit = ");
+	print_hex(*(unsigned int *) 0x80000004);
+	putstr(", enabled = ");
+	print_hex(*(unsigned int *) 0x80000008);
 	putch('\n');
 }
+
+void print_uart() {
+	putstr("UART Baud rate = ");
+	print_hex(*(unsigned int *) 0x40000004);
+	putch('\n');
+}
+
+void handle_timer() {
+	putstr("Timer trigger times = ");
+	print_hex(hc++);
+	putch('\n');
+	int mode = ((hc & 0x10) >> 4);
+	if (hc == 0x40) {
+		putstr("Disable timer!\n");
+		*((unsigned int*) 0x80000008) = 0;
+		print_timer();
+		return;
+	}
+	if (fast ^ mode) {
+		putstr("Switch timer frequency\n");
+		if (fast == 0) {
+			*((unsigned int*) 0x80000004) = 25000000;
+		} else {
+		
+			*((unsigned int*) 0x80000004) = 100000000;
+		}
+		fast = mode;
+		print_timer();
+	}
+}
+
+void handle_uart() {
+	*(unsigned int *) 0x40000008 = 0;
+	unsigned int ch = *(unsigned int *) 0x4000000C;
+	putstr("UART Recv hex = "); print_hex(ch); putstr(", ch = "); putch(ch); putch('\n');
+}
+
+void trap_handler(void *epc, unsigned int cause) {
+	putstr("Interrupt! EPC = ");
+	print_hex((unsigned int) epc);
+	putstr(", CAUSE = ");
+	print_hex(cause);
+	putch('\n');
+	switch (cause) {
+	case 0x8000000B:
+		handle_uart();
+		break;
+	default:
+		handle_timer();
+		break;
+	}
+}
+extern void enable_interrupt();
 extern unsigned int get_epc();
 int main() {
 	clear_screen();
-	char mystr[] = "Software counter = ";
+	hc = 0;
+	*((unsigned int*) 0x80000008) = 1;
+	putstr("YatCPU Demo Program ");
 	putch(137);
 	putstr("2021 Howard Lau\n");
 	putstr("Hello, world!\n");
 	putstr("Last EPC = ");
 	print_hex(get_epc());
 	putch('\n');
+	print_timer();
+	print_uart();
 	*((int *) 0x4) = 0xDEADBEEF;
-	unsigned int counter = 0;
-	for (;;) {
-		putstr("$ ");
-		for (register int i = 0; i < 3000000; ++i);
-		++counter;
-		putstr(mystr);
-		print_hex(counter);
-		putch('\n');
-	}
+	unsigned int i = 0;
+	enable_interrupt();
+	for (;;) ;
 }

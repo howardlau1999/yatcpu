@@ -21,13 +21,13 @@ import riscv.bus.{AXI4LiteChannels, AXI4LiteSlave}
 
 class Timer extends Module {
   val io = IO(new Bundle {
-    val channels = Flipped(new AXI4LiteChannels(4, Parameters.DataBits))
+    val channels = Flipped(new AXI4LiteChannels(8, Parameters.DataBits))
     val signal_interrupt = Output(Bool())
 
     val debug_limit = Output(UInt(Parameters.DataWidth))
     val debug_enabled = Output(Bool())
   })
-  val slave = Module(new AXI4LiteSlave(4, Parameters.DataBits))
+  val slave = Module(new AXI4LiteSlave(8, Parameters.DataBits))
   slave.io.channels <> io.channels
 
   val count = RegInit(0.U(32.W))
@@ -43,7 +43,7 @@ class Timer extends Module {
       0.U,
       Array(
         0x4.U -> limit,
-        0x8.U -> enabled,
+        0x8.U -> enabled.asUInt(),
       )
     )
   }
@@ -56,7 +56,7 @@ class Timer extends Module {
     }
   }
 
-  io.signal_interrupt := count >= (limit - 10.U)
+  io.signal_interrupt := enabled && (count >= (limit - 10.U))
 
   when(count >= limit) {
     count := 0.U
