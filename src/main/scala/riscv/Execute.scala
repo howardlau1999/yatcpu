@@ -264,7 +264,7 @@ class Execute extends Module {
   }.elsewhen(opcode === InstructionTypes.B) {
     disable_control()
     disable_memory()
-    io.ctrl_jump_flag := MuxLookup(
+    jump_flag := MuxLookup(
       funct3,
       0.U,
       Array(
@@ -276,7 +276,7 @@ class Execute extends Module {
         InstructionsTypeB.bge -> (io.op1.asSInt() >= io.op2.asSInt())
       )
     )
-    io.ctrl_jump_address := Fill(32, io.ctrl_jump_flag) & (io.op1_jump + io.op2_jump)
+    jump_address := Fill(32, io.ctrl_jump_flag) & (io.op1_jump + io.op2_jump)
   }.elsewhen(opcode === Instructions.jal || opcode === Instructions.jalr) {
     disable_memory()
     disable_stall()
