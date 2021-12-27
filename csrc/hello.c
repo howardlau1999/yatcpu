@@ -130,8 +130,8 @@ void handle_timer() {
 }
 
 void handle_uart() {
-	*(unsigned int *) 0x40000008 = 0;
 	unsigned int ch = *(unsigned int *) 0x4000000C;
+	*(unsigned int *) 0x40000010 = ch;
 	putstr("UART Recv hex = "); print_hex(ch); putstr(", ch = "); putch(ch); putch('\n');
 }
 
