@@ -29,11 +29,11 @@ class VGADisplay extends Module {
     val glyph_x = Output(UInt(7.W))
     val glyph_y = Output(UInt(7.W))
   })
-  val row = io.screen_y / GlyphInfo.glyphHeight.U
-  val col = io.screen_x / GlyphInfo.glyphWidth.U
-  val glyph_index = (row * (ScreenInfo.DisplayHorizontal.U / GlyphInfo.glyphWidth.U)) + col
+  val row = (io.screen_y >> log2Up(GlyphInfo.glyphHeight)).asUInt()
+  val col = (io.screen_x >> log2Up(GlyphInfo.glyphWidth)).asUInt()
+  val glyph_index = (row * (ScreenInfo.DisplayHorizontal.U >> log2Up(GlyphInfo.glyphWidth).U).asUInt()) + col
   io.char_mem_address := glyph_index + 1024.U
-  val offset = glyph_index % 4.U
+  val offset = glyph_index(1, 0)
   val ch = Wire(UInt(8.W))
 
   ch := MuxLookup(
@@ -48,6 +48,6 @@ class VGADisplay extends Module {
   )
   io.glyph_rom_index := Mux(ch >= 32.U, ch - 31.U, 0.U)
 
-  io.glyph_x := io.screen_x % GlyphInfo.glyphWidth.U
-  io.glyph_y := io.screen_y % GlyphInfo.glyphHeight.U
+  io.glyph_x := io.screen_x(log2Up(GlyphInfo.glyphWidth) - 1, 0)
+  io.glyph_y := io.screen_y(log2Up(GlyphInfo.glyphHeight) - 1, 0)
 }

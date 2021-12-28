@@ -25,7 +25,7 @@ object Parameters {
   val DataWidth = DataBits.W
   val ByteBits = 8
   val ByteWidth = ByteBits.W
-  val WordSize = Math.ceil(DataBits / ByteBits)
+  val WordSize = Math.ceil(DataBits / ByteBits).toInt
 
   val PhysicalRegisters = 32
   val PhysicalRegisterAddrBits = log2Up(PhysicalRegisters)

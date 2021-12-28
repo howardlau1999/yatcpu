@@ -15,6 +15,7 @@
 package riscv.peripheral
 
 import chisel3._
+import chisel3.util._
 import chisel3.experimental._
 import chisel3.util.experimental._
 import firrtl.annotations.MemorySynthInit
@@ -50,14 +51,15 @@ class Memory(capacity: Int, instructionFilename: String = "hello.asmbin") extend
   val mem = SyncReadMem(capacity, UInt(Parameters.DataWidth))
 
   when(io.write_enable) {
-    mem.write(io.write_address / 4.U, io.write_data)
+    mem.write(io.write_address(Parameters.AddrBits - 1, log2Up(Parameters.WordSize)), io.write_data)
   }
   loadMemoryFromFileInline(mem, instructions.toString.replaceAll("\\\\", "/"))
 
-  io.read_data := mem.read(io.read_address / 4.U, true.B)
-  io.debug_read_data := mem.read(io.debug_read_address / 4.U, true.B)
-  io.char_read_data := mem.read(io.char_read_address / 4.U, true.B)
-  io.instruction_read_data := mem.read(io.instruction_read_address / 4.U, true.B)
+  io.read_data := mem.read(io.read_address(Parameters.AddrBits - 1, log2Up(Parameters.WordSize)), true.B)
+  io.debug_read_data := mem.read(io.debug_read_address(Parameters.AddrBits - 1, log2Up(Parameters.WordSize)), true.B)
+  io.char_read_data := mem.read(io.char_read_address(Parameters.AddrBits - 1, log2Up(Parameters.WordSize)), true.B)
+  io.instruction_read_data := mem.read(io.instruction_read_address(Parameters.AddrBits - 1, log2Up(Parameters
+    .WordSize)), true.B)
 
   def readAsmBinary(filename: String) = {
     val inputStream = getClass.getClassLoader.getResourceAsStream(filename)

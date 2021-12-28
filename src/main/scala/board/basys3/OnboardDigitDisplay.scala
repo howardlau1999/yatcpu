@@ -26,7 +26,7 @@ class OnboardDigitDisplay extends Module {
 
   counter := counter + 1.U
   when(counter === 0.U) {
-    digit_mask := (digit_mask << 1.U) + digit_mask(3)
+    digit_mask := (digit_mask << 1.U).asUInt() + digit_mask(3)
   }
   io.digit_mask := digit_mask
 }
