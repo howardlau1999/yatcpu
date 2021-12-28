@@ -16,19 +16,22 @@
 .globl _start
 _start:
   li sp, 1020 # Initialize stack pointer
+  call main   # Jump to main function
+loop:
+  j loop      # Loop forever
+.globl enable_interrupt
+enable_interrupt:
   la t0, __trap_entry
   csrrw t1, mtvec, t0 # setup trap vector base
   li t0, 0x1888
   csrrw t1, mstatus, t0 # enable interrupt
-  call main   # Jump to main function
-loop:
-  j loop      # Loop forever
+  ret
 .globl get_epc
 get_epc:
   csrr a0, mepc
   ret
 __trap_entry:
-  li t0, 8080
+  li t0, 32600
   sw ra, 4(t0)
   sw sp, 8(t0)
   sw gp, 12(t0)
@@ -60,10 +63,11 @@ __trap_entry:
   sw t4, 116(t0)
   sw t5, 120(t0)
   sw t6, 124(t0)
-  li sp, 8080
+  li sp, 32600
   csrr a0, mepc
+  csrr a1, mcause
   call trap_handler
-  li t0, 8080
+  li t0, 32600
   lw ra, 4(t0)
   lw sp, 8(t0)
   lw gp, 12(t0)

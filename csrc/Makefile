@@ -16,7 +16,7 @@ RISCVCC ?= riscv64-unknown-elf-gcc
 RISCVOBJCOPY ?= riscv64-unknown-elf-objcopy
 ARCHFLAGS = -march=rv32i -mabi=ilp32
 EXEFLAGS = -nostdlib -nostartfiles -static -T lnk.ld
-OBJCOPYFLAGS = -O binary -j .text -j .rodata
+OBJCOPYFLAGS = -O binary -j .text -j .text.startup -j .rodata -j .sdata
 
 DESTDIR ?= ../src/main/resources
 
