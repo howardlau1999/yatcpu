@@ -25,7 +25,7 @@ object MemoryAccessStates extends ChiselEnum {
 
 class Execute extends Module {
   val io = IO(new Bundle {
-    val instruction = Input(UInt(Parameters.DataWidth))
+    val instruction = Input(UInt(Parameters.InstructionWidth))
     val instruction_address = Input(UInt(Parameters.AddrWidth))
     val interrupt_assert = Input(Bool())
     val interrupt_handler_address = Input(UInt(Parameters.AddrWidth))

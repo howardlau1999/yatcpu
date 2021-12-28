@@ -50,7 +50,7 @@ class CLINT extends Module {
     val interrupt_flag = Input(UInt(Parameters.InterruptFlagWidth))
 
     // Current instruction from instruction decode
-    val instruction = Input(UInt(Parameters.DataWidth))
+    val instruction = Input(UInt(Parameters.InstructionWidth))
     val instruction_address_id = Input(UInt(Parameters.AddrWidth))
 
     val jump_flag = Input(Bool())

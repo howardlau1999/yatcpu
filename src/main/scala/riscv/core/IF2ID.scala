@@ -19,7 +19,7 @@ import riscv.Parameters
 
 class IF2ID extends Module {
   val io = IO(new Bundle {
-    val instruction = Input(UInt(Parameters.DataWidth))
+    val instruction = Input(UInt(Parameters.InstructionWidth))
     val instruction_address = Input(UInt(Parameters.AddrWidth))
     val stall_flag = Input(UInt(Parameters.StallStateWidth))
     val interrupt_flag = Input(UInt(Parameters.InterruptFlagWidth))

@@ -19,7 +19,7 @@ import riscv.Parameters
 
 class ID2EX extends Module {
   val io = IO(new Bundle {
-    val instruction = Input(UInt(Parameters.DataWidth))
+    val instruction = Input(UInt(Parameters.InstructionWidth))
     val instruction_address = Input(UInt(Parameters.AddrWidth))
     val regs_write_enable = Input(Bool())
     val regs_write_address = Input(UInt(Parameters.PhysicalRegisterAddrWidth))

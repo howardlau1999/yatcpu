@@ -27,7 +27,7 @@ class CPU extends Module {
     val debug_read_address = Input(UInt(Parameters.PhysicalRegisterAddrWidth))
     val debug_read_data = Output(UInt(Parameters.DataWidth))
 
-    val instruction_read_data = Input(UInt(Parameters.DataWidth))
+    val instruction_read_data = Input(UInt(Parameters.InstructionWidth))
     val instruction_read_address = Output(UInt(Parameters.AddrWidth))
 
     val mem_write_enable = Output(Bool())
@@ -96,7 +96,6 @@ class CPU extends Module {
   id.io.reg2_data := regs.io.read_data2
   id.io.instruction := if2id.io.output_instruction
   id.io.instruction_address := if2id.io.output_instruction_address
-  id.io.jump_flag := ex.io.ctrl_jump_flag
   id.io.csr_read_data := csr_regs.io.id_reg_data
 
   id2ex.io.instruction := id.io.ex_instruction

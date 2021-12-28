@@ -118,9 +118,8 @@ object InstructionsEnv extends Bundle {
 
 class InstructionDecode extends Module {
   val io = IO(new Bundle {
-    val instruction = Input(UInt(Parameters.DataWidth))
+    val instruction = Input(UInt(Parameters.InstructionWidth))
     val instruction_address = Input(UInt(Parameters.AddrWidth))
-    val jump_flag = Input(Bool())
     val reg1_data = Input(UInt(Parameters.DataWidth))
     val reg2_data = Input(UInt(Parameters.DataWidth))
 

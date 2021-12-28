@@ -23,11 +23,11 @@ class InstructionFetch extends Module {
     val stall_flag_ctrl = Input(UInt(Parameters.StallStateWidth))
     val jump_flag_ctrl = Input(Bool())
     val jump_address_ctrl = Input(UInt(Parameters.AddrWidth))
-    val instruction_mem = Input(UInt(Parameters.DataWidth))
+    val instruction_mem = Input(UInt(Parameters.InstructionWidth))
 
     val mem_instruction_address = Output(UInt(Parameters.AddrWidth))
     val id_instruction_address = Output(UInt(Parameters.AddrWidth))
-    val id_instruction = Output(UInt(Parameters.DataWidth))
+    val id_instruction = Output(UInt(Parameters.InstructionWidth))
   })
   val instruction_address = RegInit(ProgramCounter.EntryAddress)
   val instruction_valid = RegInit(false.B)

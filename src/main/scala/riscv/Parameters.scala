@@ -21,6 +21,8 @@ object Parameters {
   val AddrBits = 32
   val AddrWidth = AddrBits.W
 
+  val InstructionBits = 32
+  val InstructionWidth = InstructionBits.W
   val DataBits = 32
   val DataWidth = DataBits.W
   val ByteBits = 8
