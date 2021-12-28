@@ -19,7 +19,8 @@ import chisel3.util._
 import chisel3.experimental._
 import chisel3.util.experimental._
 import firrtl.annotations.MemorySynthInit
-import riscv.{Parameters, ProgramCounter}
+import riscv.Parameters
+import riscv.core.ProgramCounter
 
 import java.io.FileWriter
 import java.nio.file.Paths

@@ -17,6 +17,7 @@ package riscv
 import chisel3._
 import chisel3.tester._
 import org.scalatest._
+import riscv.core.InstructionDecode
 
 class InstructionDecodeTest extends FreeSpec with ChiselScalatestTester {
   "ID should" - {

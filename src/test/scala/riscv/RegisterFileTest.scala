@@ -17,6 +17,7 @@ package riscv
 import chisel3._
 import chisel3.tester._
 import org.scalatest._
+import riscv.core.RegisterFile
 
 class RegisterFileTest extends FreeSpec with ChiselScalatestTester {
   "Register file " - {

@@ -17,6 +17,7 @@ package riscv
 import chisel3._
 import chisel3.tester._
 import org.scalatest._
+import riscv.core.ProgramCounter
 
 class ProgramCounterTest extends FreeSpec with ChiselScalatestTester {
   "PC should " - {

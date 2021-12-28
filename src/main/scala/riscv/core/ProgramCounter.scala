@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package riscv
+package riscv.core
 
 import chisel3._
-import chisel3.util.{MuxCase}
-import chisel3.stage.ChiselStage
+import chisel3.util.MuxCase
+import riscv.Parameters
 
 object ProgramCounter {
   val EntryAddress = Parameters.EntryAddress

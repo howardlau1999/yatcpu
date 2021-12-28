@@ -19,6 +19,7 @@ import chisel3._
 import chisel3.util._
 import riscv._
 import riscv.bus.{BusArbiter, BusSwitch}
+import riscv.core.CPU
 import riscv.peripheral.{DummySlave, Memory, Timer, Uart}
 
 class Top extends Module {
