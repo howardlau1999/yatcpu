@@ -17,6 +17,7 @@ package riscv.peripheral
 import chisel3._
 import riscv.Parameters
 
+// TODO(howard): implementation
 class InterruptController extends Module {
   val io = IO(new Bundle {
     val interrupts = Vec(Parameters.SlaveDeviceCount, Bool())

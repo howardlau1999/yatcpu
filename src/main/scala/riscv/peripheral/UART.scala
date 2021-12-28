@@ -161,6 +161,7 @@ class BufferedTx (frequency: Int, baudRate: Int)extends Module {
   io.txd <> tx.io.txd
 }
 
+// TODO(howard): fix tx
 class Uart(frequency: Int, baudRate: Int) extends Module {
   val io = IO(new Bundle {
     val channels = Flipped(new AXI4LiteChannels(8, Parameters.DataBits))

@@ -43,6 +43,7 @@ object CSRState extends Bundle {
   val MCAUSE = 0x4.U
 }
 
+// Core Local Interrupt Controller
 class CLINT extends Module {
   val io = IO(new Bundle {
     // Interrupt signals from peripherals

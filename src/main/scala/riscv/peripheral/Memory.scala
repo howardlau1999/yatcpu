@@ -26,6 +26,7 @@ import java.io.FileWriter
 import java.nio.file.Paths
 import java.nio.{ByteBuffer, ByteOrder}
 
+// Main memory
 class Memory(capacity: Int, instructionFilename: String = "hello.asmbin") extends Module {
   val io = IO(new Bundle {
     val read_address = Input(UInt(Parameters.AddrWidth))

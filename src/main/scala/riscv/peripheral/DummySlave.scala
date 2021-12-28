@@ -18,6 +18,8 @@ import chisel3._
 import riscv.Parameters
 import riscv.bus.{AXI4LiteChannels, AXI4LiteSlave}
 
+// A dummy AXI4 slave that only returns 0 on read
+// and ignores all writes
 class DummySlave extends Module {
   val io = IO(new Bundle {
     val channels = Flipped(new AXI4LiteChannels(4, Parameters.DataBits))

@@ -18,6 +18,7 @@ import chisel3._
 import riscv.Parameters
 import riscv.bus.{AXI4LiteChannels, AXI4LiteMaster}
 
+// A dummy master that never initiates reads or writes
 class DummyMaster extends Module {
   val io = IO(new Bundle {
     val channels = new AXI4LiteChannels(Parameters.AddrBits, Parameters.DataBits)
