@@ -24,4 +24,7 @@ bitstream:
 board:
 	pushd && cd vivado && vivado -mode batch -source program_device.tcl && popd
 
-.PHONY: verilog test bitstream board
+simulation:
+	pushd && cd vivado && vivado -mode batch -source run_simulation.tcl && popd
+
+.PHONY: verilog test bitstream board simulation
