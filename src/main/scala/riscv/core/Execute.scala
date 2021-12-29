@@ -53,6 +53,7 @@ class Execute extends Module {
     val bus_read_valid = Input(Bool())
     val bus_write = Output(Bool())
     val bus_write_data = Output(UInt(Parameters.DataWidth))
+    val bus_write_strobe = Output(UInt(Parameters.WordSize.W))
     val bus_write_valid = Input(Bool())
 
     val regs_write_enable = Output(Bool())
@@ -85,8 +86,8 @@ class Execute extends Module {
   alu.io.op2 := io.op2
 
 
-  val mem_read_address_index = ((io.op1 + io.op2) & 0x3.U).asUInt()
-  val mem_write_address_index = ((io.op1 + io.op2) & 0x3.U).asUInt()
+  val mem_read_address_index = (io.op1 + io.op2) (Parameters.WordSize - 1, 0).asUInt()
+  val mem_write_address_index = (io.op1 + io.op2) (Parameters.WordSize - 1, 0).asUInt()
   val slave_index = (io.op1 + io.op2) (Parameters.AddrBits - 1, Parameters.AddrBits - Parameters.SlaveDeviceCountBits)
   val mem_access_state = RegInit(MemoryAccessStates.Idle)
   val pending_interrupt = RegInit(false.B)
@@ -111,6 +112,7 @@ class Execute extends Module {
   io.bus_read := false.B
   io.bus_address := 0.U
   io.bus_write_data := 0.U
+  io.bus_write_strobe := 0.U
   io.bus_write := false.B
   io.regs_write_enable := io.regs_write_enable_id && !io.interrupt_assert
   io.regs_write_address := io.regs_write_address_id

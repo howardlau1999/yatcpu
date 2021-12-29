@@ -48,7 +48,7 @@ class BusTest extends FreeSpec with ChiselScalatestTester {
         c.io.bundle.write_data.poke(0.U)
         c.clock.step(8)
         c.io.bundle.busy.expect(false.B)
-        c.io.bundle.write_ok.expect(true.B)
+        c.io.bundle.write_valid.expect(true.B)
         c.io.limit.expect(0x990315.U)
         c.io.bundle.read.poke(true.B)
         c.io.bundle.address.poke(0x4.U)
@@ -56,7 +56,7 @@ class BusTest extends FreeSpec with ChiselScalatestTester {
         c.io.bundle.busy.expect(true.B)
         c.clock.step(6)
         c.io.bundle.busy.expect(false.B)
-        c.io.bundle.read_ok.expect(true.B)
+        c.io.bundle.read_valid.expect(true.B)
         c.io.bundle.read_data.expect(0x990315.U)
       }
     }

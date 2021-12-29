@@ -17,6 +17,7 @@ package riscv.bus
 import chisel3._
 import chisel3.experimental.ChiselEnum
 import chisel3.util._
+import riscv.Parameters
 
 object AXI4Lite {
   val protWidth = 3
@@ -72,6 +73,7 @@ class AXI4LiteSlaveBundle(addrWidth: Int, dataWidth: Int) extends Bundle {
   val write = Output(Bool())
   val read_data = Input(UInt(dataWidth.W))
   val write_data = Output(UInt(dataWidth.W))
+  val write_strobe = Output(UInt(Parameters.WordSize.W))
   val address = Output(UInt(addrWidth.W))
 }
 
@@ -80,11 +82,12 @@ class AXI4LiteMasterBundle(addrWidth: Int, dataWidth: Int) extends Bundle {
   val write = Input(Bool())
   val read_data = Output(UInt(dataWidth.W))
   val write_data = Input(UInt(dataWidth.W))
+  val write_strobe = Input(UInt(Parameters.WordSize.W))
   val address = Input(UInt(addrWidth.W))
 
   val busy = Output(Bool())
-  val read_ok = Output(Bool())
-  val write_ok = Output(Bool())
+  val read_valid = Output(Bool())
+  val write_valid = Output(Bool())
 }
 
 object AXI4LiteStates extends ChiselEnum {
@@ -106,6 +109,8 @@ class AXI4LiteSlave(addrWidth: Int, dataWidth: Int) extends Module {
   io.bundle.write := write
   val write_data = RegInit(0.U(dataWidth.W))
   io.bundle.write_data := write_data
+  val write_strobe = RegInit(0.U(Parameters.WordSize.W))
+  io.bundle.write_strobe := write_strobe
 
   val ARREADY = RegInit(false.B)
   io.channels.read_address_channel.ARREADY := ARREADY
@@ -167,6 +172,7 @@ class AXI4LiteSlave(addrWidth: Int, dataWidth: Int) extends Module {
       when(io.channels.write_data_channel.WVALID && WREADY) {
         state := AXI4LiteStates.WriteResp
         write_data := io.channels.write_data_channel.WDATA
+        write_strobe := io.channels.write_data_channel.WSTRB
         write := true.B
         WREADY := false.B
       }
@@ -191,11 +197,12 @@ class AXI4LiteMaster(addrWidth: Int, dataWidth: Int) extends Module {
   io.bundle.busy := state =/= AXI4LiteStates.Idle
 
   val addr = RegInit(0.U(dataWidth.W))
-  val read_ok = RegInit(false.B)
-  io.bundle.read_ok := read_ok
-  val write_ok = RegInit(false.B)
-  io.bundle.write_ok := write_ok
+  val read_valid = RegInit(false.B)
+  io.bundle.read_valid := read_valid
+  val write_valid = RegInit(false.B)
+  io.bundle.write_valid := write_valid
   val write_data = RegInit(0.U(dataWidth.W))
+  val write_strobe = RegInit(0.U(log2Up(dataWidth).W))
   val read_data = RegInit(0.U(dataWidth.W))
 
   io.channels.read_address_channel.ARADDR := 0.U
@@ -213,7 +220,7 @@ class AXI4LiteMaster(addrWidth: Int, dataWidth: Int) extends Module {
   io.channels.write_data_channel.WVALID := WVALID
   io.channels.write_data_channel.WDATA := write_data
   io.channels.write_address_channel.AWPROT := 0.U
-  io.channels.write_data_channel.WSTRB := Fill(log2Up(dataWidth), true.B)
+  io.channels.write_data_channel.WSTRB := write_strobe
   val BREADY = RegInit(false.B)
   io.channels.write_response_channel.BREADY := BREADY
 
@@ -222,12 +229,13 @@ class AXI4LiteMaster(addrWidth: Int, dataWidth: Int) extends Module {
       WVALID := false.B
       AWVALID := false.B
       ARVALID := false.B
-      read_ok := false.B
-      write_ok := false.B
+      read_valid := false.B
+      write_valid := false.B
       when(io.bundle.write) {
         state := AXI4LiteStates.WriteAddr
         addr := io.bundle.address
         write_data := io.bundle.write_data
+        write_strobe := io.bundle.write_strobe
       }.elsewhen(io.bundle.read) {
         state := AXI4LiteStates.ReadAddr
         addr := io.bundle.address
@@ -245,7 +253,7 @@ class AXI4LiteMaster(addrWidth: Int, dataWidth: Int) extends Module {
       RREADY := true.B
       when(io.channels.read_data_channel.RVALID && RREADY) {
         state := AXI4LiteStates.Idle
-        read_ok := true.B
+        read_valid := true.B
         read_data := io.channels.read_data_channel.RDATA
         RREADY := false.B
       }
@@ -263,6 +271,7 @@ class AXI4LiteMaster(addrWidth: Int, dataWidth: Int) extends Module {
       when(io.channels.write_data_channel.WREADY && WVALID) {
         state := AXI4LiteStates.WriteResp
         io.channels.write_data_channel.WDATA := write_data
+        io.channels.write_data_channel.WSTRB := write_strobe
         WVALID := false.B
       }
     }
@@ -270,7 +279,7 @@ class AXI4LiteMaster(addrWidth: Int, dataWidth: Int) extends Module {
       BREADY := true.B
       when(io.channels.write_response_channel.BVALID && BREADY) {
         state := AXI4LiteStates.Idle
-        write_ok := true.B
+        write_valid := true.B
         BREADY := false.B
       }
     }

@@ -54,9 +54,10 @@ class CPU extends Module {
   axi4_master.io.bundle.write := ex.io.bus_write
   axi4_master.io.bundle.address := ex.io.bus_address
   axi4_master.io.bundle.write_data := ex.io.bus_write_data
+  axi4_master.io.bundle.write_strobe := ex.io.bus_write_strobe
   ex.io.bus_read_data := axi4_master.io.bundle.read_data
-  ex.io.bus_read_valid := axi4_master.io.bundle.read_ok
-  ex.io.bus_write_valid := axi4_master.io.bundle.write_ok
+  ex.io.bus_read_valid := axi4_master.io.bundle.read_valid
+  ex.io.bus_write_valid := axi4_master.io.bundle.write_valid
   io.bus_address := ex.io.bus_address
 
   pc.io.stall_flag := ctrl.io.output_stall_flag
