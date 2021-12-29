@@ -29,6 +29,7 @@ class CPU extends Module {
 
     val instruction_read_data = Input(UInt(Parameters.InstructionWidth))
     val instruction_read_address = Output(UInt(Parameters.AddrWidth))
+    val instruction_valid = Input(Bool())
   })
 
   val pc = Module(new ProgramCounter)
@@ -75,6 +76,7 @@ class CPU extends Module {
   io.debug_read_data := regs.io.debug_read_data
 
   inst_fetch.io.pc_pc := pc.io.pc
+  inst_fetch.io.instruction_valid := io.instruction_valid
   io.instruction_read_address := inst_fetch.io.mem_instruction_address
   inst_fetch.io.instruction_mem := io.instruction_read_data
   inst_fetch.io.stall_flag_ctrl := ctrl.io.output_stall_flag

@@ -80,8 +80,8 @@ class Execute extends Module {
   alu.io.op2 := io.op2
 
 
-  val mem_read_address_index = (io.op1 + io.op2) (Parameters.WordSize - 1, 0).asUInt()
-  val mem_write_address_index = (io.op1 + io.op2) (Parameters.WordSize - 1, 0).asUInt()
+  val mem_read_address_index = (io.op1 + io.op2) (log2Up(Parameters.WordSize) - 1, 0).asUInt()
+  val mem_write_address_index = (io.op1 + io.op2) (log2Up(Parameters.WordSize) - 1, 0).asUInt()
   val mem_access_state = RegInit(MemoryAccessStates.Idle)
   val pending_interrupt = RegInit(false.B)
   val pending_interrupt_handler_address = RegInit(Parameters.EntryAddress)
@@ -225,11 +225,28 @@ class Execute extends Module {
         io.bus_write_data := io.reg2_data
         io.bus_write := true.B
         mem_access_state := MemoryAccessStates.Write
-        // TODO(howard): the memory failed to map to Block RAM when using Vec(), so we have to read the word first
-        when(funct3 === InstructionsTypeS.sb || funct3 === InstructionsTypeS.sh) {
-          io.bus_read := true.B
-          io.bus_write := false.B
-          mem_access_state := MemoryAccessStates.ReadWrite
+        io.bus_write_strobe := VecInit(Seq.fill(Parameters.WordSize)(false.B))
+        when(funct3 === InstructionsTypeS.sb) {
+          io.bus_write_strobe(mem_write_address_index) := true.B
+          io.bus_write_data := io.reg2_data(Parameters.ByteBits, 0) << (mem_write_address_index << log2Up(Parameters
+            .ByteBits).U)
+        }.elsewhen(funct3 === InstructionsTypeS.sh) {
+          when(mem_write_address_index === 0.U) {
+            for (i <- 0 until Parameters.WordSize / 2) {
+              io.bus_write_strobe(i) := true.B
+            }
+            io.bus_write_data := io.reg2_data(Parameters.WordSize / 2 * Parameters.ByteBits, 0)
+          }.otherwise {
+            for (i <- Parameters.WordSize / 2 until Parameters.WordSize) {
+              io.bus_write_strobe(i) := true.B
+            }
+            io.bus_write_data := io.reg2_data(Parameters.WordSize / 2 * Parameters.ByteBits, 0) << (Parameters
+              .WordSize / 2 * Parameters.ByteBits)
+          }
+        }.elsewhen(funct3 === InstructionsTypeS.sw) {
+          for (i <- 0 until Parameters.WordSize) {
+            io.bus_write_strobe(i) := true.B
+          }
         }
       }
     }.elsewhen(mem_access_state === MemoryAccessStates.Write) {
@@ -239,36 +256,6 @@ class Execute extends Module {
       io.bus_address := io.op1 + io.op2
       when(io.bus_write_valid) {
         on_bus_transaction_finished()
-      }
-    }.elsewhen(mem_access_state === MemoryAccessStates.ReadWrite) {
-      check_interrupt_during_bus_transaction()
-      io.ctrl_stall_flag := true.B
-      io.bus_address := io.op1 + io.op2
-      when(io.bus_read_valid) {
-        val data = io.bus_read_data
-        when(funct3 === InstructionsTypeS.sb) {
-          io.bus_write_data := MuxLookup(
-            mem_write_address_index,
-            data,
-            Array(
-              0.U -> Cat(data(31, 8), io.reg2_data(7, 0)),
-              1.U -> Cat(data(31, 16), io.reg2_data(7, 0), data(7, 0)),
-              2.U -> Cat(data(31, 24), io.reg2_data(7, 0), data(15, 0)),
-              3.U -> Cat(io.reg2_data(7, 0), data(23, 0))
-            )
-          )
-        }.elsewhen(funct3 === InstructionsTypeS.sh) {
-          io.bus_write_data := MuxLookup(
-            mem_write_address_index,
-            Cat(io.reg2_data(15, 0), data(15, 0)),
-            Array(
-              0.U -> Cat(data(31, 16), io.reg2_data(15, 0))
-            )
-          )
-        }
-        io.bus_write_data := io.reg2_data
-        io.bus_write := true.B
-        mem_access_state := MemoryAccessStates.Write
       }
     }
   }.elsewhen(opcode === InstructionTypes.B) {

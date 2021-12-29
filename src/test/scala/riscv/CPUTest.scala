@@ -59,7 +59,6 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
 
       val interrupt = Input(UInt(Parameters.InterruptFlagWidth))
       val boot_state = Output(UInt())
-      val a = Output(UInt(32.W))
     })
     val boot_state = RegInit(BootStates.Init)
     io.boot_state := boot_state.asUInt()
@@ -80,6 +79,7 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
     rom_loader.io.load_start := false.B
     instruction_rom.io.address := rom_loader.io.rom_address
     cpu.io.stall_flag_bus := true.B
+    cpu.io.instruction_valid := false.B
     bus_switch.io.slaves(0) <> mem.io.channels
     rom_loader.io.channels <> dummy.io.channels
     switch(boot_state) {
@@ -98,9 +98,9 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
       is(BootStates.Finished) {
         rom_loader.io.load_start := false.B
         cpu.io.stall_flag_bus := false.B
+        cpu.io.instruction_valid := true.B
       }
     }
-    io.a := cpu.io.instruction_read_address
     bus_switch.io.slaves(4) <> timer.io.channels
 
     mem.io.char_read_address := 0.U
@@ -155,6 +155,22 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
         c.io.regs_debug_read_data.expect(100000000.U)
         c.io.regs_debug_read_address.poke(6.U)
         c.io.regs_debug_read_data.expect(0xBEEF.U)
+      }
+    }
+
+    "should store and load single byte" in {
+      test(new TestTopModule("sb.asmbin")) { c =>
+        c.io.interrupt.poke(0.U)
+        for (i <- 1 to 500) {
+          c.clock.step()
+          c.io.mem_debug_read_address.poke((i * 4).U) // Avoid timeout
+        }
+        c.io.regs_debug_read_address.poke(5.U)
+        c.io.regs_debug_read_data.expect(0xDEADBEEFL.U)
+        c.io.regs_debug_read_address.poke(6.U)
+        c.io.regs_debug_read_data.expect(0xEF.U)
+        c.io.regs_debug_read_address.poke(1.U)
+        c.io.regs_debug_read_data.expect(0x15EF.U)
       }
     }
   }

@@ -15,19 +15,43 @@
 package riscv.peripheral
 
 import chisel3._
-import chisel3.util._
-import chisel3.experimental._
-import chisel3.util.experimental._
-import firrtl.annotations.MemorySynthInit
 import riscv.Parameters
 import riscv.bus.{AXI4LiteChannels, AXI4LiteSlave}
-import riscv.core.ProgramCounter
 
-import java.io.FileWriter
-import java.nio.file.Paths
-import java.nio.{ByteBuffer, ByteOrder}
+// The purpose of this module is to help the synthesis tool recognize
+// our memory as a Block RAM template
+class BlockRAM(capacity: Int) extends Module {
+  val io = IO(new Bundle {
+    val read_address = Input(UInt(Parameters.AddrWidth))
+    val write_address = Input(UInt(Parameters.AddrWidth))
+    val write_data = Input(UInt(Parameters.DataWidth))
+    val write_enable = Input(Bool())
+    val write_strobe = Input(Vec(Parameters.WordSize, Bool()))
 
-// Main memory
+    val debug_read_address = Input(UInt(Parameters.AddrWidth))
+    val char_read_address = Input(UInt(Parameters.AddrWidth))
+    val instruction_read_address = Input(UInt(Parameters.AddrWidth))
+
+    val read_data = Output(UInt(Parameters.DataWidth))
+    val debug_read_data = Output(UInt(Parameters.DataWidth))
+    val char_read_data = Output(UInt(Parameters.DataWidth))
+    val instruction_read_data = Output(UInt(Parameters.DataWidth))
+  })
+  val mem = SyncReadMem(capacity, Vec(Parameters.WordSize, UInt(Parameters.ByteWidth)))
+  when(io.write_enable) {
+    val write_data_vec = Wire(Vec(Parameters.WordSize, UInt(Parameters.ByteWidth)))
+    for (i <- 0 until Parameters.WordSize) {
+      write_data_vec(i) := io.write_data((i + 1) * Parameters.ByteBits - 1, i * Parameters.ByteBits)
+    }
+    mem.write((io.write_address >> 2.U).asUInt(), write_data_vec, io.write_strobe)
+  }
+  io.read_data := mem.read((io.read_address >> 2.U).asUInt(), true.B).asUInt()
+  io.debug_read_data := mem.read((io.debug_read_address >> 2.U).asUInt(), true.B).asUInt()
+  io.char_read_data := mem.read((io.char_read_address >> 2.U).asUInt(), true.B).asUInt()
+  io.instruction_read_data := mem.read((io.instruction_read_address >> 2.U).asUInt(), true.B).asUInt()
+}
+
+// This module wraps the Block RAM with an AXI4-Lite interface
 class Memory(capacity: Int) extends Module {
   val io = IO(new Bundle {
     val channels = Flipped(new AXI4LiteChannels(Parameters.AddrBits, Parameters.DataBits))
@@ -41,27 +65,22 @@ class Memory(capacity: Int) extends Module {
     val instruction_read_data = Output(UInt(Parameters.DataWidth))
   })
 
-  val mem = SyncReadMem(capacity, UInt(Parameters.DataWidth))
+  val mem = Module(new BlockRAM(capacity))
   val slave = Module(new AXI4LiteSlave(Parameters.AddrBits, Parameters.DataBits))
-
   slave.io.channels <> io.channels
 
-  when(slave.io.bundle.write) {
-    mem.write(
-      (slave.io.bundle.address >> log2Up(Parameters.WordSize)).asUInt(),
-      slave.io.bundle.write_data
-    )
-  }
+  mem.io.write_enable := slave.io.bundle.write
+  mem.io.write_data := slave.io.bundle.write_data
+  mem.io.write_address := slave.io.bundle.address
+  mem.io.write_strobe := slave.io.bundle.write_strobe
 
-  slave.io.bundle.read_data := mem.read(
-    (slave.io.bundle.address >> log2Up(Parameters.WordSize)).asUInt(),
-    slave.io.bundle.read,
-  ).asUInt()
+  mem.io.read_address := slave.io.bundle.address
+  slave.io.bundle.read_data := mem.io.read_data
 
-  io.debug_read_data := mem.read((io.debug_read_address >> log2Up(Parameters.WordSize)).asUInt(), true.B)
-    .asUInt()
-  io.char_read_data := mem.read((io.char_read_address >> log2Up(Parameters.WordSize)).asUInt(), true.B)
-    .asUInt()
-  io.instruction_read_data := mem.read((io.instruction_read_address >> log2Up(Parameters.WordSize)).asUInt(), true.B)
-    .asUInt()
+  mem.io.debug_read_address := io.debug_read_address
+  io.debug_read_data := mem.io.debug_read_data
+  mem.io.char_read_address := io.char_read_address
+  io.char_read_data := mem.io.char_read_data
+  mem.io.instruction_read_address := io.instruction_read_address
+  io.instruction_read_data := mem.io.instruction_read_data
 }

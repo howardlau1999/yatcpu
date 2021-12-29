@@ -70,6 +70,7 @@ class Top extends Module {
   rom_loader.io.rom_data := instruction_rom.io.data
   instruction_rom.io.address := rom_loader.io.rom_address
   cpu.io.stall_flag_bus := true.B
+  cpu.io.instruction_valid := false.B
   bus_switch.io.slaves(0) <> mem.io.channels
   rom_loader.io.channels <> dummy.io.channels
   switch(boot_state) {
@@ -87,6 +88,7 @@ class Top extends Module {
     }
     is(BootStates.Finished) {
       cpu.io.stall_flag_bus := false.B
+      cpu.io.instruction_valid := true.B
     }
   }
   bus_switch.io.slaves(2) <> uart.io.channels

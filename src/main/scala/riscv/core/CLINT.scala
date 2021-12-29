@@ -73,7 +73,7 @@ class CLINT extends Module {
     val ex_interrupt_assert = Output(Bool())
   })
 
-  val interrupt_state = Wire(UInt())
+  val interrupt_state = WireInit(0.U)
   val csr_state = RegInit(CSRState.Idle)
   val instruction_address = RegInit(UInt(Parameters.AddrWidth), 0.U)
   val cause = RegInit(UInt(Parameters.DataWidth), 0.U)
