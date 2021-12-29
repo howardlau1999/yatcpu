@@ -43,7 +43,7 @@ class RegisterFile extends Module {
     val debug_read_address = Input(UInt(Parameters.PhysicalRegisterAddrWidth))
     val debug_read_data = Output(UInt(Parameters.DataWidth))
   })
-  val registers = RegInit(VecInit(Seq.fill(Parameters.PhysicalRegisters)(0.U(Parameters.DataWidth))))
+  val registers = Reg(Vec(Parameters.PhysicalRegisters, UInt(Parameters.DataWidth)))
 
   when(!reset.asBool()) {
     when(io.write_enable && io.write_address =/= 0.U) {

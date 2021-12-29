@@ -14,42 +14,27 @@
 
 package riscv
 
+import board.basys3.BootStates
 import chisel3._
 import chisel3.tester._
+import chisel3.util.{is, switch}
 import org.scalatest._
-import riscv.core.CPU
+import riscv.bus.{AXI4LiteChannels, AXI4LiteSlave, BusSwitch}
+import riscv.core.{CPU, ProgramCounter}
+import riscv.peripheral.{DummySlave, Memory, ROMLoader}
 
 import java.nio.{ByteBuffer, ByteOrder}
 
 class CPUTest extends FreeSpec with ChiselScalatestTester {
-  class TestMemory(capacity: Int = 8192, asmBin: String) extends Module {
+  class TestInstructionROM( asmBin: String) extends Module {
     val io = IO(new Bundle {
-      val read_address = Input(UInt(Parameters.AddrWidth))
-      val debug_read_address = Input(UInt(Parameters.AddrWidth))
-      val instruction_read_address = Input(UInt(Parameters.AddrWidth))
-
-      val write_address = Input(UInt(Parameters.AddrWidth))
-      val write_enable = Input(Bool())
-      val write_data = Input(UInt(Parameters.DataWidth))
-
-      val read_data = Output(UInt(Parameters.DataWidth))
-      val debug_read_data = Output(UInt(Parameters.DataWidth))
-      val instruction_read_data = Output(UInt(Parameters.DataWidth))
+      val address = Input(UInt(32.W))
+      val data = Output(UInt(32.W))
     })
-    val mem = RegInit(loadAsmBinary(asmBin))
-    val read_data = Reg(UInt(Parameters.DataWidth))
-    val inst_data = Reg(UInt(Parameters.DataWidth))
-    val dbg_data = Reg(UInt(Parameters.DataWidth))
-    read_data := mem(io.read_address / 4.U)
-    inst_data := mem((io.instruction_read_address - Parameters.EntryAddress + 1024.U) / 4.U)
-    dbg_data := mem(io.debug_read_address / 4.U)
-    io.read_data := read_data
-    io.instruction_read_data := inst_data
-    io.debug_read_data := dbg_data
 
-    when(io.write_enable) {
-      mem(io.write_address / 4.U) := io.write_data
-    }
+    val (insts, capacity) = loadAsmBinary(asmBin)
+    val mem = RegInit(insts)
+    io.data := mem(io.address)
 
     def loadAsmBinary(filename: String) = {
       val inputStream = getClass.getClassLoader.getResourceAsStream(filename)
@@ -61,7 +46,7 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
         val inst = BigInt(instBuf.getInt() & 0xFFFFFFFFL)
         instructions = instructions :+ inst
       }
-      VecInit((Seq.fill(256)(BigInt(0)) ++ instructions).map(inst => inst.U(32.W)))
+      (VecInit(instructions.map(inst => inst.U(32.W))), instructions.length)
     }
   }
 
@@ -73,22 +58,56 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
       val mem_debug_read_data = Output(UInt(Parameters.DataWidth))
 
       val interrupt = Input(UInt(Parameters.InterruptFlagWidth))
+      val boot_state = Output(UInt())
+      val a = Output(UInt(32.W))
     })
-    val mem = Module(new TestMemory(8192, exeFilename))
+    val boot_state = RegInit(BootStates.Init)
+    io.boot_state := boot_state.asUInt()
+    val instruction_rom = Module(new TestInstructionROM(exeFilename))
+    val rom_loader = Module(new ROMLoader(instruction_rom.capacity))
+    val mem = Module(new Memory(8192))
     val cpu = Module(new CPU)
     val timer = Module(new peripheral.Timer)
-    cpu.io.axi4_channels <> timer.io.channels
+    val bus_switch = Module(new BusSwitch)
+    val dummy = Module(new DummySlave)
+    bus_switch.io.master <> cpu.io.axi4_channels
+    bus_switch.io.address := cpu.io.bus_address
+    for (i <- 0 until Parameters.SlaveDeviceCount) {
+      bus_switch.io.slaves(i) <> dummy.io.channels
+    }
+    rom_loader.io.load_address := ProgramCounter.EntryAddress
+    rom_loader.io.rom_data := instruction_rom.io.data
+    rom_loader.io.load_start := false.B
+    instruction_rom.io.address := rom_loader.io.rom_address
+    cpu.io.stall_flag_bus := true.B
+    bus_switch.io.slaves(0) <> mem.io.channels
+    rom_loader.io.channels <> dummy.io.channels
+    switch(boot_state) {
+      is(BootStates.Init) {
+        rom_loader.io.load_start := true.B
+        boot_state := BootStates.Loading
+        rom_loader.io.channels <> mem.io.channels
+      }
+      is(BootStates.Loading) {
+        rom_loader.io.load_start := false.B
+        rom_loader.io.channels <> mem.io.channels
+        when(rom_loader.io.load_finished) {
+          boot_state := BootStates.Finished
+        }
+      }
+      is(BootStates.Finished) {
+        rom_loader.io.load_start := false.B
+        cpu.io.stall_flag_bus := false.B
+      }
+    }
+    io.a := cpu.io.instruction_read_address
+    bus_switch.io.slaves(4) <> timer.io.channels
 
+    mem.io.char_read_address := 0.U
     mem.io.debug_read_address := io.mem_debug_read_address
     mem.io.instruction_read_address := cpu.io.instruction_read_address
     cpu.io.instruction_read_data := mem.io.instruction_read_data
     cpu.io.debug_read_address := io.regs_debug_read_address
-    cpu.io.stall_flag_bus := false.B
-    mem.io.read_address := cpu.io.mem_read_address
-    cpu.io.mem_read_data := mem.io.read_data
-    mem.io.write_enable := cpu.io.mem_write_enable
-    mem.io.write_address := cpu.io.mem_write_address
-    mem.io.write_data := cpu.io.mem_write_data
     io.regs_debug_read_data := cpu.io.debug_read_data
     io.mem_debug_read_data := mem.io.debug_read_data
 
@@ -99,10 +118,11 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
     "should calculate recursive fibonacci" in {
       test(new TestTopModule("fibonacci.asmbin")) { c =>
         c.io.interrupt.poke(0.U)
-        for (i <- 1 to 5000) {
-          c.clock.step()
+        for (i <- 1 to 20) {
+          c.clock.step(1000)
           c.io.mem_debug_read_address.poke((i * 4).U) // Avoid timeout
         }
+
         c.io.mem_debug_read_address.poke(4.U)
         c.clock.step()
         c.io.mem_debug_read_data.expect(55.U)
@@ -112,8 +132,8 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
     "should quicksort 10 numbers" in {
       test(new TestTopModule("quicksort.asmbin")) { c =>
         c.io.interrupt.poke(0.U)
-        for (i <- 1 to 3000) {
-          c.clock.step()
+        for (i <- 1 to 10) {
+          c.clock.step(1000)
           c.io.mem_debug_read_address.poke((i * 4).U) // Avoid timeout
         }
         for (i <- 1 to 10) {
@@ -127,7 +147,7 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
     "should read and write timer register" in {
       test(new TestTopModule("mmio.asmbin")) { c =>
         c.io.interrupt.poke(0.U)
-        for (i <- 1 to 50) {
+        for (i <- 1 to 500) {
           c.clock.step()
           c.io.mem_debug_read_address.poke((i * 4).U) // Avoid timeout
         }

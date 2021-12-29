@@ -25,6 +25,7 @@ class DummyMaster extends Module {
   })
   val master = Module(new AXI4LiteMaster(Parameters.AddrBits, Parameters.DataBits))
   master.io.channels <> io.channels
+  master.io.bundle.write_strobe := VecInit(Seq.fill(Parameters.WordSize)(false.B))
   master.io.bundle.write_data := 0.U
   master.io.bundle.write := false.B
   master.io.bundle.read := false.B

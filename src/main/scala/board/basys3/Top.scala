@@ -14,16 +14,21 @@
 
 package board.basys3
 
-import board.common.{FontROM, VGADisplay, VGASync}
+import board.common.{FontROM, InstructionROM, VGADisplay, VGASync}
 import chisel3._
+import chisel3.experimental.ChiselEnum
 import chisel3.util._
 import riscv._
 import riscv.bus.{BusArbiter, BusSwitch}
-import riscv.core.CPU
-import riscv.peripheral.{DummySlave, Memory, Timer, Uart}
+import riscv.core.{CPU, ProgramCounter}
+import riscv.peripheral.{DummySlave, Memory, ROMLoader, Timer, Uart}
+
+object BootStates extends ChiselEnum {
+  val Init, Loading, Finished = Value
+}
 
 class Top extends Module {
-  val binaryFilename = "hello.asmbin"
+  val binaryFilename = "tetris.asmbin"
   val io = IO(new Bundle {
     val switch = Input(UInt(16.W))
 
@@ -38,17 +43,21 @@ class Top extends Module {
     val tx = Output(Bool())
     val rx = Input(Bool())
   })
+  val boot_state = RegInit(BootStates.Init)
+
   val uart = Module(new Uart(100000000, 115200))
   io.tx := uart.io.txd
   uart.io.rxd := io.rx
 
   val cpu = Module(new CPU)
-  val mem = Module(new Memory(Parameters.MemorySizeInWords, binaryFilename))
+  val mem = Module(new Memory(Parameters.MemorySizeInWords))
   val timer = Module(new Timer)
   val dummy = Module(new DummySlave)
   val bus_arbiter = Module(new BusArbiter)
   val bus_switch = Module(new BusSwitch)
 
+  val instruction_rom = Module(new InstructionROM(binaryFilename))
+  val rom_loader = Module(new ROMLoader(instruction_rom.capacity))
   bus_arbiter.io.bus_request(0) := true.B
 
   bus_switch.io.master <> cpu.io.axi4_channels
@@ -56,18 +65,36 @@ class Top extends Module {
   for (i <- 0 until Parameters.SlaveDeviceCount) {
     bus_switch.io.slaves(i) <> dummy.io.channels
   }
+  rom_loader.io.load_address := ProgramCounter.EntryAddress
+  rom_loader.io.load_start := false.B
+  rom_loader.io.rom_data := instruction_rom.io.data
+  instruction_rom.io.address := rom_loader.io.rom_address
+  cpu.io.stall_flag_bus := true.B
+  bus_switch.io.slaves(0) <> mem.io.channels
+  rom_loader.io.channels <> dummy.io.channels
+  switch(boot_state) {
+    is(BootStates.Init) {
+      rom_loader.io.load_start := true.B
+      boot_state := BootStates.Loading
+      rom_loader.io.channels <> mem.io.channels
+    }
+    is(BootStates.Loading) {
+      rom_loader.io.load_start := false.B
+      rom_loader.io.channels <> mem.io.channels
+      when(rom_loader.io.load_finished) {
+        boot_state := BootStates.Finished
+      }
+    }
+    is(BootStates.Finished) {
+      cpu.io.stall_flag_bus := false.B
+    }
+  }
   bus_switch.io.slaves(2) <> uart.io.channels
   bus_switch.io.slaves(4) <> timer.io.channels
 
   cpu.io.interrupt_flag := Cat(uart.io.signal_interrupt, timer.io.signal_interrupt)
   cpu.io.instruction_read_data := mem.io.instruction_read_data
-  cpu.io.mem_read_data := mem.io.read_data
-  cpu.io.stall_flag_bus := bus_arbiter.io.ctrl_stall_flag
-  mem.io.read_address := cpu.io.mem_read_address
   mem.io.instruction_read_address := cpu.io.instruction_read_address
-  mem.io.write_enable := cpu.io.mem_write_enable
-  mem.io.write_data := cpu.io.mem_write_data
-  mem.io.write_address := cpu.io.mem_write_address
 
   cpu.io.debug_read_address := 0.U
   mem.io.debug_read_address := 0.U

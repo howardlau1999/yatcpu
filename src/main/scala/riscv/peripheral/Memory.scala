@@ -20,6 +20,7 @@ import chisel3.experimental._
 import chisel3.util.experimental._
 import firrtl.annotations.MemorySynthInit
 import riscv.Parameters
+import riscv.bus.{AXI4LiteChannels, AXI4LiteSlave}
 import riscv.core.ProgramCounter
 
 import java.io.FileWriter
@@ -27,63 +28,40 @@ import java.nio.file.Paths
 import java.nio.{ByteBuffer, ByteOrder}
 
 // Main memory
-class Memory(capacity: Int, instructionFilename: String = "hello.asmbin") extends Module {
+class Memory(capacity: Int) extends Module {
   val io = IO(new Bundle {
-    val read_address = Input(UInt(Parameters.AddrWidth))
+    val channels = Flipped(new AXI4LiteChannels(Parameters.AddrBits, Parameters.DataBits))
+
     val debug_read_address = Input(UInt(Parameters.AddrWidth))
     val char_read_address = Input(UInt(Parameters.AddrWidth))
     val instruction_read_address = Input(UInt(Parameters.AddrWidth))
 
-    val write_address = Input(UInt(Parameters.AddrWidth))
-    val write_enable = Input(Bool())
-    val write_data = Input(UInt(Parameters.DataWidth))
-
-    val read_data = Output(UInt(Parameters.DataWidth))
     val debug_read_data = Output(UInt(Parameters.DataWidth))
     val char_read_data = Output(UInt(Parameters.DataWidth))
     val instruction_read_data = Output(UInt(Parameters.DataWidth))
   })
 
-  annotate(new ChiselAnnotation {
-    override def toFirrtl =
-      MemorySynthInit
-  })
-
-  val instructions = readAsmBinary(instructionFilename)
   val mem = SyncReadMem(capacity, UInt(Parameters.DataWidth))
+  val slave = Module(new AXI4LiteSlave(Parameters.AddrBits, Parameters.DataBits))
 
-  when(io.write_enable) {
-    mem.write(io.write_address(Parameters.AddrBits - 1, log2Up(Parameters.WordSize)), io.write_data)
+  slave.io.channels <> io.channels
+
+  when(slave.io.bundle.write) {
+    mem.write(
+      (slave.io.bundle.address >> log2Up(Parameters.WordSize)).asUInt(),
+      slave.io.bundle.write_data
+    )
   }
-  loadMemoryFromFileInline(mem, instructions.toString.replaceAll("\\\\", "/"))
 
-  io.read_data := mem.read(io.read_address(Parameters.AddrBits - 1, log2Up(Parameters.WordSize)), true.B)
-  io.debug_read_data := mem.read(io.debug_read_address(Parameters.AddrBits - 1, log2Up(Parameters.WordSize)), true.B)
-  io.char_read_data := mem.read(io.char_read_address(Parameters.AddrBits - 1, log2Up(Parameters.WordSize)), true.B)
-  io.instruction_read_data := mem.read(io.instruction_read_address(Parameters.AddrBits - 1, log2Up(Parameters
-    .WordSize)), true.B)
+  slave.io.bundle.read_data := mem.read(
+    (slave.io.bundle.address >> log2Up(Parameters.WordSize)).asUInt(),
+    slave.io.bundle.read,
+  ).asUInt()
 
-  def readAsmBinary(filename: String) = {
-    val inputStream = getClass.getClassLoader.getResourceAsStream(filename)
-    var instructions = new Array[BigInt](0)
-    val arr = new Array[Byte](4)
-    while (inputStream.read(arr) == 4) {
-      val instBuf = ByteBuffer.wrap(arr)
-      instBuf.order(ByteOrder.LITTLE_ENDIAN)
-      val inst = BigInt(instBuf.getInt() & 0xFFFFFFFFL)
-      instructions = instructions :+ inst
-    }
-    instructions = instructions :+ BigInt(0x00000013L)
-    instructions = instructions :+ BigInt(0x00000013L)
-    instructions = instructions :+ BigInt(0x00000013L)
-    val entry = ProgramCounter.EntryAddress.litValue() / 4
-    val currentDir = System.getProperty("user.dir")
-    val exeTxtPath = Paths.get(currentDir.toString, "verilog", f"${instructionFilename}.txt")
-    val writer = new FileWriter(exeTxtPath.toString)
-    for (i <- entry until instructions.length + entry) {
-      writer.write(f"@$i%x\n${instructions((i - entry).toInt)}%08x\n")
-    }
-    writer.close()
-    exeTxtPath
-  }
+  io.debug_read_data := mem.read((io.debug_read_address >> log2Up(Parameters.WordSize)).asUInt(), true.B)
+    .asUInt()
+  io.char_read_data := mem.read((io.char_read_address >> log2Up(Parameters.WordSize)).asUInt(), true.B)
+    .asUInt()
+  io.instruction_read_data := mem.read((io.instruction_read_address >> log2Up(Parameters.WordSize)).asUInt(), true.B)
+    .asUInt()
 }

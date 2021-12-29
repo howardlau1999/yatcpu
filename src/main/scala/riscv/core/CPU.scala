@@ -29,12 +29,6 @@ class CPU extends Module {
 
     val instruction_read_data = Input(UInt(Parameters.InstructionWidth))
     val instruction_read_address = Output(UInt(Parameters.AddrWidth))
-
-    val mem_write_enable = Output(Bool())
-    val mem_write_address = Output(UInt(Parameters.AddrWidth))
-    val mem_write_data = Output(UInt(Parameters.DataWidth))
-    val mem_read_data = Input(UInt(Parameters.DataWidth))
-    val mem_read_address = Output(UInt(Parameters.AddrWidth))
   })
 
   val pc = Module(new ProgramCounter)
@@ -128,14 +122,8 @@ class CPU extends Module {
   ex.io.reg2_data := id2ex.io.output_reg2_data
   ex.io.regs_write_enable_id := id2ex.io.output_regs_write_enable
   ex.io.regs_write_address_id := id2ex.io.output_regs_write_address
-  ex.io.mem_read_data := io.mem_read_data
   ex.io.interrupt_assert := clint.io.ex_interrupt_assert
   ex.io.interrupt_handler_address := clint.io.ex_interrupt_handler_address
-
-  io.mem_write_enable := ex.io.mem_write_enable
-  io.mem_write_address := ex.io.mem_write_address
-  io.mem_write_data := ex.io.mem_write_data
-  io.mem_read_address := id.io.ex_mem_read_address
 
   clint.io.instruction := id.io.ex_instruction
   clint.io.instruction_address_id := id.io.instruction_address
