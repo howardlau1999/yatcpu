@@ -89,6 +89,8 @@ class Execute extends Module {
   val mem_write_address_index = ((io.op1 + io.op2) & 0x3.U).asUInt()
   val slave_index = (io.op1 + io.op2) (Parameters.AddrBits - 1, Parameters.AddrBits - Parameters.SlaveDeviceCountBits)
   val mem_access_state = RegInit(MemoryAccessStates.Idle)
+  val pending_interrupt = RegInit(false.B)
+  val pending_interrupt_handler_address = RegInit(Parameters.EntryAddress)
 
   val jump_flag = Wire(Bool())
   val jump_address = Wire(UInt(Parameters.AddrWidth))
@@ -131,6 +133,25 @@ class Execute extends Module {
     jump_flag := false.B
   }
 
+  def check_interrupt_during_bus_transaction() = {
+    // Store the interrupt and process later
+    when(io.interrupt_assert) {
+      pending_interrupt := true.B
+      pending_interrupt_handler_address := io.interrupt_handler_address
+      io.ctrl_jump_flag := false.B
+    }
+  }
+
+  def on_bus_transaction_finished() = {
+    mem_access_state := MemoryAccessStates.Idle
+    io.ctrl_stall_flag := false.B
+    when(pending_interrupt) {
+      pending_interrupt := false.B
+      io.ctrl_jump_flag := true.B
+      io.ctrl_jump_address := pending_interrupt_handler_address
+    }
+  }
+
   when(opcode === InstructionTypes.I) {
     disable_control()
     disable_memory()
@@ -160,21 +181,21 @@ class Execute extends Module {
     disable_memory_write()
     disable_control()
     when(slave_index =/= 0.U) {
-      when(mem_access_state === MemoryAccessStates.Idle) {
+      when(mem_access_state === MemoryAccessStates.Idle && !io.interrupt_assert) {
         io.ctrl_stall_flag := true.B
         io.regs_write_enable := false.B
         io.bus_read := true.B
         io.bus_address := io.op1 + io.op2
         mem_access_state := MemoryAccessStates.Read
       }.elsewhen(mem_access_state === MemoryAccessStates.Read) {
+        check_interrupt_during_bus_transaction()
         io.bus_read := false.B
         io.ctrl_stall_flag := true.B
         io.bus_address := io.op1 + io.op2
         when(io.bus_read_valid) {
           io.regs_write_enable := true.B
           io.regs_write_data := io.bus_read_data
-          mem_access_state := MemoryAccessStates.Idle
-          io.ctrl_stall_flag := false.B
+          on_bus_transaction_finished()
         }
       }
     }.otherwise {
@@ -220,18 +241,21 @@ class Execute extends Module {
     disable_memory()
     when(slave_index =/= 0.U) {
       when(mem_access_state === MemoryAccessStates.Idle) {
-        io.ctrl_stall_flag := true.B
-        io.bus_address := io.op1 + io.op2
-        io.bus_write_data := io.reg2_data
-        io.bus_write := true.B
-        mem_access_state := MemoryAccessStates.Write
+        // Start the read transaction when there is no interrupt asserted
+        when(!io.interrupt_assert) {
+          io.ctrl_stall_flag := true.B
+          io.bus_address := io.op1 + io.op2
+          io.bus_write_data := io.reg2_data
+          io.bus_write := true.B
+          mem_access_state := MemoryAccessStates.Write
+        }
       }.elsewhen(mem_access_state === MemoryAccessStates.Write) {
+        check_interrupt_during_bus_transaction()
         io.ctrl_stall_flag := true.B
         io.bus_write := false.B
         io.bus_address := io.op1 + io.op2
         when(io.bus_write_valid) {
-          mem_access_state := MemoryAccessStates.Idle
-          io.ctrl_stall_flag := false.B
+          on_bus_transaction_finished()
         }
       }
     }.otherwise {
@@ -261,7 +285,6 @@ class Execute extends Module {
         disable_memory()
       }
     }
-
   }.elsewhen(opcode === InstructionTypes.B) {
     disable_control()
     disable_memory()
