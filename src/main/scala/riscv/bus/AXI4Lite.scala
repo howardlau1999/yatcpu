@@ -72,6 +72,7 @@ class AXI4LiteSlaveBundle(addrWidth: Int, dataWidth: Int) extends Bundle {
   val read = Output(Bool())
   val write = Output(Bool())
   val read_data = Input(UInt(dataWidth.W))
+  val read_valid = Input(Bool())
   val write_data = Output(UInt(dataWidth.W))
   val write_strobe = Output(Vec(Parameters.WordSize, Bool()))
   val address = Output(UInt(addrWidth.W))
@@ -153,7 +154,7 @@ class AXI4LiteSlave(addrWidth: Int, dataWidth: Int) extends Module {
       }
     }
     is(AXI4LiteStates.ReadData) {
-      RVALID := true.B
+      RVALID := io.bundle.read_valid
       when(io.channels.read_data_channel.RREADY && RVALID) {
         state := AXI4LiteStates.Idle
         RVALID := false.B

@@ -68,6 +68,7 @@ class Memory(capacity: Int) extends Module {
   val mem = Module(new BlockRAM(capacity))
   val slave = Module(new AXI4LiteSlave(Parameters.AddrBits, Parameters.DataBits))
   slave.io.channels <> io.channels
+  slave.io.bundle.read_valid := true.B
 
   mem.io.write_enable := slave.io.bundle.write
   mem.io.write_data := slave.io.bundle.write_data

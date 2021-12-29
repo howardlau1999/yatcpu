@@ -181,6 +181,7 @@ class Uart(frequency: Int, baudRate: Int) extends Module {
   val rx = Module(new Rx(frequency, baudRate))
 
   slave.io.bundle.read_data := 0.U
+  slave.io.bundle.read_valid := true.B
   when(slave.io.bundle.read) {
     when(slave.io.bundle.address === 0x4.U) {
       slave.io.bundle.read_data := baudRate.U
