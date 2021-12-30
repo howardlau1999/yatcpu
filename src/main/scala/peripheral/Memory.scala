@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package riscv.peripheral
+package peripheral
 
+import bus.{AXI4LiteChannels, AXI4LiteSlave}
 import chisel3._
 import riscv.Parameters
-import riscv.bus.{AXI4LiteChannels, AXI4LiteSlave}
 
 // The purpose of this module is to help the synthesis tool recognize
 // our memory as a Block RAM template

@@ -14,8 +14,8 @@
 
 package riscv.core
 
+import bus.{AXI4LiteChannels, AXI4LiteMaster}
 import chisel3._
-import riscv.bus.{AXI4LiteChannels, AXI4LiteMaster}
 import riscv.Parameters
 
 class CPU extends Module {

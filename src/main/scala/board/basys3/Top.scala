@@ -19,9 +19,9 @@ import chisel3._
 import chisel3.experimental.ChiselEnum
 import chisel3.util._
 import riscv._
-import riscv.bus.{BusArbiter, BusSwitch}
+import _root_.peripheral.{DummySlave, Memory, ROMLoader, Timer, Uart}
+import _root_.bus.{BusArbiter, BusSwitch}
 import riscv.core.{CPU, ProgramCounter}
-import riscv.peripheral.{DummySlave, Memory, ROMLoader, Timer, Uart}
 
 object BootStates extends ChiselEnum {
   val Init, Loading, Finished = Value

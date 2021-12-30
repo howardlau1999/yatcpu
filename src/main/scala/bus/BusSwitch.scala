@@ -12,21 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package riscv.peripheral
+package bus
 
 import chisel3._
+import peripheral.DummyMaster
 import riscv.Parameters
-import riscv.bus.{AXI4LiteChannels, AXI4LiteSlave}
 
-// A dummy AXI4 slave that only returns 0 on read
-// and ignores all writes
-class DummySlave extends Module {
+class BusSwitch extends Module {
   val io = IO(new Bundle {
-    val channels = Flipped(new AXI4LiteChannels(4, Parameters.DataBits))
+    val address = Input(UInt(Parameters.AddrWidth))
+    val slaves = Vec(Parameters.SlaveDeviceCount, new AXI4LiteChannels(Parameters.AddrBits, Parameters.DataBits))
+    val master = Flipped(new AXI4LiteChannels(Parameters.AddrBits, Parameters.DataBits))
   })
-
-  val slave = Module(new AXI4LiteSlave(Parameters.AddrBits, Parameters.DataBits))
-  slave.io.channels <> io.channels
-  slave.io.bundle.read_valid := true.B
-  slave.io.bundle.read_data := 0.U
+  val dummy = Module(new DummyMaster)
+  val index = io.address(Parameters.AddrBits - 1, Parameters.AddrBits - Parameters.SlaveDeviceCountBits)
+  for (i <- 0 until Parameters.SlaveDeviceCount) {
+    io.slaves(i) <> dummy.io.channels
+  }
+  io.master <> io.slaves(index)
 }

@@ -12,15 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package riscv.peripheral
+package peripheral
 
+import bus.{AXI4LiteChannels, AXI4LiteSlave}
 import chisel3._
 import riscv.Parameters
 
-// TODO(howard): implementation
-class InterruptController extends Module {
+// A dummy AXI4 slave that only returns 0 on read
+// and ignores all writes
+class DummySlave extends Module {
   val io = IO(new Bundle {
-    val interrupts = Vec(Parameters.SlaveDeviceCount, Bool())
-    val cpu_interrupt_flag = Output(UInt(Parameters.InterruptFlagWidth))
+    val channels = Flipped(new AXI4LiteChannels(4, Parameters.DataBits))
   })
+
+  val slave = Module(new AXI4LiteSlave(Parameters.AddrBits, Parameters.DataBits))
+  slave.io.channels <> io.channels
+  slave.io.bundle.read_valid := true.B
+  slave.io.bundle.read_data := 0.U
 }

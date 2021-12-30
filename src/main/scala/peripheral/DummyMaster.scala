@@ -12,29 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package riscv.bus
+package peripheral
 
+import bus.{AXI4LiteChannels, AXI4LiteMaster}
 import chisel3._
 import riscv.Parameters
 
-class BusArbiter extends Module {
+// A dummy master that never initiates reads or writes
+class DummyMaster extends Module {
   val io = IO(new Bundle {
-    val bus_request = Input(Vec(Parameters.MasterDeviceCount, Bool()))
-    val bus_granted = Output(Vec(Parameters.MasterDeviceCount, Bool()))
-
-    val ctrl_stall_flag = Output(Bool())
+    val channels = new AXI4LiteChannels(Parameters.AddrBits, Parameters.DataBits)
   })
-  val granted = Wire(UInt())
-  // Static Priority Arbitration
-  // Higher number = Higher priority
-  granted := 0.U
-  for (i <- 0 until Parameters.MasterDeviceCount) {
-    when(io.bus_request(i.U)) {
-      granted := i.U
-    }
-  }
-  for (i <- 0 until Parameters.MasterDeviceCount) {
-    io.bus_granted(i.U) := i.U === granted
-  }
-  io.ctrl_stall_flag := !io.bus_granted(0.U)
+  val master = Module(new AXI4LiteMaster(Parameters.AddrBits, Parameters.DataBits))
+  master.io.channels <> io.channels
+  master.io.bundle.write_strobe := VecInit(Seq.fill(Parameters.WordSize)(false.B))
+  master.io.bundle.write_data := 0.U
+  master.io.bundle.write := false.B
+  master.io.bundle.read := false.B
+  master.io.bundle.address := 0.U
 }

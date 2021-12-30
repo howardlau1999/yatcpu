@@ -14,11 +14,11 @@
 
 package riscv
 
+import bus.{AXI4LiteMaster, AXI4LiteMasterBundle, AXI4LiteSlave, AXI4LiteSlaveBundle}
 import chisel3._
 import chisel3.tester._
 import org.scalatest._
-import riscv.bus.{AXI4LiteMaster, AXI4LiteMasterBundle, AXI4LiteSlave, AXI4LiteSlaveBundle}
-import riscv.peripheral.{DummySlave, Memory, ROMLoader}
+import peripheral.{Memory, ROMLoader}
 
 class PeripheralTest extends FreeSpec with ChiselScalatestTester {
   class TestTimerLimit extends Module {

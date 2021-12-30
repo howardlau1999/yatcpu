@@ -12,22 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package riscv.bus
+package peripheral
 
 import chisel3._
 import riscv.Parameters
-import riscv.peripheral.DummyMaster
 
-class BusSwitch extends Module {
+// TODO(howard): implementation
+class InterruptController extends Module {
   val io = IO(new Bundle {
-    val address = Input(UInt(Parameters.AddrWidth))
-    val slaves = Vec(Parameters.SlaveDeviceCount, new AXI4LiteChannels(Parameters.AddrBits, Parameters.DataBits))
-    val master = Flipped(new AXI4LiteChannels(Parameters.AddrBits, Parameters.DataBits))
+    val interrupts = Vec(Parameters.SlaveDeviceCount, Bool())
+    val cpu_interrupt_flag = Output(UInt(Parameters.InterruptFlagWidth))
   })
-  val dummy = Module(new DummyMaster)
-  val index = io.address(Parameters.AddrBits - 1, Parameters.AddrBits - Parameters.SlaveDeviceCountBits)
-  for (i <- 0 until Parameters.SlaveDeviceCount) {
-    io.slaves(i) <> dummy.io.channels
-  }
-  io.master <> io.slaves(index)
 }

@@ -15,13 +15,13 @@
 package riscv
 
 import board.basys3.BootStates
+import bus.BusSwitch
 import chisel3._
 import chisel3.tester._
 import chisel3.util.{is, switch}
 import org.scalatest._
-import riscv.bus.{AXI4LiteChannels, AXI4LiteSlave, BusSwitch}
+import peripheral.{DummySlave, Memory, ROMLoader}
 import riscv.core.{CPU, ProgramCounter}
-import riscv.peripheral.{DummySlave, Memory, ROMLoader}
 
 import java.nio.{ByteBuffer, ByteOrder}
 
