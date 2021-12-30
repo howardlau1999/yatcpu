@@ -105,8 +105,6 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
 
     mem.io.char_read_address := 0.U
     mem.io.debug_read_address := io.mem_debug_read_address
-    mem.io.instruction_read_address := cpu.io.instruction_read_address
-    cpu.io.instruction_read_data := mem.io.instruction_read_data
     cpu.io.debug_read_address := io.regs_debug_read_address
     io.regs_debug_read_data := cpu.io.debug_read_data
     io.mem_debug_read_data := mem.io.debug_read_data
@@ -118,7 +116,7 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
     "should calculate recursive fibonacci" in {
       test(new TestTopModule("fibonacci.asmbin")) { c =>
         c.io.interrupt.poke(0.U)
-        for (i <- 1 to 20) {
+        for (i <- 1 to 60) {
           c.clock.step(1000)
           c.io.mem_debug_read_address.poke((i * 4).U) // Avoid timeout
         }
@@ -132,7 +130,7 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
     "should quicksort 10 numbers" in {
       test(new TestTopModule("quicksort.asmbin")) { c =>
         c.io.interrupt.poke(0.U)
-        for (i <- 1 to 10) {
+        for (i <- 1 to 50) {
           c.clock.step(1000)
           c.io.mem_debug_read_address.poke((i * 4).U) // Avoid timeout
         }
@@ -147,7 +145,7 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
     "should read and write timer register" in {
       test(new TestTopModule("mmio.asmbin")) { c =>
         c.io.interrupt.poke(0.U)
-        for (i <- 1 to 500) {
+        for (i <- 1 to 3000) {
           c.clock.step()
           c.io.mem_debug_read_address.poke((i * 4).U) // Avoid timeout
         }

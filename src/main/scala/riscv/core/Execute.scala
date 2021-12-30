@@ -49,6 +49,9 @@ class Execute extends Module {
     val bus_write_data = Output(UInt(Parameters.DataWidth))
     val bus_write_strobe = Output(Vec(Parameters.WordSize, Bool()))
     val bus_write_valid = Input(Bool())
+    val bus_busy = Input(Bool())
+    val bus_request = Output(Bool())
+    val bus_granted = Input(Bool())
 
     val regs_write_enable = Output(Bool())
     val regs_write_address = Output(UInt(Parameters.PhysicalRegisterAddrWidth))
@@ -103,6 +106,7 @@ class Execute extends Module {
   io.csr_reg_write_enable := io.csr_reg_write_enable_id && !io.interrupt_assert
   io.csr_reg_write_address := io.csr_reg_write_address_id
   io.csr_reg_write_data := 0.U
+  io.bus_request := false.B
 
   def disable_control() = {
     disable_stall()
@@ -162,14 +166,23 @@ class Execute extends Module {
     }
   }.elsewhen(opcode === InstructionTypes.L) {
     disable_control()
-    when(mem_access_state === MemoryAccessStates.Idle && !io.interrupt_assert) {
+
+    when(mem_access_state === MemoryAccessStates.Idle) {
       io.ctrl_stall_flag := true.B
       io.regs_write_enable := false.B
-      io.bus_read := true.B
-      io.bus_address := io.op1 + io.op2
-      mem_access_state := MemoryAccessStates.Read
+      // Start the read transaction when there is no interrupt asserted
+      // and the bus is available
+      when(!io.interrupt_assert) {
+        io.bus_read := true.B
+        io.bus_address := io.op1 + io.op2
+        io.bus_request := true.B
+        when(io.bus_granted) {
+          mem_access_state := MemoryAccessStates.Read
+        }
+      }
     }.elsewhen(mem_access_state === MemoryAccessStates.Read) {
       check_interrupt_during_bus_transaction()
+      io.bus_request := true.B
       io.bus_read := false.B
       io.ctrl_stall_flag := true.B
       io.bus_address := io.op1 + io.op2
@@ -219,12 +232,12 @@ class Execute extends Module {
 
     when(mem_access_state === MemoryAccessStates.Idle) {
       // Start the write transaction when there is no interrupt asserted
+      // and the bus is available
       when(!io.interrupt_assert) {
         io.ctrl_stall_flag := true.B
         io.bus_address := io.op1 + io.op2
         io.bus_write_data := io.reg2_data
         io.bus_write := true.B
-        mem_access_state := MemoryAccessStates.Write
         io.bus_write_strobe := VecInit(Seq.fill(Parameters.WordSize)(false.B))
         when(funct3 === InstructionsTypeS.sb) {
           io.bus_write_strobe(mem_write_address_index) := true.B
@@ -248,9 +261,14 @@ class Execute extends Module {
             io.bus_write_strobe(i) := true.B
           }
         }
+        io.bus_request := true.B
+        when(io.bus_granted) {
+          mem_access_state := MemoryAccessStates.Write
+        }
       }
     }.elsewhen(mem_access_state === MemoryAccessStates.Write) {
       check_interrupt_during_bus_transaction()
+      io.bus_request := true.B
       io.ctrl_stall_flag := true.B
       io.bus_write := false.B
       io.bus_address := io.op1 + io.op2

@@ -72,7 +72,6 @@ class PeripheralTest extends FreeSpec with ChiselScalatestTester {
 
     memory.io.char_read_address := 0.U
     memory.io.debug_read_address := 0.U
-    memory.io.instruction_read_address := 0.U
   }
 
   "ROMLoader" - {

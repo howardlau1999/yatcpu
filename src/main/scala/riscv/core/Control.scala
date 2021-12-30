@@ -28,6 +28,7 @@ object StallStates {
 class Control extends Module {
   val io = IO(new Bundle {
     val jump_flag = Input(Bool())
+    val stall_flag_if = Input(Bool())
     val stall_flag_id = Input(Bool())
     val stall_flag_ex = Input(Bool())
     val stall_flag_clint = Input(Bool())
@@ -48,7 +49,7 @@ class Control extends Module {
     Array(
       (io.jump_flag || io.stall_flag_ex || io.stall_flag_clint) -> StallStates.ID,
       io.stall_flag_id -> StallStates.IF,
-      io.stall_flag_bus -> StallStates.PC,
+      (io.stall_flag_bus || io.stall_flag_if) -> StallStates.PC,
     )
   )
 }

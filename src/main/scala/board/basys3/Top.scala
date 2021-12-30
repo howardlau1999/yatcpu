@@ -95,8 +95,6 @@ class Top extends Module {
   bus_switch.io.slaves(4) <> timer.io.channels
 
   cpu.io.interrupt_flag := Cat(uart.io.signal_interrupt, timer.io.signal_interrupt)
-  cpu.io.instruction_read_data := mem.io.instruction_read_data
-  mem.io.instruction_read_address := cpu.io.instruction_read_address
 
   cpu.io.debug_read_address := 0.U
   mem.io.debug_read_address := 0.U
