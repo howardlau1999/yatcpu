@@ -41,7 +41,7 @@ class PeripheralTest extends FreeSpec with ChiselScalatestTester {
       val load_address = Input(UInt(32.W))
       val load_finished = Output(Bool())
 
-      val bundle = new AXI4LiteSlaveBundle(32,32)
+      val bundle = new AXI4LiteSlaveBundle(32, 32)
     })
 
     val rom_loader = Module(new ROMLoader(2))

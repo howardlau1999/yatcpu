@@ -74,7 +74,7 @@ class Tx(frequency: Int, baudRate: Int) extends Module {
  * The following code is inspired by Tommy's receive code at:
  * https://github.com/tommythorn/yarvi
  */
-class Rx (frequency: Int, baudRate: Int) extends Module {
+class Rx(frequency: Int, baudRate: Int) extends Module {
   val io = IO(new Bundle {
     val rxd = Input(UInt(1.W))
     val channel = new UartIO()
@@ -147,7 +147,7 @@ class Buffer extends Module {
 /**
  * A transmitter with a single buffer.
  */
-class BufferedTx (frequency: Int, baudRate: Int)extends Module {
+class BufferedTx(frequency: Int, baudRate: Int) extends Module {
   val io = IO(new Bundle {
     val txd = Output(UInt(1.W))
     val channel = Flipped(new UartIO())
@@ -206,7 +206,7 @@ class Uart(frequency: Int, baudRate: Int) extends Module {
     txValid := false.B
     txData := 0.U
   }
-  
+
   io.txd := tx.io.txd
   rx.io.rxd := io.rxd
 

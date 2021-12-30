@@ -26,7 +26,7 @@ import riscv.peripheral.{DummySlave, Memory, ROMLoader}
 import java.nio.{ByteBuffer, ByteOrder}
 
 class CPUTest extends FreeSpec with ChiselScalatestTester {
-  class TestInstructionROM( asmBin: String) extends Module {
+  class TestInstructionROM(asmBin: String) extends Module {
     val io = IO(new Bundle {
       val address = Input(UInt(32.W))
       val data = Output(UInt(32.W))

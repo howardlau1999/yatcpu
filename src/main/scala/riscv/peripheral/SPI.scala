@@ -19,6 +19,6 @@ import chisel3.util._
 
 class SPI extends Module {
   val io = IO(new Bundle {
-    
+
   })
 }
