@@ -2,7 +2,12 @@
 
 YatCPU(**Y**et **a**nother **t**oy CPU) is a simple three-stage pipeline RISC-V implementation written in Chisel 3 HDL with support for AXI4-Lite, featuring its painless hands-on experience and VGA output for fun.
 
-This project is heavily inspired by [tinyriscv](https://gitee.com/liangkangnan/tinyriscv).
+You can play Tetris on your own CPU!
+
+![tetris-demo](https://liuhaohua.com/service-computing-blog/assets/images/tetris.gif)
+
+Heavily inspired by [tinyriscv](https://gitee.com/liangkangnan/tinyriscv), this project is still in its very early stage and under active development. We are looking forward to your
+feedback and contributions!
 
 ## Prerequisites
 
