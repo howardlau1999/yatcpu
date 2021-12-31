@@ -168,11 +168,11 @@ class Execute extends Module {
     disable_control()
 
     when(mem_access_state === MemoryAccessStates.Idle) {
-      io.ctrl_stall_flag := true.B
-      io.regs_write_enable := false.B
       // Start the read transaction when there is no interrupt asserted
       // and the bus is available
       when(!io.interrupt_assert) {
+        io.ctrl_stall_flag := true.B
+        io.regs_write_enable := false.B
         io.bus_read := true.B
         io.bus_address := io.op1 + io.op2
         io.bus_request := true.B
