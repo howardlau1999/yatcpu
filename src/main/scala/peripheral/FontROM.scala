@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package board.common
+package peripheral
 
 import chisel3._
 import chisel3.experimental.{ChiselAnnotation, annotate}

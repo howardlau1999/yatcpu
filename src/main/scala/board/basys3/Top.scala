@@ -14,12 +14,11 @@
 
 package board.basys3
 
-import board.common.{FontROM, InstructionROM, VGADisplay, VGASync}
 import chisel3._
 import chisel3.experimental.ChiselEnum
 import chisel3.util._
 import riscv._
-import _root_.peripheral.{DummySlave, Memory, ROMLoader, Timer, Uart}
+import _root_.peripheral.{DummySlave, FontROM, InstructionROM, Memory, ROMLoader, Timer, Uart, VGADisplay, VGASync}
 import _root_.bus.{BusArbiter, BusSwitch}
 import riscv.core.{CPU, ProgramCounter}
 

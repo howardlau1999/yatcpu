@@ -12,15 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package board.common
+package peripheral
 
 import chisel3._
 import chisel3.experimental.{ChiselAnnotation, annotate}
-import chisel3.util._
 import chisel3.util.experimental.loadMemoryFromFileInline
 import firrtl.annotations.MemorySynthInit
 import riscv.Parameters
-import riscv.core.ProgramCounter
 
 import java.io.FileWriter
 import java.nio.file.Paths
