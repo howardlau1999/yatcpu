@@ -41,7 +41,6 @@ class InstructionFetch extends Module {
   val instruction_address = RegInit(ProgramCounter.EntryAddress)
   val pending_jump = RegInit(false.B)
   val pc = RegInit(ProgramCounter.EntryAddress)
-  val fetching = RegInit(false.B)
   io.bus_read := true.B
   io.bus_request := true.B
 
