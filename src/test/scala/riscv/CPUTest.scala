@@ -103,7 +103,6 @@ class CPUTest extends FreeSpec with ChiselScalatestTester {
     }
     bus_switch.io.slaves(4) <> timer.io.channels
 
-    mem.io.char_read_address := 0.U
     mem.io.debug_read_address := io.mem_debug_read_address
     cpu.io.debug_read_address := io.regs_debug_read_address
     io.regs_debug_read_data := cpu.io.debug_read_data

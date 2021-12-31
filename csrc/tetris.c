@@ -16,13 +16,9 @@
 #include <stdio.h>
 #endif
 
-#define UART_CHADDR 0x4000000C
-#define UART ((unsigned int *) UART_CHADDR)
-#define VRAM_BASE 1024
-#define VRAM ((unsigned char *)(VRAM_BASE))
-#define TIMER_LIMIT_PTR ((unsigned int *) 0x80000004)
-#define TIMER_ENABLED_PTR ((unsigned int *) 0x80000008)
-#define TIMER_LIMIT 50000000
+#include "mmio.h"
+
+#define FALL_TIMER_LIMIT 50000000
 #define ROWS 22
 #define COLS 10
 #define OFFSET_X 28
@@ -323,9 +319,8 @@ void check_clear() {
 	}
 }
 
-unsigned int seed = 990315;
-
 unsigned int rand() {
+	static unsigned int seed = 990315;
 	seed = (1103515245 * seed + 12345) & 0x7FFFFFFF;
 	return seed;
 }
@@ -391,8 +386,8 @@ void trap_handler(void *epc, unsigned int cause) {
 	if (cause == 0x80000007) {
 		on_timer();
 	} else {
-		unsigned int ch = *UART;
-		*(unsigned int *) 0x40000010 = ch;
+		unsigned int ch = *UART_RECV;
+		*UART_SEND = ch;
 		on_input(ch);
 	}
 }
@@ -454,8 +449,8 @@ int main() {
 	init();
 	*((unsigned int *) 4) = 0xDEADBEEF;
 	enable_interrupt();
-	*TIMER_ENABLED_PTR = 1;
-	*TIMER_LIMIT_PTR = TIMER_LIMIT;
+	*TIMER_ENABLED = 1;
+	*TIMER_LIMIT = FALL_TIMER_LIMIT;
 	for (;;);
 #endif
 #ifdef DEBUG

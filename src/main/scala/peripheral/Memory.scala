@@ -29,11 +29,9 @@ class BlockRAM(capacity: Int) extends Module {
     val write_strobe = Input(Vec(Parameters.WordSize, Bool()))
 
     val debug_read_address = Input(UInt(Parameters.AddrWidth))
-    val char_read_address = Input(UInt(Parameters.AddrWidth))
 
     val read_data = Output(UInt(Parameters.DataWidth))
     val debug_read_data = Output(UInt(Parameters.DataWidth))
-    val char_read_data = Output(UInt(Parameters.DataWidth))
   })
   val mem = SyncReadMem(capacity, Vec(Parameters.WordSize, UInt(Parameters.ByteWidth)))
   when(io.write_enable) {
@@ -45,7 +43,6 @@ class BlockRAM(capacity: Int) extends Module {
   }
   io.read_data := mem.read((io.read_address >> 2.U).asUInt(), true.B).asUInt()
   io.debug_read_data := mem.read((io.debug_read_address >> 2.U).asUInt(), true.B).asUInt()
-  io.char_read_data := mem.read((io.char_read_address >> 2.U).asUInt(), true.B).asUInt()
 }
 
 // This module wraps the Block RAM with an AXI4-Lite interface
@@ -54,10 +51,7 @@ class Memory(capacity: Int) extends Module {
     val channels = Flipped(new AXI4LiteChannels(Parameters.AddrBits, Parameters.DataBits))
 
     val debug_read_address = Input(UInt(Parameters.AddrWidth))
-    val char_read_address = Input(UInt(Parameters.AddrWidth))
-
     val debug_read_data = Output(UInt(Parameters.DataWidth))
-    val char_read_data = Output(UInt(Parameters.DataWidth))
   })
 
   val mem = Module(new BlockRAM(capacity))
@@ -75,6 +69,4 @@ class Memory(capacity: Int) extends Module {
 
   mem.io.debug_read_address := io.debug_read_address
   io.debug_read_data := mem.io.debug_read_data
-  mem.io.char_read_address := io.char_read_address
-  io.char_read_data := mem.io.char_read_data
 }

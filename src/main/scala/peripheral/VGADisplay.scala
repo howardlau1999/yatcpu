@@ -14,26 +14,32 @@
 
 package peripheral
 
+import bus.{AXI4LiteChannels, AXI4LiteSlave}
 import chisel3._
 import chisel3.experimental.{ChiselAnnotation, annotate}
 import chisel3.util._
 import chisel3.util.experimental.loadMemoryFromFileInline
 import firrtl.annotations.MemorySynthInit
+import riscv.Parameters
 
 import java.io.FileWriter
 import java.nio.file.Paths
 import javax.imageio.ImageIO
-
-object ScreenInfo {
-  val DisplayHorizontal = 640
-  val DisplayVertical = 480
-}
 
 object GlyphInfo {
   val glyphWidth = 8
   val glyphHeight = 16
   // ASCII printable characters start from here
   val spaceIndex = 1
+}
+
+object ScreenInfo {
+  val DisplayHorizontal = 640
+  val DisplayVertical = 480
+
+  val CharCols = DisplayHorizontal / GlyphInfo.glyphWidth
+  val CharRows = DisplayVertical / GlyphInfo.glyphHeight
+  val Chars = CharCols * CharRows
 }
 
 class FontROM(fontBitmapFilename: String = "vga_font_8x16.bmp") extends Module {
@@ -172,35 +178,51 @@ class VGASync extends Module {
 
 class VGADisplay extends Module {
   val io = IO(new Bundle() {
-    val screen_x = Input(UInt(10.W))
-    val screen_y = Input(UInt(10.W))
+    val channels = Flipped(new AXI4LiteChannels(log2Up(ScreenInfo.Chars), Parameters.DataBits))
 
-    val char_mem_address = Output(UInt(32.W))
-    val char_mem_data = Input(UInt(32.W))
+    val hsync = Output(Bool())
+    val vsync = Output(Bool())
 
-    val glyph_rom_index = Output(UInt(7.W))
-    val glyph_x = Output(UInt(7.W))
-    val glyph_y = Output(UInt(7.W))
+    val rgb = Output(UInt(12.W))
   })
-  val row = (io.screen_y >> log2Up(GlyphInfo.glyphHeight)).asUInt()
-  val col = (io.screen_x >> log2Up(GlyphInfo.glyphWidth)).asUInt()
-  val glyph_index = (row * (ScreenInfo.DisplayHorizontal.U >> log2Up(GlyphInfo.glyphWidth).U).asUInt()) + col
-  io.char_mem_address := glyph_index + 1024.U
-  val offset = glyph_index(1, 0)
+  val slave = Module(new AXI4LiteSlave(log2Up(ScreenInfo.Chars), Parameters.DataBits))
+  slave.io.channels <> io.channels
+  val mem = Module(new BlockRAM(ScreenInfo.Chars / Parameters.WordSize))
+  slave.io.bundle.read_valid := true.B
+  mem.io.write_enable := slave.io.bundle.write
+  mem.io.write_data := slave.io.bundle.write_data
+  mem.io.write_address := slave.io.bundle.address
+  mem.io.write_strobe := slave.io.bundle.write_strobe
+
+  mem.io.read_address := slave.io.bundle.address
+  slave.io.bundle.read_data := mem.io.read_data
+
+  val sync = Module(new VGASync)
+  io.hsync := sync.io.hsync
+  io.vsync := sync.io.vsync
+
+  val font_rom = Module(new FontROM)
+  val row = (sync.io.y >> log2Up(GlyphInfo.glyphHeight)).asUInt()
+  val col = (sync.io.x >> log2Up(GlyphInfo.glyphWidth)).asUInt()
+  val char_index = (row * ScreenInfo.CharCols.U) + col
+  val offset = char_index(1, 0)
   val ch = Wire(UInt(8.W))
 
+  mem.io.debug_read_address := char_index
   ch := MuxLookup(
     offset,
     0.U,
     Array(
-      0.U -> io.char_mem_data(7, 0).asUInt(),
-      1.U -> io.char_mem_data(15, 8).asUInt(),
-      2.U -> io.char_mem_data(23, 16).asUInt(),
-      3.U -> io.char_mem_data(31, 24).asUInt()
+      0.U -> mem.io.debug_read_data(7, 0).asUInt(),
+      1.U -> mem.io.debug_read_data(15, 8).asUInt(),
+      2.U -> mem.io.debug_read_data(23, 16).asUInt(),
+      3.U -> mem.io.debug_read_data(31, 24).asUInt()
     )
   )
-  io.glyph_rom_index := Mux(ch >= 32.U, ch - 31.U, 0.U)
+  font_rom.io.glyph_index := Mux(ch >= 32.U, ch - 31.U, 0.U)
+  font_rom.io.glyph_y := sync.io.y(log2Up(GlyphInfo.glyphHeight) - 1, 0)
 
-  io.glyph_x := io.screen_x(log2Up(GlyphInfo.glyphWidth) - 1, 0)
-  io.glyph_y := io.screen_y(log2Up(GlyphInfo.glyphHeight) - 1, 0)
+  // White if pixel_on and glyph pixel on
+  val glyph_x = sync.io.x(log2Up(GlyphInfo.glyphWidth) - 1, 0)
+  io.rgb := Mux(sync.io.video_on && font_rom.io.glyph_pixel_byte(glyph_x), 0xFFFF.U, 0.U)
 }

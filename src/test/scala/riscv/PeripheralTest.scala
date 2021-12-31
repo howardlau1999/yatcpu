@@ -70,7 +70,6 @@ class PeripheralTest extends FreeSpec with ChiselScalatestTester {
     master.io.bundle.write_strobe := VecInit(io.write_strobe.asBools())
     master.io.channels <> memory.io.channels
 
-    memory.io.char_read_address := 0.U
     memory.io.debug_read_address := 0.U
   }
 

@@ -12,21 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "mmio.h"
+
 struct screen {
 	unsigned char row, col;
 } scr;
 
 void copy_line(int prev, int cur) {
-	int *prev_vram_start = ((int *) (prev * 80 + 1024));
-	int *cur_vram_start = ((int *) (cur * 80 + 1024));
+	int *prev_vram_start = ((int *) (prev * 80 + VRAM_BASE));
+	int *cur_vram_start = ((int *) (cur * 80 + VRAM_BASE));
 	for (int i = 0; i < 20; ++i) {
 		prev_vram_start[i] = cur_vram_start[i];
 	}
 }
 
 void write_char(int row, int col, unsigned char ch) {
-	unsigned char *vram = (unsigned char *) 1024;
-	vram[row * 80 + col] = ch;
+	VRAM[row * 80 + col] = ch;
 }
 
 void move_to(int row, int col) {
@@ -40,7 +41,7 @@ void new_line() {
 		for (int i = 0; i < 29; ++i) {
 			copy_line(i, i + 1);
 		}
-		int *vram = (int *) (29 * 80 + 1024);
+		int *vram = (int *) (29 * 80 + VRAM_BASE);
 		for (int i = 0; i < 20; ++i) {
 			vram[i] = 0x20202020;
 		}
@@ -66,7 +67,7 @@ void putch(unsigned char ch) {
 void clear_screen() {
 	scr.row = 0;
 	scr.col = 0;
-	int *vram = ((int *) 1024);
+	int *vram = ((int *) VRAM_BASE);
 	for (int i = 0; i < 600; ++i) vram[i] = 0x20202020;
 }
 
@@ -93,15 +94,15 @@ int fast = 0;
 
 void print_timer() {
 	putstr("Hardware timer count limit = ");
-	print_hex(*(unsigned int *) 0x80000004);
+	print_hex(*TIMER_LIMIT);
 	putstr(", enabled = ");
-	print_hex(*(unsigned int *) 0x80000008);
+	print_hex(*TIMER_ENABLED);
 	putch('\n');
 }
 
 void print_uart() {
 	putstr("UART Baud rate = ");
-	print_hex(*(unsigned int *) 0x40000004);
+	print_hex(*UART_BAUDRATE);
 	putch('\n');
 }
 
@@ -112,17 +113,17 @@ void handle_timer() {
 	int mode = ((hc & 0x10) >> 4);
 	if (hc == 0x40) {
 		putstr("Disable timer!\n");
-		*((unsigned int*) 0x80000008) = 0;
+		*TIMER_ENABLED = 0;
 		print_timer();
 		return;
 	}
 	if (fast ^ mode) {
 		putstr("Switch timer frequency\n");
 		if (fast == 0) {
-			*((unsigned int*) 0x80000004) = 25000000;
+			*TIMER_LIMIT = 25000000;
 		} else {
 		
-			*((unsigned int*) 0x80000004) = 100000000;
+			*TIMER_LIMIT = 100000000;
 		}
 		fast = mode;
 		print_timer();
@@ -130,8 +131,8 @@ void handle_timer() {
 }
 
 void handle_uart() {
-	unsigned int ch = *(unsigned int *) 0x4000000C;
-	*(unsigned int *) 0x40000010 = ch;
+	unsigned int ch = *UART_RECV;
+	*UART_SEND = ch;
 	putstr("UART Recv hex = "); print_hex(ch); putstr(", ch = "); putch(ch); putch('\n');
 }
 
@@ -155,7 +156,7 @@ extern unsigned int get_epc();
 int main() {
 	clear_screen();
 	hc = 0;
-	*((unsigned int*) 0x80000008) = 1;
+	*TIMER_ENABLED = 1;
 	putstr("YatCPU Demo Program ");
 	putch(137);
 	putstr("2021 Howard Lau\n");

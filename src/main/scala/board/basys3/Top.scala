@@ -57,6 +57,8 @@ class Top extends Module {
 
   val instruction_rom = Module(new InstructionROM(binaryFilename))
   val rom_loader = Module(new ROMLoader(instruction_rom.capacity))
+
+  val vga_display = Module(new VGADisplay)
   bus_arbiter.io.bus_request(0) := true.B
 
   bus_switch.io.master <> cpu.io.axi4_channels
@@ -90,6 +92,7 @@ class Top extends Module {
       cpu.io.instruction_valid := true.B
     }
   }
+  bus_switch.io.slaves(1) <> vga_display.io.channels
   bus_switch.io.slaves(2) <> uart.io.channels
   bus_switch.io.slaves(4) <> timer.io.channels
 
@@ -98,20 +101,10 @@ class Top extends Module {
   cpu.io.debug_read_address := 0.U
   mem.io.debug_read_address := 0.U
 
-  val vga_display = Module(new VGADisplay)
-  val vga_sync = Module(new VGASync)
-  val font_rom = Module(new FontROM)
-  vga_display.io.screen_x := vga_sync.io.x
-  vga_display.io.screen_y := vga_sync.io.y
-  io.hsync := vga_sync.io.hsync
-  io.vsync := vga_sync.io.vsync
+  io.hsync := vga_display.io.hsync
+  io.vsync := vga_display.io.vsync
 
-  mem.io.char_read_address := vga_display.io.char_mem_address
-  vga_display.io.char_mem_data := mem.io.char_read_data
-
-  font_rom.io.glyph_index := vga_display.io.glyph_rom_index
-  font_rom.io.glyph_y := vga_display.io.glyph_y
-  io.rgb := Mux(vga_sync.io.video_on && font_rom.io.glyph_pixel_byte(vga_display.io.glyph_x).asBool(), 0xFFFF.U, 0.U)
+  io.rgb := vga_display.io.rgb
 
   mem.io.debug_read_address := io.switch(15, 1).asUInt() << 2
   io.led := Mux(
