@@ -9,6 +9,15 @@ You can play Tetris on your own CPU!
 Heavily inspired by [tinyriscv](https://gitee.com/liangkangnan/tinyriscv), this project is still in its very early stage and under active development. We are looking forward to your
 feedback and contributions!
 
+## Development Plans
+
+- [ ] L1 I-cache and D-cache
+- [ ] Branch predictor
+- [ ] Run [Yat-sen OS RISC-V](https://github.com/NelsonCheung-cn/yatsenos-riscv)
+- [ ] RV32M
+- [ ] Pass RISC-V compliance test
+- [ ] Run CoreMark benchmarks
+
 ## Prerequisites
 
 ### You
