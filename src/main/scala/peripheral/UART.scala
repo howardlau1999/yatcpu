@@ -161,7 +161,6 @@ class BufferedTx(frequency: Int, baudRate: Int) extends Module {
   io.txd <> tx.io.txd
 }
 
-// TODO(howard): fix tx
 class Uart(frequency: Int, baudRate: Int) extends Module {
   val io = IO(new Bundle {
     val channels = Flipped(new AXI4LiteChannels(8, Parameters.DataBits))
@@ -172,8 +171,6 @@ class Uart(frequency: Int, baudRate: Int) extends Module {
   })
   val interrupt = RegInit(false.B)
   val rxData = RegInit(0.U)
-  val txData = RegInit(0.U)
-  val txValid = RegInit(false.B)
   val slave = Module(new AXI4LiteSlave(8, Parameters.DataBits))
   slave.io.channels <> io.channels
 
@@ -191,20 +188,15 @@ class Uart(frequency: Int, baudRate: Int) extends Module {
     }
   }
 
-  tx.io.channel.valid := txValid
-  tx.io.channel.bits := txData
-
+  tx.io.channel.valid := false.B
+  tx.io.channel.bits := 0.U
   when(slave.io.bundle.write) {
     when(slave.io.bundle.address === 0x8.U) {
       interrupt := slave.io.bundle.write_data =/= 0.U
     }.elsewhen(slave.io.bundle.address === 0x10.U) {
-      txValid := true.B
-      txData := slave.io.bundle.write_data
+      tx.io.channel.valid := true.B
+      tx.io.channel.bits := slave.io.bundle.write_data
     }
-  }
-  when(tx.io.channel.ready) {
-    txValid := false.B
-    txData := 0.U
   }
 
   io.txd := tx.io.txd

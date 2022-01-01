@@ -13,11 +13,11 @@
 // limitations under the License.
 
 #define VRAM_BASE 0x20000000
-#define VRAM ((unsigned char *) VRAM_BASE)
+#define VRAM ((volatile unsigned char *) VRAM_BASE)
 #define TIMER_BASE 0x80000000
-#define TIMER_LIMIT ((unsigned int *) (TIMER_BASE + 4))
-#define TIMER_ENABLED ((unsigned int *) (TIMER_BASE + 8))
+#define TIMER_LIMIT ((volatile unsigned int *) (TIMER_BASE + 4))
+#define TIMER_ENABLED ((volatile unsigned int *) (TIMER_BASE + 8))
 #define UART_BASE 0x40000000
-#define UART_BAUDRATE ((unsigned int *) (UART_BASE + 4))
-#define UART_RECV ((unsigned int *) (UART_BASE + 12))
-#define UART_SEND ((unsigned int *) (UART_BASE + 16))
+#define UART_BAUDRATE ((volatile unsigned int *) (UART_BASE + 4))
+#define UART_RECV ((volatile unsigned int *) (UART_BASE + 12))
+#define UART_SEND ((volatile unsigned int *) (UART_BASE + 16))
