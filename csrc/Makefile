@@ -14,23 +14,26 @@
 
 RISCVCC ?= riscv64-unknown-elf-gcc
 RISCVOBJCOPY ?= riscv64-unknown-elf-objcopy
+CFLAGS = -Os
 ARCHFLAGS = -march=rv32i -mabi=ilp32
 EXEFLAGS = -nostdlib -nostartfiles -static -T lnk.ld
 OBJCOPYFLAGS = -O binary -j .text -j .text.startup -j .rodata -j .sdata
 
 DESTDIR ?= ../src/main/resources
 
-.PHONY: all
+.PHONY: all clean
 
-asmbin: init.o $(PROG).o
-	$(RISCVCC) $(ARCHFLAGS) $(EXEFLAGS) -o $(PROG).out init.o $(PROG).o
+asmbin: init.o $(PROG).o init.S mmio.h
+	$(RISCVCC) $(CFLAGS) $(ARCHFLAGS) $(EXEFLAGS) -o $(PROG).out init.o $(PROG).o  -static-libgcc -lgcc
 	mkdir -p $(DESTDIR)
 	$(RISCVOBJCOPY) $(OBJCOPYFLAGS) $(PROG).out $(DESTDIR)/$(PROG).asmbin
 
 init.o: init.S
-	$(RISCVCC) $(ARCHFLAGS) -c -o init.o init.S
+	$(RISCVCC) $(CFLAGS) $(ARCHFLAGS) -c -o init.o init.S
 
 %.o: %.c
-	$(RISCVCC) $(ARCHFLAGS) -c -o $@ $^
+	$(RISCVCC) $(CFLAGS) $(ARCHFLAGS) -c -o $@ $^
 
-
+clean:
+	rm -rf *.o
+	rm -rf *.out
