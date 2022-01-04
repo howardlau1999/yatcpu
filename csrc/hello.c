@@ -14,20 +14,22 @@
 
 #include "mmio.h"
 
+#define MUL80(x) (((x) << 6) + ((x) << 4))
+
 struct screen {
 	unsigned char row, col;
 } scr;
 
 void copy_line(int prev, int cur) {
-	int *prev_vram_start = ((int *) (prev * 80 + VRAM_BASE));
-	int *cur_vram_start = ((int *) (cur * 80 + VRAM_BASE));
+	int *prev_vram_start = ((int *) (MUL80(prev) + VRAM_BASE));
+	int *cur_vram_start = ((int *) (MUL80(cur) + VRAM_BASE));
 	for (int i = 0; i < 20; ++i) {
 		prev_vram_start[i] = cur_vram_start[i];
 	}
 }
 
 void write_char(int row, int col, unsigned char ch) {
-	VRAM[row * 80 + col] = ch;
+	VRAM[MUL80(row) + col] = ch;
 }
 
 void move_to(int row, int col) {
@@ -41,7 +43,7 @@ void new_line() {
 		for (int i = 0; i < 29; ++i) {
 			copy_line(i, i + 1);
 		}
-		int *vram = (int *) (29 * 80 + VRAM_BASE);
+		int *vram = (int *) (MUL80(29) + VRAM_BASE);
 		for (int i = 0; i < 20; ++i) {
 			vram[i] = 0x20202020;
 		}
@@ -74,7 +76,7 @@ void clear_screen() {
 void print_hex(unsigned int counter) {
 	putch('0'); putch('x');
 	for (int i = 7; i >= 0; --i) {
-		unsigned int num = (counter >> (i * 4)) & 0xF;
+		unsigned int num = (counter >> (i << 2)) & 0xF;
 		if (num < 10) {
 			putch('0' + num);
 		} else {
