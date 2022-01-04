@@ -18,8 +18,8 @@
 set project_dir riscv-basys3
 set project_name riscv-basys3
 set part xc7a35tcpg236-1
-set sources {../verilog/Top.v}
-set test_sources {../verilog/test.v}
+set sources {../verilog/basys3/Top.v}
+set test_sources {../verilog/basys3/test.v}
 
 # open the project. will create one if it doesn't exist 
 if {[file exist $project_dir]} {
