@@ -31,10 +31,10 @@ feedback and contributions!
 - Windows 10 or higher / Linux (Debian, Ubuntu, WSL1/2 or other distros)
     - We have tested on Windows 10 and WSL Debian 11
     - macOS is **NOT** supported
-- Vivado 2020.1 or higher
-- JDK 8 or higher
+- Java 8 or higher
 - Scala 2.12 (not 3)
 - sbt
+- (Optional) Vivado 2020.1 or higher
 
 ## Getting Started
 
