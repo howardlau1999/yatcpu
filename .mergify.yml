@@ -1,0 +1,8 @@
+pull_request_rules:
+  - name: Automatic merge on approval
+    conditions:
+      - "title~=^[a-zA-Z0-9*]+\\: .*$"
+      - "#approved-reviews-by>=1"
+    actions:
+      merge:
+        method: squash
