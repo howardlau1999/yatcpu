@@ -14,8 +14,7 @@
 
 CC = clang
 ARCHFLAGS ?= -march=rv32i -mabi=ilp32
-CFLAGS ?= --target=riscv32-unknown-unknown-elf $(ARCHFLAGS)
-CPPFLAGS = -O0
+CFLAGS ?= -O0 --target=riscv32-unknown-unknown-elf $(ARCHFLAGS)
 LD = ld.lld
 LDFLAGS ?= $(ARCHFLAGS) -melf32lriscv -nostdlib -static -T lnk.ld  # -nostartfiles
 OBJCOPY ?= llvm-objcopy
