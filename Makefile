@@ -19,7 +19,7 @@ verilator:
 	sbt "runMain board.verilator.VerilogGenerator"
 	cd verilog/verilator && verilator --trace --exe --cc sim_main.cpp Top.v && make -C obj_dir -f VTop.mk
 
-verilator-sim:
+verilator-sim: verilator
 	cd verilog/verilator && obj_dir/VTop $(SIM_TIME)
 
 basys3:
