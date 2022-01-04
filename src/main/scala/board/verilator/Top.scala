@@ -31,6 +31,12 @@ class Top extends Module {
   val binaryFilename = "tetris.asmbin"
   val io = IO(new Bundle {
     val signal_interrupt = Input(Bool())
+
+    val mem_debug_read_address = Input(UInt(Parameters.AddrWidth))
+    val mem_debug_read_data = Output(UInt(Parameters.DataWidth))
+
+    val cpu_debug_read_address = Input(UInt(Parameters.PhysicalRegisterAddrWidth))
+    val cpu_debug_read_data = Output(UInt(Parameters.DataWidth))
   })
 
   val boot_state = RegInit(BootStates.Init)
@@ -79,8 +85,10 @@ class Top extends Module {
 
   cpu.io.interrupt_flag := io.signal_interrupt
 
-  cpu.io.debug_read_address := 0.U
-  mem.io.debug_read_address := 0.U
+  cpu.io.debug_read_address := io.cpu_debug_read_address
+  io.cpu_debug_read_data := cpu.io.debug_read_data
+  mem.io.debug_read_address := io.mem_debug_read_address
+  io.mem_debug_read_data := mem.io.debug_read_data
 }
 
 object VerilogGenerator extends App {
