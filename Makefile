@@ -12,19 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-verilog:
-	sbt run
-
 test:
 	sbt test
 
-bitstream:
-	pushd && cd vivado && vivado -mode batch -source generate_bitstream.tcl && popd
+verilator:
+	sbt "runMain board.verilator.VerilogGenerator"
+	cd verilog/verilator && verilator --trace --exe --cc sim_main.cpp Top.v && make -C obj_dir -f VTop.mk
 
-board:
-	pushd && cd vivado && vivado -mode batch -source program_device.tcl && popd
+verilator-sim:
+	cd verilog/verilator && obj_dir/VTop $(SIM_TIME)
 
-simulation:
-	pushd && cd vivado && vivado -mode batch -source run_simulation.tcl && popd
+basys3:
+	sbt "runMain board.basys3.VerilogGenerator"
 
-.PHONY: verilog test bitstream board simulation
+bitstream: basys3
+	cd vivado && vivado -mode batch -source generate_bitstream.tcl
+
+program: bitstream
+	cd vivado && vivado -mode batch -source program_device.tcl
+
+vivado-sim: basys3
+	cd vivado && vivado -mode batch -source run_simulation.tcl
+
+.PHONY: basys3 verilator test bitstream program verilator-sim vivado-sim
