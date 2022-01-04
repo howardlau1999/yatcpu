@@ -34,6 +34,7 @@ feedback and contributions!
 - Java 8 or higher
 - Scala 2.12 (not 3)
 - sbt
+- (Optional) [Latest Verilator](https://veripool.org/guide/latest/install.html)
 - (Optional) Vivado 2020.1 or higher
 
 ## Getting Started
