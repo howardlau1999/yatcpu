@@ -41,6 +41,14 @@ unsigned char *board;
 unsigned char screen[SCREEN_COLS * SCREEN_ROWS];
 #endif
 
+int wk_mul(int a, int b) {
+  int r = 0;
+  for (; b; a <<= 1, b >>= 1)
+    if (b & 1)
+      r += a;
+  return r;
+}
+
 unsigned int make_xywh(unsigned int x, unsigned int y, unsigned int w, unsigned int h) {
 	return (x << 12) | (y << 4) | (w << 2) | h;
 }
@@ -117,17 +125,19 @@ unsigned int check_collision(struct block *block) {
 	unsigned int x = (xywh & 0xF000) >> 12;
 	for (int r = 0; r <= h; ++r) {
 		for (int c = 0; c <= w; ++c) {
-			if (get_shape(block, r, c) && board[(y + r) * COLS + x + c]) return 0;
-		}
+                  if (get_shape(block, r, c) &&
+                      board[wk_mul(y + r, COLS) + x + c])
+                    return 0;
+                }
 	}
 	return 1;
 }
 
 void putch_at(int x, int y, unsigned char ch) {
 #ifdef DEBUG
-	screen[(OFFSET_Y + y) * SCREEN_COLS + x + OFFSET_X] = ch;
+	screen[wk_mul(OFFSET_Y + y, SCREEN_COLS) + x + OFFSET_X] = ch;
 #else
-	VRAM[(OFFSET_Y + y) * SCREEN_COLS + x + OFFSET_X] = ch;
+	VRAM[wk_mul(OFFSET_Y + y, SCREEN_COLS) + x + OFFSET_X] = ch;
 #endif
 }
 
@@ -216,7 +226,7 @@ void rotate(struct block *block, int clock) {
 }
 
 void clear_board() {
-	for (int i = 0; i < ROWS * COLS; ++i) {
+	for (int i = 0, s = wk_mul(ROWS, COLS); i < s; ++i) {
 		board[i] = 0;
 	}
 }
@@ -233,7 +243,7 @@ void fix_block(struct block *block) {
 	for (int r = 0; r <= h; ++r) {
 		for (int c = 0; c <= w; ++c) {
 			if (get_shape(block, r, c)) {
-				board[(y + r) * COLS + x + c] = 1;
+				board[wk_mul(y + r, COLS) + x + c] = 1;
 			}
 		}
 	}
@@ -256,12 +266,12 @@ void print_score() {
 void draw_board() {
 	for (int r = 0; r < ROWS; ++r) {
 		for (int c = 0; c < COLS; ++c) {
-			if (board[r * COLS + c] == 1) {
-				putch_at(c * 2 + 1, r, '[');
-				putch_at(c * 2 + 2, r, ']');
+			if (board[wk_mul(r , COLS) + c] == 1) {
+				putch_at((c << 1) + 1, r, '[');
+				putch_at((c << 1) + 2, r, ']');
 			} else {
-				putch_at(c * 2 + 1, r, ' ');
-				putch_at(c * 2 + 2, r, ' ');
+				putch_at((c << 1) + 1, r, ' ');
+				putch_at((c << 1)+ 2, r, ' ');
 			}
 		}
 	}	
@@ -273,8 +283,8 @@ void draw_board() {
 	for (int r = 0; r <= h; ++r) {
 		for (int c = 0; c <= w; ++c) {
 			if (get_shape(&current, r, c)) {
-				putch_at((c + x) * 2 + 1, r + y, '[');
-				putch_at((c + x) * 2 + 2, r + y, ']');
+				putch_at(((c + x)  << 1) + 1, r + y, '[');
+				putch_at(((c + x)  << 1) + 2, r + y, ']');
 			}
 		}
 	}
@@ -305,13 +315,13 @@ void check_clear() {
 	for (int r = y + h; r >= y; --r) {
 		unsigned int count = 0;
 		for (int c = 0; c < COLS; ++c) {
-			if (board[r * COLS + c]) ++count;
+			if (board[wk_mul(r , COLS) + c]) ++count;
 		}
 		if (count == COLS) {
 			add_score(1);
 			for (int nr = r - 1; nr > 0; --nr) {
 				for (int c = 0; c < COLS; ++c) {
-					board[(nr + 1) * COLS + c] = board[nr * COLS + c];
+					board[wk_mul(nr + 1, COLS) + c] = board[wk_mul(nr, COLS) + c];
 				}
 			}
 			++r; ++y;
@@ -321,7 +331,7 @@ void check_clear() {
 
 unsigned int rand() {
 	static unsigned int seed = 990315;
-	seed = (1103515245 * seed + 12345) & 0x7FFFFFFF;
+	seed = (wk_mul(1103515245 , seed) + 12345) & 0x7FFFFFFF;
 	return seed;
 }
 
@@ -345,7 +355,7 @@ void fall() {
 void print_screen() {
 	for (int r = 0; r < SCREEN_ROWS; ++r) {
 		for (int c = 0; c < SCREEN_COLS; ++c) {
-			printf("%c", screen[r * SCREEN_COLS + c]);
+			printf("%c", screen[wk_mul(r, SCREEN_COLS) + c]);
 		}
 		printf("\n");
 	}
@@ -397,9 +407,9 @@ void init() {
 	// Draw border
 	for (int r = 0; r < ROWS; ++r) {
 		putch_at(0, r, '|');
-		putch_at(2 * COLS + 1, r, '|');
+		putch_at(COLS << 1 | 1, r, '|');
 	}
-	for (int c = 0; c <= 2 * COLS + 1; ++c) {
+	for (int c = 0; c <= (2 << COLS | 1); ++c) {
 		putch_at(c, ROWS, '-');
 	}
 	int c = 8;

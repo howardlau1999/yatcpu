@@ -12,28 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-RISCVCC ?= riscv64-unknown-elf-gcc
-RISCVOBJCOPY ?= riscv64-unknown-elf-objcopy
-CFLAGS = -Os
-ARCHFLAGS = -march=rv32i -mabi=ilp32
-EXEFLAGS = -nostdlib -nostartfiles -static -T lnk.ld
-OBJCOPYFLAGS = -O binary -j .text -j .text.startup -j .rodata -j .sdata
-
+CC = clang
+ARCHFLAGS ?= -march=rv32i -mabi=ilp32
+CFLAGS ?= --target=riscv32-unknown-unknown-elf $(ARCHFLAGS)
+CPPFLAGS = -O0
+LD = ld.lld
+LDFLAGS ?= $(ARCHFLAGS) -melf32lriscv -nostdlib -static -T lnk.ld  # -nostartfiles
+OBJCOPY ?= llvm-objcopy
+OBJCOPYFLAGS ?= -O binary -j .text -j .text.startup -j .rodata -j .sdata
 DESTDIR ?= ../src/main/resources
 
 .PHONY: all clean
 
 asmbin: init.o $(PROG).o init.S mmio.h
-	$(RISCVCC) $(CFLAGS) $(ARCHFLAGS) $(EXEFLAGS) -o $(PROG).out init.o $(PROG).o  -static-libgcc -lgcc
+	$(LD) $(LDFLAGS) -o $(PROG).out init.o $(PROG).o
 	mkdir -p $(DESTDIR)
-	$(RISCVOBJCOPY) $(OBJCOPYFLAGS) $(PROG).out $(DESTDIR)/$(PROG).asmbin
+	$(OBJCOPY) $(OBJCOPYFLAGS) $(PROG).out $(DESTDIR)/$(PROG).asmbin
 
 init.o: init.S
-	$(RISCVCC) $(CFLAGS) $(ARCHFLAGS) -c -o init.o init.S
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) -o $@ $^
 
 %.o: %.c
-	$(RISCVCC) $(CFLAGS) $(ARCHFLAGS) -c -o $@ $^
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) -o $@ $^
 
 clean:
-	rm -rf *.o
-	rm -rf *.out
+	$(RM) *.o *.out
