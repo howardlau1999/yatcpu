@@ -6,14 +6,12 @@ jobs:
   ci:
     name: ci
     runs-on: ubuntu-latest
+    container:
+      image: howardlau1999/yatcpu-autograder:base
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Setup Scala
-        uses: olafurpg/setup-scala@v10
-        with:
-          java-version: adopt@1.8
       - name: Cache Scala
-        uses: coursier/cache-action@v5
+        uses: coursier/cache-action@v6
       - name: SBT Test
         run: sbt test
