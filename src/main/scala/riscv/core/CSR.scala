@@ -19,7 +19,7 @@ import chisel3.util._
 import riscv.Parameters
 
 
-object CSRRegister extends Bundle {
+object CSRRegister {
   // Refer to Spec. Vol.II Page 8-10
   val CycleL = 0xc00.U(Parameters.CSRRegisterAddrWidth)
   val CycleH = 0xc80.U(Parameters.CSRRegisterAddrWidth)
@@ -101,7 +101,7 @@ class CSR extends Module {
   }
 
   val regLUT =
-    Array(
+    IndexedSeq(
       CSRRegister.CycleL -> cycles(31, 0),
       CSRRegister.CycleH -> cycles(63, 32),
       CSRRegister.MTVEC -> mtvec,

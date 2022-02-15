@@ -46,7 +46,7 @@ class Control extends Module {
 
   io.output_stall_flag := MuxCase(
     StallStates.None,
-    Array(
+    IndexedSeq(
       (io.jump_flag || io.stall_flag_ex || io.stall_flag_clint) -> StallStates.ID,
       io.stall_flag_id -> StallStates.IF,
       (io.stall_flag_bus || io.stall_flag_if) -> StallStates.PC,

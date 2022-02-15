@@ -53,7 +53,7 @@ class RegisterFile extends Module {
 
   io.read_data1 := MuxCase(
     registers(io.read_address1),
-    Array(
+    IndexedSeq(
       (io.read_address1 === 0.U) -> 0.U,
       (io.read_address1 === io.write_address && io.write_enable) -> io.write_data
     )
@@ -61,7 +61,7 @@ class RegisterFile extends Module {
 
   io.read_data2 := MuxCase(
     registers(io.read_address2),
-    Array(
+    IndexedSeq(
       (io.read_address2 === 0.U) -> 0.U,
       (io.read_address2 === io.write_address && io.write_enable) -> io.write_data
     )
@@ -69,7 +69,7 @@ class RegisterFile extends Module {
 
   io.debug_read_data := MuxCase(
     registers(io.debug_read_address),
-    Array(
+    IndexedSeq(
       (io.debug_read_address === 0.U) -> 0.U,
       (io.debug_read_address === io.write_address && io.write_enable) -> io.write_data
     )

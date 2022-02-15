@@ -42,7 +42,7 @@ class Timer extends Module {
     slave.io.bundle.read_data := MuxLookup(
       slave.io.bundle.address,
       0.U,
-      Array(
+      IndexedSeq(
         0x4.U -> limit,
         0x8.U -> enabled.asUInt(),
       )

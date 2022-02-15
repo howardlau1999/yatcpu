@@ -19,7 +19,7 @@ import chisel3.util._
 import riscv.Parameters
 
 
-object InstructionTypes extends Bundle {
+object InstructionTypes  {
   val L = "b0000011".U
   val I = "b0010011".U
   val S = "b0100011".U
@@ -27,7 +27,7 @@ object InstructionTypes extends Bundle {
   val B = "b1100011".U
 }
 
-object Instructions extends Bundle {
+object Instructions  {
   val lui = "b0110111".U
   val nop = "b0000001".U
   val jal = "b1101111".U
@@ -37,7 +37,7 @@ object Instructions extends Bundle {
   val fence = "b0001111".U
 }
 
-object InstructionsTypeL extends Bundle {
+object InstructionsTypeL  {
   val lb = "b000".U
   val lh = "b001".U
   val lw = "b010".U
@@ -45,7 +45,7 @@ object InstructionsTypeL extends Bundle {
   val lhu = "b101".U
 }
 
-object InstructionsTypeI extends Bundle {
+object InstructionsTypeI {
   val addi = 0.U
   val slli = 1.U
   val slti = 2.U
@@ -56,13 +56,13 @@ object InstructionsTypeI extends Bundle {
   val andi = 7.U
 }
 
-object InstructionsTypeS extends Bundle {
+object InstructionsTypeS  {
   val sb = "b000".U
   val sh = "b001".U
   val sw = "b010".U
 }
 
-object InstructionsTypeR extends Bundle {
+object InstructionsTypeR  {
   val add_sub = 0.U
   val sll = 1.U
   val slt = 2.U
@@ -73,7 +73,7 @@ object InstructionsTypeR extends Bundle {
   val and = 7.U
 }
 
-object InstructionsTypeM extends Bundle {
+object InstructionsTypeM  {
   val mul = 0.U
   val mulh = 1.U
   val mulhsu = 2.U
@@ -84,7 +84,7 @@ object InstructionsTypeM extends Bundle {
   val remu = 7.U
 }
 
-object InstructionsTypeB extends Bundle {
+object InstructionsTypeB  {
   val beq = "b000".U
   val bne = "b001".U
   val blt = "b100".U
@@ -93,7 +93,7 @@ object InstructionsTypeB extends Bundle {
   val bgeu = "b111".U
 }
 
-object InstructionsTypeCSR extends Bundle {
+object InstructionsTypeCSR  {
   val csrrw = "b001".U
   val csrrs = "b010".U
   val csrrc = "b011".U
@@ -102,16 +102,16 @@ object InstructionsTypeCSR extends Bundle {
   val csrrci = "b111".U
 }
 
-object InstructionsNop extends Bundle {
+object InstructionsNop {
   val nop = 0x00000013L.U(Parameters.DataWidth)
 }
 
-object InstructionsRet extends Bundle {
+object InstructionsRet {
   val mret = 0x30200073L.U(Parameters.DataWidth)
   val ret = 0x00008067L.U(Parameters.DataWidth)
 }
 
-object InstructionsEnv extends Bundle {
+object InstructionsEnv {
   val ecall = 0x00000073L.U(Parameters.DataWidth)
   val ebreak = 0x00100073L.U(Parameters.DataWidth)
 }

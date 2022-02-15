@@ -18,24 +18,24 @@ import chisel3._
 import chisel3.util._
 import riscv.Parameters
 
-object InterruptStatus extends Bundle {
+object InterruptStatus {
   val None = 0x0.U(8.W)
   val Timer0 = 0x1.U(8.W)
   val Ret = 0xFF.U(8.W)
 }
 
-object InterruptEntry extends Bundle {
+object InterruptEntry {
   val Timer0 = 0x4.U(8.W)
 }
 
-object InterruptState extends Bundle {
+object InterruptState {
   val Idle = 0x0.U
   val SyncAssert = 0x1.U
   val AsyncAssert = 0x2.U
   val MRET = 0x3.U
 }
 
-object CSRState extends Bundle {
+object CSRState {
   val Idle = 0x0.U
   val MSTATUS = 0x1.U
   val MEPC = 0x2.U
@@ -110,7 +110,7 @@ class CLINT extends Module {
       cause := MuxLookup(
         io.instruction,
         10.U,
-        Array(
+        IndexedSeq(
           InstructionsEnv.ecall -> 11.U,
           InstructionsEnv.ebreak -> 3.U,
         )
@@ -147,7 +147,7 @@ class CLINT extends Module {
   csr_reg_write_address := Cat(Fill(20, 0.U(1.W)), MuxLookup(
     csr_state,
     0.U(Parameters.CSRRegisterAddrWidth),
-    Array(
+    IndexedSeq(
       CSRState.MEPC -> CSRRegister.MEPC,
       CSRState.MCAUSE -> CSRRegister.MCAUSE,
       CSRState.MSTATUS -> CSRRegister.MSTATUS,
@@ -157,7 +157,7 @@ class CLINT extends Module {
   csr_reg_write_data := MuxLookup(
     csr_state,
     0.U(Parameters.DataWidth),
-    Array(
+    IndexedSeq(
       CSRState.MEPC -> instruction_address,
       CSRState.MCAUSE -> cause,
       CSRState.MSTATUS -> Cat(io.csr_mstatus(31, 4), 0.U(1.W), io.csr_mstatus(2, 0)),
@@ -172,7 +172,7 @@ class CLINT extends Module {
   interrupt_handler_address := MuxLookup(
     csr_state,
     0.U(Parameters.AddrWidth),
-    Array(
+    IndexedSeq(
       CSRState.MCAUSE -> io.csr_mtvec,
       CSRState.MRET -> io.csr_mepc,
     )

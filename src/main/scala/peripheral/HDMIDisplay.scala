@@ -227,7 +227,7 @@ class HDMIDisplay extends Module{
   ch := MuxLookup(
     offset,
     0.U,
-    Array(
+    IndexedSeq(
       0.U -> mem.io.debug_read_data(7, 0).asUInt(),
       1.U -> mem.io.debug_read_data(15, 8).asUInt(),
       2.U -> mem.io.debug_read_data(23, 16).asUInt(),
@@ -352,7 +352,7 @@ class OSER10 extends Module {
     io.Q := MuxLookup(
       count,
       0.U,
-      Array(
+      IndexedSeq(
         0.U -> io.D0.asBool(),
         1.U -> io.D1.asBool(),
         2.U -> io.D2.asBool(),

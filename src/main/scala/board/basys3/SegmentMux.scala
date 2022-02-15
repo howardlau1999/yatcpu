@@ -33,7 +33,7 @@ class SegmentMux extends Module {
   digit := MuxLookup(
     io.digit_mask,
     io.numbers(3, 0), // "b1110".U
-    Array(
+    IndexedSeq(
       "b1101".U -> io.numbers(7, 4),
       "b1011".U -> io.numbers(11, 8),
       "b0111".U -> io.numbers(15, 12)

@@ -89,7 +89,7 @@ class FontROM(fontBitmapFilename: String = "vga_font_8x16.bmp") extends Module {
     val hexTxtPath = Paths.get(currentDir, "verilog", f"${fontBitmapFilename}.txt")
     val writer = new FileWriter(hexTxtPath.toString)
     for (i <- glyphs.indices) {
-      writer.write(f"@$i%x\n${glyphs(i).litValue()}%02x\n")
+      writer.write(f"@$i%x\n${glyphs(i).litValue}%02x\n")
     }
     writer.close()
     (hexTxtPath, glyphs.length)
@@ -212,7 +212,7 @@ class VGADisplay extends Module {
   ch := MuxLookup(
     offset,
     0.U,
-    Array(
+    IndexedSeq(
       0.U -> mem.io.debug_read_data(7, 0).asUInt(),
       1.U -> mem.io.debug_read_data(15, 8).asUInt(),
       2.U -> mem.io.debug_read_data(23, 16).asUInt(),

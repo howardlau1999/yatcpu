@@ -15,10 +15,11 @@
 package riscv
 
 import chisel3._
-import chisel3.tester._
+import chiseltest._
 import org.scalatest._
+import org.scalatest.freespec.AnyFreeSpec
 
-class ExecuteTest extends FreeSpec with ChiselScalatestTester {
+class ExecuteTest extends AnyFreeSpec with ChiselScalatestTester {
   "Execution unit " - {
     "should" in {
 

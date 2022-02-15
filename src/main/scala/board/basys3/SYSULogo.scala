@@ -26,7 +26,7 @@ class SYSULogo extends Module {
   io.segs := MuxLookup(
     io.digit_mask,
     "b00100100".U, // "b0111".U, "b1101".U -> S
-    Array(
+    IndexedSeq(
       "b1011".U -> "b01000100".U, // Y
       "b1110".U -> "b01000001".U, // U
     )

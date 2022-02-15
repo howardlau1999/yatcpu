@@ -192,11 +192,11 @@ class Execute extends Module {
         io.regs_write_data := MuxLookup(
           funct3,
           0.U,
-          Array(
+          IndexedSeq(
             InstructionsTypeL.lb -> MuxLookup(
               mem_read_address_index,
               Cat(Fill(24, data(31)), data(31, 24)),
-              Array(
+              IndexedSeq(
                 0.U -> Cat(Fill(24, data(7)), data(7, 0)),
                 1.U -> Cat(Fill(24, data(15)), data(15, 8)),
                 2.U -> Cat(Fill(24, data(23)), data(23, 16))
@@ -205,7 +205,7 @@ class Execute extends Module {
             InstructionsTypeL.lbu -> MuxLookup(
               mem_read_address_index,
               Cat(Fill(24, 0.U), data(31, 24)),
-              Array(
+              IndexedSeq(
                 0.U -> Cat(Fill(24, 0.U), data(7, 0)),
                 1.U -> Cat(Fill(24, 0.U), data(15, 8)),
                 2.U -> Cat(Fill(24, 0.U), data(23, 16))
@@ -281,7 +281,7 @@ class Execute extends Module {
     jump_flag := MuxLookup(
       funct3,
       0.U,
-      Array(
+      IndexedSeq(
         InstructionsTypeB.beq -> (io.op1 === io.op2),
         InstructionsTypeB.bne -> (io.op1 =/= io.op2),
         InstructionsTypeB.bltu -> (io.op1 < io.op2),
@@ -301,7 +301,7 @@ class Execute extends Module {
     io.regs_write_data := io.op1 + io.op2
   }.elsewhen(opcode === Instructions.csr) {
     disable_control()
-    io.csr_reg_write_data := MuxLookup(funct3, 0.U, Array(
+    io.csr_reg_write_data := MuxLookup(funct3, 0.U, IndexedSeq(
       InstructionsTypeCSR.csrrw -> io.reg1_data,
       InstructionsTypeCSR.csrrc -> io.csr_reg_data_id.&((~io.reg1_data).asUInt()),
       InstructionsTypeCSR.csrrs -> io.csr_reg_data_id.|(io.reg1_data),
@@ -309,7 +309,7 @@ class Execute extends Module {
       InstructionsTypeCSR.csrrci -> io.csr_reg_data_id.&((~Cat(0.U(27.W), uimm)).asUInt()),
       InstructionsTypeCSR.csrrsi -> io.csr_reg_data_id.|(Cat(0.U(27.W), uimm)),
     ))
-    io.regs_write_data := MuxLookup(funct3, 0.U, Array(
+    io.regs_write_data := MuxLookup(funct3, 0.U, IndexedSeq(
       InstructionsTypeCSR.csrrw -> io.csr_reg_data_id,
       InstructionsTypeCSR.csrrc -> io.csr_reg_data_id,
       InstructionsTypeCSR.csrrs -> io.csr_reg_data_id,

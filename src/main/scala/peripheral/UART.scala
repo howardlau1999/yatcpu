@@ -20,7 +20,6 @@ import chisel3.util._
 import riscv.Parameters
 
 class UartIO extends DecoupledIO(UInt(8.W)) {
-  override def cloneType: this.type = new UartIO().asInstanceOf[this.type]
 }
 
 

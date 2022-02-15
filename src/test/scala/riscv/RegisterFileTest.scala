@@ -15,11 +15,12 @@
 package riscv
 
 import chisel3._
-import chisel3.tester._
+import chiseltest._
 import org.scalatest._
 import riscv.core.RegisterFile
+import org.scalatest.freespec.AnyFreeSpec
 
-class RegisterFileTest extends FreeSpec with ChiselScalatestTester {
+class RegisterFileTest extends AnyFreeSpec with ChiselScalatestTester {
   "Register file " - {
     "should read the written content" in {
       test(new RegisterFile) { c =>

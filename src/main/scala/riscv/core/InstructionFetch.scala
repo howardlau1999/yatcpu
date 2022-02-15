@@ -46,7 +46,7 @@ class InstructionFetch extends Module {
 
   pc := MuxCase(
     pc + 4.U,
-    Array(
+    IndexedSeq(
       io.jump_flag_ctrl -> io.jump_address_ctrl,
       (io.stall_flag_ctrl >= StallStates.PC) -> pc
     )

@@ -15,11 +15,12 @@
 package riscv
 
 import chisel3._
-import chisel3.tester._
+import chiseltest._
 import org.scalatest._
 import riscv.core.InstructionDecode
+import org.scalatest.freespec.AnyFreeSpec
 
-class InstructionDecodeTest extends FreeSpec with ChiselScalatestTester {
+class InstructionDecodeTest extends AnyFreeSpec with ChiselScalatestTester {
   "ID should" - {
     "decode type I instructions" in {
       test(new InstructionDecode) { c =>

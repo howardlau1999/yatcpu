@@ -127,7 +127,7 @@ class Top extends Module {
   io.segs := MuxLookup(
     io.switch,
     seg_mux.io.segs,
-    Array(
+    IndexedSeq(
       0.U -> sysu_logo.io.segs
     )
   )

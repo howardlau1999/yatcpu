@@ -29,7 +29,7 @@ class BCD2Segments extends Module {
   segs := MuxLookup(
     bcd,
     0xFF.U,
-    Array(
+    IndexedSeq(
       0.U -> "b10000001".U,
       1.U -> "b11001111".U,
       2.U -> "b10010010".U,

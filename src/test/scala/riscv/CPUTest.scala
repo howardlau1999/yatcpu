@@ -17,13 +17,15 @@ package riscv
 import board.basys3.BootStates
 import bus.BusSwitch
 import chisel3._
-import chisel3.tester._
+import chiseltest._
 import chisel3.util.{is, switch}
-import org.scalatest._
 import peripheral.{DummySlave, Memory, ROMLoader}
 import riscv.core.{CPU, ProgramCounter}
 
 import java.nio.{ByteBuffer, ByteOrder}
+import org.scalatest.freespec.AnyFreeSpec
+
+import scala.collection.immutable.ArraySeq
 
 class TestInstructionROM(asmBin: String) extends Module {
   val io = IO(new Bundle {
@@ -45,7 +47,7 @@ class TestInstructionROM(asmBin: String) extends Module {
       val inst = BigInt(instBuf.getInt() & 0xFFFFFFFFL)
       instructions = instructions :+ inst
     }
-    (VecInit(instructions.map(inst => inst.U(32.W))), instructions.length)
+    (VecInit((instructions.map(inst => inst.U(32.W))).toIndexedSeq), instructions.length)
   }
 }
 
@@ -110,7 +112,7 @@ class TestTopModule(exeFilename: String) extends Module {
   cpu.io.interrupt_flag := io.interrupt
 }
 
-class FibonacciTest extends FreeSpec with ChiselScalatestTester {
+class FibonacciTest extends AnyFreeSpec with ChiselScalatestTester {
   "CPU should calculate recursively fibonacci(10)" in {
     test(new TestTopModule("fibonacci.asmbin")) { c =>
       c.io.interrupt.poke(0.U)
@@ -126,7 +128,7 @@ class FibonacciTest extends FreeSpec with ChiselScalatestTester {
   }
 }
 
-class QuicksortTest extends FreeSpec with ChiselScalatestTester {
+class QuicksortTest extends AnyFreeSpec with ChiselScalatestTester {
   "CPU should quicksort 10 numbers" in {
     test(new TestTopModule("quicksort.asmbin")) { c =>
       c.io.interrupt.poke(0.U)
@@ -143,7 +145,7 @@ class QuicksortTest extends FreeSpec with ChiselScalatestTester {
   }
 }
 
-class MMIOTest extends FreeSpec with ChiselScalatestTester {
+class MMIOTest extends AnyFreeSpec with ChiselScalatestTester {
   "CPU should read and write timer register" in {
     test(new TestTopModule("mmio.asmbin")) { c =>
       c.io.interrupt.poke(0.U)
@@ -159,7 +161,7 @@ class MMIOTest extends FreeSpec with ChiselScalatestTester {
   }
 }
 
-class ByteAccessTest extends FreeSpec with ChiselScalatestTester {
+class ByteAccessTest extends AnyFreeSpec with ChiselScalatestTester {
   "CPU should store and load single byte" in {
     test(new TestTopModule("sb.asmbin")) { c =>
       c.io.interrupt.poke(0.U)

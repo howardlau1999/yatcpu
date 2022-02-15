@@ -16,11 +16,12 @@ package riscv
 
 import bus.{AXI4LiteMaster, AXI4LiteMasterBundle, AXI4LiteSlave, AXI4LiteSlaveBundle}
 import chisel3._
-import chisel3.tester._
+import chiseltest._
 import org.scalatest._
 import peripheral.{Memory, ROMLoader}
+import org.scalatest.freespec.AnyFreeSpec
 
-class PeripheralTest extends FreeSpec with ChiselScalatestTester {
+class PeripheralTest extends AnyFreeSpec with ChiselScalatestTester {
   class TestTimerLimit extends Module {
     val io = IO(new Bundle {
       val limit = Output(UInt())
