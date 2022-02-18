@@ -76,7 +76,7 @@ class PeripheralTest extends AnyFreeSpec with ChiselScalatestTester {
 
   "ROMLoader" - {
     "should load program" in {
-      test(new ROMLoaderTest) { c =>
+      test(new ROMLoaderTest) .withAnnotations(TestAnnotations.annos){ c =>
         c.io.load_address.poke(0x100.U)
         c.io.load_start.poke(true.B)
         c.clock.step()
@@ -101,7 +101,7 @@ class PeripheralTest extends AnyFreeSpec with ChiselScalatestTester {
 
   "Memory" - {
     "should perform read and write" in {
-      test(new MemoryTest) { c =>
+      test(new MemoryTest) .withAnnotations(TestAnnotations.annos){ c =>
         c.io.bundle.read.poke(false.B)
         c.io.bundle.write.poke(true.B)
         c.io.write_strobe.poke(0xF.U)
@@ -130,7 +130,7 @@ class PeripheralTest extends AnyFreeSpec with ChiselScalatestTester {
 
   "Timer" - {
     "should be able to read and write limit" in {
-      test(new TestTimerLimit) { c =>
+      test(new TestTimerLimit) .withAnnotations(TestAnnotations.annos){ c =>
         c.io.bundle.read.poke(false.B)
         c.io.bundle.write.poke(true.B)
         c.io.bundle.address.poke(0x4.U)

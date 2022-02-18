@@ -23,7 +23,7 @@ import org.scalatest.freespec.AnyFreeSpec
 class RegisterFileTest extends AnyFreeSpec with ChiselScalatestTester {
   "Register file " - {
     "should read the written content" in {
-      test(new RegisterFile) { c =>
+      test(new RegisterFile).withAnnotations(TestAnnotations.annos) { c =>
         timescope {
           c.io.write_enable.poke(true.B)
           c.io.write_address.poke(1.U)
@@ -36,7 +36,7 @@ class RegisterFileTest extends AnyFreeSpec with ChiselScalatestTester {
     }
 
     "x0 should always be zero" in {
-      test(new RegisterFile) { c =>
+      test(new RegisterFile).withAnnotations(TestAnnotations.annos) { c =>
         timescope {
           c.io.write_enable.poke(true.B)
           c.io.write_address.poke(0.U)
@@ -49,7 +49,7 @@ class RegisterFileTest extends AnyFreeSpec with ChiselScalatestTester {
     }
 
     "should read the writing content" in {
-      test(new RegisterFile) { c =>
+      test(new RegisterFile).withAnnotations(TestAnnotations.annos) { c =>
         timescope {
           c.io.read_address1.poke(2.U)
           c.io.read_data1.expect(0.U)
