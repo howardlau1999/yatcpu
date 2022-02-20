@@ -1,17 +1,53 @@
-name: Continuous Integration
+name: Test
 
 on: [push, pull_request]
 
 jobs:
-  ci:
-    name: ci
+  test-windows:
+    name: Test on Windows
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup Developer Command 
+        uses: ilammy/msvc-dev-cmd@v1
+      - name: Compile executables for testing
+        run: cd csrc && .\build.bat
+      - name: SBT Test
+        run: sbt test
+  test-linux:
+    name: Test on Linux
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Clang
+        run: curl -LO https://apt.llvm.org/llvm.sh && sudo bash llvm.sh 14 all
+      - name: Update Clang Version
+        run: curl -LO https://gist.githubusercontent.com/howardlau1999/7ea2cffedc0491c46fa14e1f2355a9a8/raw/7886c0344e8f010a9d515a3de20983e604ae5a0a/update-alternatives-clang.sh && sudo bash update-alternatives-clang.sh 14 100
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup Verilator
+        run: sudo apt install -y verilator
+      - name: Setup Scala
+        uses: olafurpg/setup-scala@v10
+        with:
+          java-version: adopt@1.8
+      - name: Cache Scala
+        uses: coursier/cache-action@v6
+      - name: Compile executables for testing
+        run: cd csrc && ./build.sh
+      - name: SBT Test
+        run: sbt test
+  test-docker:
+    name: Test in Docker
     runs-on: ubuntu-latest
     container:
-      image: howardlau1999/yatcpu-autograder:base
+      image: howardlau1999/yatcpu
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Cache Scala
         uses: coursier/cache-action@v6
+      - name: Compile executables for testing
+        run: cd csrc && ./build.sh
       - name: SBT Test
         run: sbt test
