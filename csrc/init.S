@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-.section .text
+.section .text.init
 .globl _start
 _start:
   li sp, 4096 # Initialize stack pointer

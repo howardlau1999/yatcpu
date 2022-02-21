@@ -17,10 +17,14 @@ endif()
 # Let CMake know that there exists header files
 include_directories("${CMAKE_SOURCE_DIR}")
 
+add_library(prelude init.S)
+set_target_properties(prelude PROPERTIES LINK_DEPENDS ${LINKER_SCRIPT})
+
 # Let's build our executables
 foreach(program IN LISTS C_PROGRAMS)
-	add_executable(${program} init.S ${program}.c)
+	add_executable(${program} ${program}.c)
 	set_target_properties(${program} PROPERTIES LINK_DEPENDS ${LINKER_SCRIPT})
+	target_link_libraries(${program} prelude ${LINKER_FLAGS})
 endforeach()
 
 foreach(program IN LISTS ASM_PROGRAMS)
