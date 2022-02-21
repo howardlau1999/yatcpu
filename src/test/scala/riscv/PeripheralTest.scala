@@ -17,11 +17,10 @@ package riscv
 import bus.{AXI4LiteMaster, AXI4LiteMasterBundle, AXI4LiteSlave, AXI4LiteSlaveBundle}
 import chisel3._
 import chiseltest._
-import org.scalatest._
+import org.scalatest.flatspec.AnyFlatSpec
 import peripheral.{Memory, ROMLoader}
-import org.scalatest.freespec.AnyFreeSpec
 
-class PeripheralTest extends AnyFreeSpec with ChiselScalatestTester {
+class TimerTest extends AnyFlatSpec with ChiselScalatestTester {
   class TestTimerLimit extends Module {
     val io = IO(new Bundle {
       val limit = Output(UInt())
@@ -33,6 +32,83 @@ class PeripheralTest extends AnyFreeSpec with ChiselScalatestTester {
     master.io.bundle <> io.bundle
     timer.io.channels <> master.io.channels
   }
+
+  behavior of "Timer"
+  it should "read and write the limit" in {
+    test(new TestTimerLimit).withAnnotations(TestAnnotations.annos) {
+      c =>
+        c.io.bundle.read.poke(false.B)
+        c.io.bundle.write.poke(true.B)
+        c.io.bundle.address.poke(0x4.U)
+        c.io.bundle.write_data.poke(0x990315.U)
+        c.clock.step()
+        c.io.bundle.busy.expect(true.B)
+        c.io.bundle.write.poke(false.B)
+        c.io.bundle.address.poke(0x0.U)
+        c.io.bundle.write_data.poke(0.U)
+        c.clock.step(8)
+        c.io.bundle.busy.expect(false.B)
+        c.io.bundle.write_valid.expect(true.B)
+        c.io.limit.expect(0x990315.U)
+        c.io.bundle.read.poke(true.B)
+        c.io.bundle.address.poke(0x4.U)
+        c.clock.step()
+        c.io.bundle.busy.expect(true.B)
+        c.clock.step(6)
+        c.io.bundle.busy.expect(false.B)
+        c.io.bundle.read_valid.expect(true.B)
+        c.io.bundle.read_data.expect(0x990315.U)
+    }
+  }
+}
+
+class MemoryTest extends AnyFlatSpec with ChiselScalatestTester {
+  class MemoryTest extends Module {
+    val io = IO(new Bundle {
+      val bundle = new AXI4LiteMasterBundle(Parameters.AddrBits, Parameters.DataBits)
+
+      val write_strobe = Input(UInt(4.W))
+    })
+    val memory = Module(new Memory(4096))
+    val master = Module(new AXI4LiteMaster(Parameters.AddrBits, Parameters.DataBits))
+
+    master.io.bundle <> io.bundle
+    master.io.bundle.write_strobe := VecInit(io.write_strobe.asBools())
+    master.io.channels <> memory.io.channels
+
+    memory.io.debug_read_address := 0.U
+  }
+
+  behavior of "Memory"
+  it should "perform read and write" in {
+    test(new MemoryTest).withAnnotations(TestAnnotations.annos) { c =>
+      c.io.bundle.read.poke(false.B)
+      c.io.bundle.write.poke(true.B)
+      c.io.write_strobe.poke(0xF.U)
+      c.io.bundle.address.poke(0x4.U)
+      c.io.bundle.write_data.poke(0xDEADBEEFL.U)
+      c.clock.step()
+      c.io.bundle.busy.expect(true.B)
+      c.io.bundle.write.poke(false.B)
+      c.io.bundle.address.poke(0x0.U)
+      c.io.bundle.write_data.poke(0.U)
+      c.clock.step(8)
+      c.io.bundle.busy.expect(false.B)
+      c.io.bundle.write_valid.expect(true.B)
+      c.io.bundle.read.poke(true.B)
+      c.io.bundle.address.poke(0x4.U)
+      c.clock.step()
+      c.io.bundle.busy.expect(true.B)
+      c.clock.step(6)
+      c.io.bundle.busy.expect(false.B)
+      c.io.bundle.read_valid.expect(true.B)
+      c.io.bundle.read_data.expect(0xDEADBEEFL.U)
+    }
+  }
+
+}
+
+class ROMLoaderTest extends AnyFlatSpec with ChiselScalatestTester {
 
   class ROMLoaderTest extends Module {
     val io = IO(new Bundle {
@@ -58,101 +134,31 @@ class PeripheralTest extends AnyFreeSpec with ChiselScalatestTester {
     slave.io.bundle.read_data := 0.U
   }
 
-  class MemoryTest extends Module {
-    val io = IO(new Bundle {
-      val bundle = new AXI4LiteMasterBundle(Parameters.AddrBits, Parameters.DataBits)
 
-      val write_strobe = Input(UInt(4.W))
-    })
-    val memory = Module(new Memory(4096))
-    val master = Module(new AXI4LiteMaster(Parameters.AddrBits, Parameters.DataBits))
-
-    master.io.bundle <> io.bundle
-    master.io.bundle.write_strobe := VecInit(io.write_strobe.asBools())
-    master.io.channels <> memory.io.channels
-
-    memory.io.debug_read_address := 0.U
-  }
-
-  "ROMLoader" - {
-    "should load program" in {
-      test(new ROMLoaderTest) .withAnnotations(TestAnnotations.annos){ c =>
-        c.io.load_address.poke(0x100.U)
-        c.io.load_start.poke(true.B)
-        c.clock.step()
-        c.io.rom_address.expect(0x0.U)
-        c.clock.step(8)
-        c.io.bundle.write.expect(true.B)
-        c.io.bundle.address.expect(0x100.U)
-        c.clock.step(4)
-        c.io.rom_address.expect(0x1.U)
-        c.clock.step(8)
-        c.io.rom_address.expect(0x1.U)
-        c.io.bundle.write.expect(true.B)
-        c.io.bundle.address.expect(0x104.U)
-        c.clock.step()
-        c.io.rom_address.expect(0x1.U)
-        c.io.load_finished.expect(true.B)
-        c.clock.step()
-        c.io.load_finished.expect(false.B)
-      }
-    }
-  }
-
-  "Memory" - {
-    "should perform read and write" in {
-      test(new MemoryTest) .withAnnotations(TestAnnotations.annos){ c =>
-        c.io.bundle.read.poke(false.B)
-        c.io.bundle.write.poke(true.B)
-        c.io.write_strobe.poke(0xF.U)
-        c.io.bundle.address.poke(0x4.U)
-        c.io.bundle.write_data.poke(0xDEADBEEFL.U)
-        c.clock.step()
-        c.io.bundle.busy.expect(true.B)
-        c.io.bundle.write.poke(false.B)
-        c.io.bundle.address.poke(0x0.U)
-        c.io.bundle.write_data.poke(0.U)
-        c.clock.step(8)
-        c.io.bundle.busy.expect(false.B)
-        c.io.bundle.write_valid.expect(true.B)
-        c.io.bundle.read.poke(true.B)
-        c.io.bundle.address.poke(0x4.U)
-        c.clock.step()
-        c.io.bundle.busy.expect(true.B)
-        c.clock.step(6)
-        c.io.bundle.busy.expect(false.B)
-        c.io.bundle.read_valid.expect(true.B)
-        c.io.bundle.read_data.expect(0xDEADBEEFL.U)
-      }
-    }
-  }
-
-
-  "Timer" - {
-    "should be able to read and write limit" in {
-      test(new TestTimerLimit) .withAnnotations(TestAnnotations.annos){ c =>
-        c.io.bundle.read.poke(false.B)
-        c.io.bundle.write.poke(true.B)
-        c.io.bundle.address.poke(0x4.U)
-        c.io.bundle.write_data.poke(0x990315.U)
-        c.clock.step()
-        c.io.bundle.busy.expect(true.B)
-        c.io.bundle.write.poke(false.B)
-        c.io.bundle.address.poke(0x0.U)
-        c.io.bundle.write_data.poke(0.U)
-        c.clock.step(8)
-        c.io.bundle.busy.expect(false.B)
-        c.io.bundle.write_valid.expect(true.B)
-        c.io.limit.expect(0x990315.U)
-        c.io.bundle.read.poke(true.B)
-        c.io.bundle.address.poke(0x4.U)
-        c.clock.step()
-        c.io.bundle.busy.expect(true.B)
-        c.clock.step(6)
-        c.io.bundle.busy.expect(false.B)
-        c.io.bundle.read_valid.expect(true.B)
-        c.io.bundle.read_data.expect(0x990315.U)
-      }
+  behavior of "ROMLoader"
+  it should "load program" in {
+    test(new ROMLoaderTest).withAnnotations(TestAnnotations.annos) { c =>
+      c.io.load_address.poke(0x100.U)
+      c.io.load_start.poke(true.B)
+      c.clock.step()
+      c.io.rom_address.expect(0x0.U)
+      c.clock.step(8)
+      c.io.bundle.write.expect(true.B)
+      c.io.bundle.address.expect(0x100.U)
+      c.clock.step(4)
+      c.io.rom_address.expect(0x1.U)
+      c.clock.step(8)
+      c.io.rom_address.expect(0x1.U)
+      c.io.bundle.write.expect(true.B)
+      c.io.bundle.address.expect(0x104.U)
+      c.clock.step()
+      c.io.rom_address.expect(0x1.U)
+      c.io.load_finished.expect(true.B)
+      c.clock.step()
+      c.io.load_finished.expect(false.B)
     }
   }
 }
+
+
+

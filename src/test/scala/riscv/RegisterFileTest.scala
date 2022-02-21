@@ -16,53 +16,52 @@ package riscv
 
 import chisel3._
 import chiseltest._
-import org.scalatest._
+import org.scalatest.flatspec.AnyFlatSpec
 import riscv.core.RegisterFile
-import org.scalatest.freespec.AnyFreeSpec
 
-class RegisterFileTest extends AnyFreeSpec with ChiselScalatestTester {
-  "Register file " - {
-    "should read the written content" in {
-      test(new RegisterFile).withAnnotations(TestAnnotations.annos) { c =>
-        timescope {
-          c.io.write_enable.poke(true.B)
-          c.io.write_address.poke(1.U)
-          c.io.write_data.poke(0xDEADBEEFL.U)
-          c.clock.step()
-        }
-        c.io.read_address1.poke(1.U)
-        c.io.read_data1.expect(0xDEADBEEFL.U)
+class RegisterFileTest extends AnyFlatSpec with ChiselScalatestTester {
+  behavior of "Register File"
+  it should "read the written content" in {
+    test(new RegisterFile).withAnnotations(TestAnnotations.annos) { c =>
+      timescope {
+        c.io.write_enable.poke(true.B)
+        c.io.write_address.poke(1.U)
+        c.io.write_data.poke(0xDEADBEEFL.U)
+        c.clock.step()
       }
-    }
-
-    "x0 should always be zero" in {
-      test(new RegisterFile).withAnnotations(TestAnnotations.annos) { c =>
-        timescope {
-          c.io.write_enable.poke(true.B)
-          c.io.write_address.poke(0.U)
-          c.io.write_data.poke(0xDEADBEEFL.U)
-          c.clock.step()
-        }
-        c.io.read_address1.poke(0.U)
-        c.io.read_data1.expect(0.U)
-      }
-    }
-
-    "should read the writing content" in {
-      test(new RegisterFile).withAnnotations(TestAnnotations.annos) { c =>
-        timescope {
-          c.io.read_address1.poke(2.U)
-          c.io.read_data1.expect(0.U)
-          c.io.write_enable.poke(true.B)
-          c.io.write_address.poke(2.U)
-          c.io.write_data.poke(0xDEADBEEFL.U)
-          c.io.read_address1.poke(2.U)
-          c.io.read_data1.expect(0xDEADBEEFL.U)
-          c.clock.step()
-        }
-        c.io.read_address1.poke(2.U)
-        c.io.read_data1.expect(0xDEADBEEFL.U)
-      }
+      c.io.read_address1.poke(1.U)
+      c.io.read_data1.expect(0xDEADBEEFL.U)
     }
   }
+
+  it should "x0 always be zero" in {
+    test(new RegisterFile).withAnnotations(TestAnnotations.annos) { c =>
+      timescope {
+        c.io.write_enable.poke(true.B)
+        c.io.write_address.poke(0.U)
+        c.io.write_data.poke(0xDEADBEEFL.U)
+        c.clock.step()
+      }
+      c.io.read_address1.poke(0.U)
+      c.io.read_data1.expect(0.U)
+    }
+  }
+
+  it should "read the writing content" in {
+    test(new RegisterFile).withAnnotations(TestAnnotations.annos) { c =>
+      timescope {
+        c.io.read_address1.poke(2.U)
+        c.io.read_data1.expect(0.U)
+        c.io.write_enable.poke(true.B)
+        c.io.write_address.poke(2.U)
+        c.io.write_data.poke(0xDEADBEEFL.U)
+        c.io.read_address1.poke(2.U)
+        c.io.read_data1.expect(0xDEADBEEFL.U)
+        c.clock.step()
+      }
+      c.io.read_address1.poke(2.U)
+      c.io.read_data1.expect(0xDEADBEEFL.U)
+    }
+  }
+
 }

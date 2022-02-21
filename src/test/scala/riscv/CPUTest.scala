@@ -17,17 +17,13 @@ package riscv
 import board.basys3.BootStates
 import bus.BusSwitch
 import chisel3._
-import chiseltest._
 import chisel3.util.{is, switch}
+import chiseltest._
+import org.scalatest.flatspec.AnyFlatSpec
 import peripheral.{DummySlave, Memory, ROMLoader}
 import riscv.core.{CPU, ProgramCounter}
 
 import java.nio.{ByteBuffer, ByteOrder}
-import org.scalatest.freespec.AnyFreeSpec
-
-import java.io.File
-import java.nio.file.{Files, Paths}
-import scala.reflect.io.File
 
 class TestInstructionROM(asmBin: String) extends Module {
   val io = IO(new Bundle {
@@ -115,8 +111,9 @@ class TestTopModule(exeFilename: String) extends Module {
 }
 
 
-class FibonacciTest extends AnyFreeSpec with ChiselScalatestTester {
-  "CPU should calculate recursively fibonacci(10)" in {
+class FibonacciTest extends AnyFlatSpec with ChiselScalatestTester {
+  behavior of "CPU"
+  it should "calculate recursively fibonacci(10)" in {
     test(new TestTopModule("fibonacci.asmbin")).withAnnotations(TestAnnotations.annos) { c =>
       c.io.interrupt.poke(0.U)
       for (i <- 1 to 50) {
@@ -131,8 +128,9 @@ class FibonacciTest extends AnyFreeSpec with ChiselScalatestTester {
   }
 }
 
-class QuicksortTest extends AnyFreeSpec with ChiselScalatestTester {
-  "CPU should quicksort 10 numbers" in {
+class QuicksortTest extends AnyFlatSpec with ChiselScalatestTester {
+  behavior of "CPU"
+  it should "quicksort 10 numbers" in {
     test(new TestTopModule("quicksort.asmbin")).withAnnotations(TestAnnotations.annos) { c =>
       c.io.interrupt.poke(0.U)
       for (i <- 1 to 50) {
@@ -148,8 +146,9 @@ class QuicksortTest extends AnyFreeSpec with ChiselScalatestTester {
   }
 }
 
-class MMIOTest extends AnyFreeSpec with ChiselScalatestTester {
-  "CPU should read and write timer register" in {
+class MMIOTest extends AnyFlatSpec with ChiselScalatestTester {
+  behavior of "CPU"
+  it should "read and write timer register" in {
     test(new TestTopModule("mmio.asmbin")).withAnnotations(TestAnnotations.annos) { c =>
       c.io.interrupt.poke(0.U)
       for (i <- 1 to 200) {
@@ -164,8 +163,9 @@ class MMIOTest extends AnyFreeSpec with ChiselScalatestTester {
   }
 }
 
-class ByteAccessTest extends AnyFreeSpec with ChiselScalatestTester {
-  "CPU should store and load single byte" in {
+class ByteAccessTest extends AnyFlatSpec with ChiselScalatestTester {
+  behavior of "CPU"
+  it should "store and load single byte" in {
     test(new TestTopModule("sb.asmbin")).withAnnotations(TestAnnotations.annos) { c =>
       c.io.interrupt.poke(0.U)
       for (i <- 1 to 500) {
