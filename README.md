@@ -28,9 +28,9 @@ feedback and contributions!
 
 ### Your computer
 
-- Windows 10 or higher / Linux (Debian, Ubuntu, WSL1/2 or other distros)
+- Windows 10 or higher / Linux (Debian, Ubuntu, WSL1/2 or other distros) / macOS
     - We have tested on Windows 10 and WSL Debian 11
-    - macOS is **NOT** supported
+    - macOS is able to run the software simulation, but unable to write FPGA boards
 - Java 8 or higher
 - Scala 2.12 (not 3)
 - sbt
