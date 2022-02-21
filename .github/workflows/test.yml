@@ -19,6 +19,20 @@ jobs:
         run: cd csrc; .\build.bat
       - name: SBT Test
         run: sbt test
+  test-macos:
+    name: Test on macOS
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup Clang
+        run: brew install llvm && echo "$(brew --prefix llvm)/bin" >> $GITHUB_PATH
+      - name: Setup Verilator
+        run: brew install verilator
+      - name: Compile executables for testing
+        run: cd csrc && ./build.sh
+      - name: SBT Test
+        run: sbt test
   test-linux:
     name: Test on Linux
     runs-on: ubuntu-latest
