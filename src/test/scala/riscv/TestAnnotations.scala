@@ -20,12 +20,22 @@ import firrtl.AnnotationSeq
 import java.nio.file.{Files, Paths}
 
 object VerilatorEnabler {
-  val annos: AnnotationSeq = if(sys.env.getOrElse("PATH", "").split(":").exists(path => {
-    Files.exists(Paths.get(path, "verilator"))
-  })) {
-    Seq(VerilatorBackendAnnotation)
+  val annos: AnnotationSeq = if (sys.env.contains("Path")) {
+    if (sys.env.getOrElse("Path", "").split(";").exists(path => {
+      Files.exists(Paths.get(path, "verilator"))
+    })) {
+      Seq(VerilatorBackendAnnotation)
+    } else {
+      Seq()
+    }
   } else {
-    Seq()
+    if (sys.env.getOrElse("PATH", "").split(":").exists(path => {
+      Files.exists(Paths.get(path, "verilator"))
+    })) {
+      Seq(VerilatorBackendAnnotation)
+    } else {
+      Seq()
+    }
   }
 }
 
