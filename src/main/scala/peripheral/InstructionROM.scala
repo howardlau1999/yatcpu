@@ -20,8 +20,8 @@ import chisel3.util.experimental.loadMemoryFromFileInline
 import firrtl.annotations.MemorySynthInit
 import riscv.Parameters
 
-import java.io.FileWriter
-import java.nio.file.Paths
+import java.io.{FileInputStream, FileWriter}
+import java.nio.file.{Files, Paths}
 import java.nio.{ByteBuffer, ByteOrder}
 
 class InstructionROM(instructionFilename: String) extends Module {
@@ -40,7 +40,11 @@ class InstructionROM(instructionFilename: String) extends Module {
   io.data := mem.read(io.address, true.B)
 
   def readAsmBinary(filename: String) = {
-    val inputStream = getClass.getClassLoader.getResourceAsStream(filename)
+    val inputStream = if (Files.exists(Paths.get(filename))) {
+      Files.newInputStream(Paths.get(filename))
+    } else {
+      getClass.getClassLoader.getResourceAsStream(filename)
+    }
     var instructions = new Array[BigInt](0)
     val arr = new Array[Byte](4)
     while (inputStream.read(arr) == 4) {
@@ -53,7 +57,7 @@ class InstructionROM(instructionFilename: String) extends Module {
     instructions = instructions :+ BigInt(0x00000013L)
     instructions = instructions :+ BigInt(0x00000013L)
     val currentDir = System.getProperty("user.dir")
-    val exeTxtPath = Paths.get(currentDir.toString, "verilog", f"${instructionFilename}.txt")
+    val exeTxtPath = Paths.get(currentDir, "verilog", f"${instructionFilename}.txt")
     val writer = new FileWriter(exeTxtPath.toString)
     for (i <- instructions.indices) {
       writer.write(f"@$i%x\n${instructions(i)}%08x\n")

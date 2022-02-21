@@ -27,8 +27,7 @@ object BootStates extends ChiselEnum {
   val Init, Loading, Finished = Value
 }
 
-class Top extends Module {
-  val binaryFilename = "tetris.asmbin"
+class Top(binaryFilename: String = "tetris.asmbin") extends Module {
   val io = IO(new Bundle {
     val signal_interrupt = Input(Bool())
 
@@ -92,5 +91,6 @@ class Top extends Module {
 }
 
 object VerilogGenerator extends App {
-  (new ChiselStage).execute(Array("-X", "verilog", "-td", "verilog/verilator"), Seq(ChiselGeneratorAnnotation(() => new Top)))
+  (new ChiselStage).execute(Array("-X", "verilog", "-td", "verilog/verilator"), Seq(ChiselGeneratorAnnotation(() =>
+    new Top(args(1)))))
 }

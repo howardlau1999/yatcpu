@@ -64,7 +64,7 @@ class TestTopModule(exeFilename: String) extends Module {
     val boot_state = Output(UInt())
   })
   val boot_state = RegInit(BootStates.Init)
-  io.boot_state := boot_state.asUInt()
+  io.boot_state := boot_state.asUInt
   val instruction_rom = Module(new TestInstructionROM(exeFilename))
   val rom_loader = Module(new ROMLoader(instruction_rom.capacity))
   val mem = Module(new Memory(8192))
@@ -119,7 +119,7 @@ class FibonacciTest extends AnyFreeSpec with ChiselScalatestTester {
   "CPU should calculate recursively fibonacci(10)" in {
     test(new TestTopModule("fibonacci.asmbin")).withAnnotations(TestAnnotations.annos) { c =>
       c.io.interrupt.poke(0.U)
-      for (i <- 1 to 60) {
+      for (i <- 1 to 50) {
         c.clock.step(1000)
         c.io.mem_debug_read_address.poke((i * 4).U) // Avoid timeout
       }
