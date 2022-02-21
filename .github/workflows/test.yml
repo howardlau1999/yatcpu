@@ -9,10 +9,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Setup Verilator
+        run: C:\msys64\usr\bin\bash.exe -l -c "pacman -Sy --noconfirm --needed base-devel mingw-w64-x86_64-toolchain git flex mingw-w64-x86_64-cmake mingw-w64-x86_64-verilator"
+      - run: echo 'C:\msys64\usr\bin' | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - run: echo 'C:\msys64\mingw64\bin' | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       - name: Setup Developer Command 
         uses: ilammy/msvc-dev-cmd@v1
       - name: Compile executables for testing
-        run: cd csrc && .\build.bat
+        run: cd csrc; .\build.bat
       - name: SBT Test
         run: sbt test
   test-linux:
