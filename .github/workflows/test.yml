@@ -83,7 +83,7 @@ jobs:
           repository: "riscv-non-isa/riscv-arch-test"
           path: riscv-arch-test
       - name: Setup Toolchain
-        run: sudo apt install -y verilator binutils-riscv64-unknown-elf gcc-riscv64-linux-gnu
+        run: sudo apt install -y verilator binutils-riscv64-unknown-elf gcc-riscv64-unknown-elf
       - name: Setup Scala
         uses: olafurpg/setup-scala@v10
         with:
