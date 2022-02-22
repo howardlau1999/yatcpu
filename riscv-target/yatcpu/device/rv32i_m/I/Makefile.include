@@ -4,7 +4,7 @@ ifeq ($(shell command -v $(TARGET_SIM) 2> /dev/null),)
     $(error Target simulator executable '$(TARGET_SIM)` not found)
 endif
 
-RISCV_PREFIX   ?= riscv32-unknown-elf-
+RISCV_PREFIX   ?= riscv64-unknown-elf-
 RISCV_GCC      ?= $(RISCV_PREFIX)gcc
 RISCV_OBJDUMP  ?= $(RISCV_PREFIX)objdump
 RISCV_OBJCOPY  ?= $(RISCV_PREFIX)objcopy
@@ -18,9 +18,9 @@ COMPILE_CMD = $$(RISCV_GCC) $(1) $$(RISCV_GCC_OPTS) \
 
 OBJDUMP_CMD = $$(RISCV_OBJDUMP) $$@ -D > $$@.objdump; \
 					$$(RISCV_OBJDUMP) $$@ --source > $$@.debug; \
-                    $$(RISCV_OBJDUMP) $$@ -t | grep " begin_signature$" | awk '{ print $1 }' > $$@.begin_signature; \
-                    $$(RISCV_OBJDUMP) $$@ -t | grep " end_signature$" | awk '{ print $1 }' > $$@.end_signature; \
-                    $$(RISCV_OBJDUMP) $$@ -t | grep " tohost$" | awk '{ print $1 }' > $$@.halt; \
+                    $$(RISCV_OBJDUMP) -t $$@ | grep " begin_signature$$$$" | awk '{ print $$$$1 }' > $$@.begin_signature; \
+                    $$(RISCV_OBJDUMP) -t $$@ | grep " end_signature$$$$" | awk '{ print $$$$1 }' > $$@.end_signature; \
+                    $$(RISCV_OBJDUMP) -t $$@ | grep " tohost$$$$" | awk '{ print $$$$1 }' > $$@.halt \
 
 
 OBJCOPY_CMD = $$(RISCV_OBJCOPY) $$@ -O binary  -j .text -j .data -j .tohost $$@.asmbin
@@ -46,9 +46,9 @@ COMPILE_TARGET=\
                 fi ; \
     
 RUN_CMD = $(TARGET_SIM) $(TARGET_FLAGS) \
-            -signature 0x$(shell cat $(@).begin_signature) 0x$(shell cat $(@).end_signature) $(*).signature.output \
-            -halt 0x$(shell cat $(@).halt) \
+            -signature 0x$(shell cat $(<).begin_signature) 0x$(shell cat $(<).end_signature) $(*).signature.output \
+            -halt 0x$(shell cat $(<).halt) \
             -time 1000000 \
-            -instruction $(<)
+            -instruction $(<).asmbin
 RUN_TARGET = \
     $(RUN_CMD)

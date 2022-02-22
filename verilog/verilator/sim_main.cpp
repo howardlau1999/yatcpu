@@ -41,10 +41,10 @@ class Memory {
     }
     file.seekg(0, std::ios::end);
     size_t size = file.tellg();
-    if (size > memory.size()) {
+    if (load_address + size > memory.size() * 4) {
       throw std::runtime_error("File " + filename + " is too large (File is " +
                                std::to_string(size) + " bytes. Memory is " +
-                               std::to_string(memory.size()) + " bytes.)");
+                               std::to_string(memory.size() * 4) + " bytes.)");
     }
     file.seekg(0, std::ios::beg);
     for (int i = 0; i < size / 4; ++i) {
