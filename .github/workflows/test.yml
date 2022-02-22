@@ -69,3 +69,35 @@ jobs:
         run: cd csrc && ./build.sh
       - name: SBT Test
         run: sbt test
+  riscv-compliance-test:
+    name: Run RISC-V compliance test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: yatcpu
+      - name: Checkout RISC-V compliance test
+        uses: actions/checkout@v2
+        with:
+          repository: "riscv-non-isa/riscv-arch-test"
+          path: riscv-arch-test
+      - name: Setup Toolchain
+        run: sudo apt install -y verilator binutils-riscv64-unknown-elf gcc-riscv64-linux-gnu
+      - name: Setup Scala
+        uses: olafurpg/setup-scala@v10
+        with:
+          java-version: adopt@1.8
+      - name: Cache Scala
+        uses: coursier/cache-action@v6
+      - name: Generate Verilog
+        run: cd yatcpu && sbt "runMain board.verilator.VerilogGenerator"
+      - name: Compile Verilated model
+        run: cd yatcpu && verilog/verilator && verilator --exe --cc --trace --build Top.v sim_main.cpp
+      - name: Run RISC-V compliance test
+        run: cd riscv-arch-test && make VERBOSE=1
+        env:
+          RISCV_TARGET_FLAGS: "-memory 1048576"
+          TARGET_SIM: ${{ github.workspace }}/yatcpu/verilog/verilator/obj_dir/VTop
+          RISCV_TARGET: yatcpu
+          TARGETDIR: ${{ github.workspace }}/yatcpu/riscv-target
