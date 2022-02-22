@@ -93,7 +93,7 @@ jobs:
       - name: Generate Verilog
         run: cd yatcpu && sbt "runMain board.verilator.VerilogGenerator"
       - name: Compile Verilated model
-        run: cd yatcpu && verilog/verilator && verilator --exe --cc --trace --build Top.v sim_main.cpp
+        run: cd yatcpu/verilog/verilator && verilator --exe --cc --trace --build Top.v sim_main.cpp
       - name: Run RISC-V compliance test
         run: cd riscv-arch-test && make VERBOSE=1
         env:
