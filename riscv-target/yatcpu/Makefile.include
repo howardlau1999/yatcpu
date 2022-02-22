@@ -1,0 +1,7 @@
+export TARGETDIR ?= riscv-target
+export XLEN = 32
+export RISCV_TARGET = yatcpu
+export RISCV_DEVICE = 
+export RISCV_TARGET_FLAGS = 
+export RISCV_ASSERT = 0
+JOBS = -j1

@@ -15,7 +15,7 @@ feedback and contributions!
 - [ ] Branch predictor
 - [ ] Run [Yat-sen OS RISC-V](https://github.com/NelsonCheung-cn/yatsenos-riscv)
 - [ ] RV32M
-- [ ] Pass RISC-V compliance test
+- [x] Pass RISC-V compliance test
 - [ ] Run CoreMark benchmarks
 
 ## Prerequisites
