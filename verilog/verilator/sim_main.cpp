@@ -1,9 +1,10 @@
-#include <verilated.h>  // Defines common routines
+#include <verilated.h>
 #include <verilated_vcd_c.h>
 
 #include <fstream>
-#include <iostream>  // Need std::cout
+#include <iostream>
 #include <string>
+#include <memory>
 #include <vector>
 
 #include "VTop.h"  // From Verilating "top.v"

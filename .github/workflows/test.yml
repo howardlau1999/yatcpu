@@ -88,6 +88,8 @@ jobs:
         uses: olafurpg/setup-scala@v10
         with:
           java-version: adopt@1.8
+      - name: Set up GCC
+        uses: egor-tensin/setup-gcc@v1
       - name: Cache Scala
         uses: coursier/cache-action@v6
       - name: Generate Verilog
