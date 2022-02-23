@@ -107,11 +107,11 @@ class Top extends Module {
 
   io.rgb := vga_display.io.rgb
 
-  mem.io.debug_read_address := io.switch(15, 1).asUInt() << 2
+  mem.io.debug_read_address := io.switch(15, 1).asUInt << 2
   io.led := Mux(
     io.switch(0),
-    mem.io.debug_read_data(31, 16).asUInt(),
-    mem.io.debug_read_data(15, 0).asUInt(),
+    mem.io.debug_read_data(31, 16).asUInt,
+    mem.io.debug_read_data(15, 0).asUInt,
   )
 
   val onboard_display = Module(new OnboardDigitDisplay)

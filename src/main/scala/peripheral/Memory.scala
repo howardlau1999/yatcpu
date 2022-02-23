@@ -39,10 +39,10 @@ class BlockRAM(capacity: Int) extends Module {
     for (i <- 0 until Parameters.WordSize) {
       write_data_vec(i) := io.write_data((i + 1) * Parameters.ByteBits - 1, i * Parameters.ByteBits)
     }
-    mem.write((io.write_address >> 2.U).asUInt(), write_data_vec, io.write_strobe)
+    mem.write((io.write_address >> 2.U).asUInt, write_data_vec, io.write_strobe)
   }
-  io.read_data := mem.read((io.read_address >> 2.U).asUInt(), true.B).asUInt()
-  io.debug_read_data := mem.read((io.debug_read_address >> 2.U).asUInt(), true.B).asUInt()
+  io.read_data := mem.read((io.read_address >> 2.U).asUInt, true.B).asUInt
+  io.debug_read_data := mem.read((io.debug_read_address >> 2.U).asUInt, true.B).asUInt
 }
 
 // This module wraps the Block RAM with an AXI4-Lite interface

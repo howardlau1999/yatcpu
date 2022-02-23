@@ -83,8 +83,8 @@ class Execute extends Module {
   alu.io.op2 := io.op2
 
 
-  val mem_read_address_index = (io.op1 + io.op2) (log2Up(Parameters.WordSize) - 1, 0).asUInt()
-  val mem_write_address_index = (io.op1 + io.op2) (log2Up(Parameters.WordSize) - 1, 0).asUInt()
+  val mem_read_address_index = (io.op1 + io.op2) (log2Up(Parameters.WordSize) - 1, 0).asUInt
+  val mem_write_address_index = (io.op1 + io.op2) (log2Up(Parameters.WordSize) - 1, 0).asUInt
   val mem_access_state = RegInit(MemoryAccessStates.Idle)
   val pending_interrupt = RegInit(false.B)
   val pending_interrupt_handler_address = RegInit(Parameters.EntryAddress)
@@ -143,24 +143,24 @@ class Execute extends Module {
 
   when(opcode === InstructionTypes.I) {
     disable_control()
-    val mask = (0xFFFFFFFFL.U >> io.instruction(24, 20)).asUInt()
+    val mask = (0xFFFFFFFFL.U >> io.instruction(24, 20)).asUInt
     io.regs_write_data := alu.io.result
     when(funct3 === InstructionsTypeI.sri) {
       when(funct7(5).asBool()) {
         io.regs_write_data := alu.io.result & mask |
-          (Fill(32, io.op1(31)) & (~mask).asUInt()).asUInt()
+          (Fill(32, io.op1(31)) & (~mask).asUInt).asUInt
       }
     }
   }.elsewhen(opcode === InstructionTypes.RM) {
     disable_control()
     // TODO(howard): support mul and div
     when(funct7 === 0.U || funct7 === 0x20.U) {
-      val mask = (0xFFFFFFFFL.U >> io.reg2_data(4, 0)).asUInt()
+      val mask = (0xFFFFFFFFL.U >> io.reg2_data(4, 0)).asUInt
       io.regs_write_data := alu.io.result
       when(funct3 === InstructionsTypeR.sr) {
         when(funct7(5).asBool()) {
           io.regs_write_data := alu.io.result & mask |
-            (Fill(32, io.op1(31)) & (~mask).asUInt()).asUInt()
+            (Fill(32, io.op1(31)) & (~mask).asUInt).asUInt
         }
       }
     }
@@ -303,10 +303,10 @@ class Execute extends Module {
     disable_control()
     io.csr_reg_write_data := MuxLookup(funct3, 0.U, IndexedSeq(
       InstructionsTypeCSR.csrrw -> io.reg1_data,
-      InstructionsTypeCSR.csrrc -> io.csr_reg_data_id.&((~io.reg1_data).asUInt()),
+      InstructionsTypeCSR.csrrc -> io.csr_reg_data_id.&((~io.reg1_data).asUInt),
       InstructionsTypeCSR.csrrs -> io.csr_reg_data_id.|(io.reg1_data),
       InstructionsTypeCSR.csrrwi -> Cat(0.U(27.W), uimm),
-      InstructionsTypeCSR.csrrci -> io.csr_reg_data_id.&((~Cat(0.U(27.W), uimm)).asUInt()),
+      InstructionsTypeCSR.csrrci -> io.csr_reg_data_id.&((~Cat(0.U(27.W), uimm)).asUInt),
       InstructionsTypeCSR.csrrsi -> io.csr_reg_data_id.|(Cat(0.U(27.W), uimm)),
     ))
     io.regs_write_data := MuxLookup(funct3, 0.U, IndexedSeq(

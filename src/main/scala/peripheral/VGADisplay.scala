@@ -202,8 +202,8 @@ class VGADisplay extends Module {
   io.vsync := sync.io.vsync
 
   val font_rom = Module(new FontROM)
-  val row = (sync.io.y >> log2Up(GlyphInfo.glyphHeight)).asUInt()
-  val col = (sync.io.x >> log2Up(GlyphInfo.glyphWidth)).asUInt()
+  val row = (sync.io.y >> log2Up(GlyphInfo.glyphHeight)).asUInt
+  val col = (sync.io.x >> log2Up(GlyphInfo.glyphWidth)).asUInt
   val char_index = (row * ScreenInfo.CharCols.U) + col
   val offset = char_index(1, 0)
   val ch = Wire(UInt(8.W))
@@ -213,10 +213,10 @@ class VGADisplay extends Module {
     offset,
     0.U,
     IndexedSeq(
-      0.U -> mem.io.debug_read_data(7, 0).asUInt(),
-      1.U -> mem.io.debug_read_data(15, 8).asUInt(),
-      2.U -> mem.io.debug_read_data(23, 16).asUInt(),
-      3.U -> mem.io.debug_read_data(31, 24).asUInt()
+      0.U -> mem.io.debug_read_data(7, 0).asUInt,
+      1.U -> mem.io.debug_read_data(15, 8).asUInt,
+      2.U -> mem.io.debug_read_data(23, 16).asUInt,
+      3.U -> mem.io.debug_read_data(31, 24).asUInt
     )
   )
   font_rom.io.glyph_index := Mux(ch >= 32.U, ch - 31.U, 0.U)

@@ -44,7 +44,7 @@ class Timer extends Module {
       0.U,
       IndexedSeq(
         0x4.U -> limit,
-        0x8.U -> enabled.asUInt(),
+        0x8.U -> enabled.asUInt,
       )
     )
   }

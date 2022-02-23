@@ -222,7 +222,7 @@ class AXI4LiteMaster(addrWidth: Int, dataWidth: Int) extends Module {
   io.channels.write_data_channel.WVALID := WVALID
   io.channels.write_data_channel.WDATA := write_data
   io.channels.write_address_channel.AWPROT := 0.U
-  io.channels.write_data_channel.WSTRB := write_strobe.asUInt()
+  io.channels.write_data_channel.WSTRB := write_strobe.asUInt
   val BREADY = RegInit(false.B)
   io.channels.write_response_channel.BREADY := BREADY
 
