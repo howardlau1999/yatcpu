@@ -17,7 +17,7 @@ YatCPU(**Y**et **a**nother **t**oy CPU) 是一个使用 Chisel 3 硬件设计语
 - [ ] 运行 [逸仙 OS RISC-V](https://github.com/NelsonCheung-cn/yatsenos-riscv)
 - [ ] 支持 RV32M 扩展
 - [x] 通过 RISC-V 合规性测试 
-- [ ] 运行 CoreMark 性能测试 
+- [x] 运行 CoreMark 性能测试 
 
 ## 前置要求
 
