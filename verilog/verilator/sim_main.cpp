@@ -18,6 +18,7 @@ class Memory {
   uint32_t read(size_t address) {
     address = address / 4;
     if (address >= memory.size()) {
+      printf("invalid read address 0x%08x\n", address * 4);
       return 0;
     }
     return memory[address];
@@ -31,6 +32,7 @@ class Memory {
     if (write_strobe[2]) write_mask |= 0x00FF0000;
     if (write_strobe[3]) write_mask |= 0xFF000000;
     if (address >= memory.size()) {
+      printf("invalid write address 0x%08x\n", address * 4);
       return;
     }
     memory[address] = (memory[address] & ~write_mask) | (value & write_mask);
@@ -164,6 +166,7 @@ class Simulator {
     vcd_tracer->dump(main_time);
     uint32_t memory_read_word = 0;
     bool memory_write_strobe[4] = {false};
+    bool uart_debounce = false;
     while (main_time < max_sim_time && !Verilated::gotFinish()) {
       ++main_time;
       if (main_time > 2) {
@@ -173,9 +176,14 @@ class Simulator {
       top->clock = !top->clock;
       top->eval();
       if (top->io_uart_slave_write) {
-        if (top->io_uart_slave_address & 0xFF == 0x10) {
-          std::cout << static_cast<char>(top->io_uart_slave_write_data & 0xFF);
-        }
+         if (uart_debounce && top->clock) {
+           std::cout << (char)top->io_uart_slave_write_data << std::flush;
+         }
+         if (!uart_debounce && top->clock) {
+           uart_debounce = true;
+         }
+      } else {
+        uart_debounce = false;
       }
       if (top->io_mem_slave_read) {
         memory_read_word = memory->read(top->io_mem_slave_address);
