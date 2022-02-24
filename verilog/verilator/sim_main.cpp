@@ -18,6 +18,7 @@ class Memory {
   uint32_t read(size_t address) {
     address = address / 4;
     if (address >= memory.size()) {
+      printf("invalid read address 0x%08x\n", address * 4);
       return 0;
     }
     return memory[address];
@@ -31,6 +32,7 @@ class Memory {
     if (write_strobe[2]) write_mask |= 0x00FF0000;
     if (write_strobe[3]) write_mask |= 0xFF000000;
     if (address >= memory.size()) {
+      printf("invalid write address 0x%08x\n", address * 4);
       return;
     }
     memory[address] = (memory[address] & ~write_mask) | (value & write_mask);
@@ -46,7 +48,7 @@ class Memory {
     if (load_address + size > memory.size() * 4) {
       throw std::runtime_error("File " + filename + " is too large (File is " +
                                std::to_string(size) + " bytes. Memory is " +
-                               std::to_string(memory.size() * 4) + " bytes.)");
+                               std::to_string(memory.size() * 4 - load_address) + " bytes.)");
     }
     file.seekg(0, std::ios::beg);
     for (int i = 0; i < size / 4; ++i) {
@@ -100,7 +102,7 @@ class Simulator {
   vluint64_t main_time = 0;
   vluint64_t max_sim_time = 10000;
   uint32_t halt_address = 0;
-  size_t memory_words = 32768;
+  size_t memory_words = 1024 * 1024; // 4MB
   bool dump_vcd = false;
   std::unique_ptr<VTop> top;
   std::unique_ptr<VCDTracer> vcd_tracer;
@@ -164,6 +166,7 @@ class Simulator {
     vcd_tracer->dump(main_time);
     uint32_t memory_read_word = 0;
     bool memory_write_strobe[4] = {false};
+    bool uart_debounce = false;
     while (main_time < max_sim_time && !Verilated::gotFinish()) {
       ++main_time;
       if (main_time > 2) {
@@ -172,6 +175,16 @@ class Simulator {
       top->io_mem_slave_read_data = memory_read_word;
       top->clock = !top->clock;
       top->eval();
+      if (top->io_uart_slave_write) {
+         if (uart_debounce && top->clock) {
+           std::cout << (char)top->io_uart_slave_write_data << std::flush;
+         }
+         if (!uart_debounce && top->clock) {
+           uart_debounce = true;
+         }
+      } else {
+        uart_debounce = false;
+      }
       if (top->io_mem_slave_read) {
         memory_read_word = memory->read(top->io_mem_slave_address);
       }

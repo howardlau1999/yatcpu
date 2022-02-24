@@ -29,14 +29,19 @@ class Top extends Module {
     val signal_interrupt = Input(Bool())
 
     val mem_slave = new AXI4LiteSlaveBundle(Parameters.AddrBits, Parameters.DataBits)
+    val uart_slave = new AXI4LiteSlaveBundle(Parameters.AddrBits, Parameters.DataBits)
 
     val cpu_debug_read_address = Input(UInt(Parameters.PhysicalRegisterAddrWidth))
     val cpu_debug_read_data = Output(UInt(Parameters.DataWidth))
   })
 
   // Memory is controlled in C++ code
-  val slave = Module(new AXI4LiteSlave(Parameters.AddrBits, Parameters.DataBits))
-  io.mem_slave <> slave.io.bundle
+  val mem_slave = Module(new AXI4LiteSlave(Parameters.AddrBits, Parameters.DataBits))
+  io.mem_slave <> mem_slave.io.bundle
+
+  // UART is controlled in C++ code
+  val uart_slave = Module(new AXI4LiteSlave(Parameters.AddrBits, Parameters.DataBits))
+  io.uart_slave <> uart_slave.io.bundle
 
   val cpu = Module(new CPU)
   val dummy = Module(new DummySlave)
@@ -53,7 +58,8 @@ class Top extends Module {
 
   cpu.io.stall_flag_bus := false.B
   cpu.io.instruction_valid := true.B
-  bus_switch.io.slaves(0) <> slave.io.channels
+  bus_switch.io.slaves(0) <> mem_slave.io.channels
+  bus_switch.io.slaves(2) <> uart_slave.io.channels
 
   cpu.io.interrupt_flag := io.signal_interrupt
 
