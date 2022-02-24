@@ -172,6 +172,11 @@ class Simulator {
       top->io_mem_slave_read_data = memory_read_word;
       top->clock = !top->clock;
       top->eval();
+      if (top->io_uart_slave_write) {
+        if (top->io_uart_slave_address & 0xFF == 0x10) {
+          std::cout << static_cast<char>(top->io_uart_slave_write_data & 0xFF);
+        }
+      }
       if (top->io_mem_slave_read) {
         memory_read_word = memory->read(top->io_mem_slave_address);
       }
