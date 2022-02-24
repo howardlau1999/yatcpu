@@ -18,7 +18,7 @@ feedback and contributions!
 - [ ] Run [Yat-sen OS RISC-V](https://github.com/NelsonCheung-cn/yatsenos-riscv)
 - [ ] RV32M
 - [x] Pass RISC-V compliance test
-- [ ] Run CoreMark benchmarks
+- [x] Run CoreMark benchmarks
 
 ## Prerequisites
 
