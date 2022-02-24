@@ -100,7 +100,7 @@ class Simulator {
   vluint64_t main_time = 0;
   vluint64_t max_sim_time = 10000;
   uint32_t halt_address = 0;
-  size_t memory_words = 32768;
+  size_t memory_words = 1024 * 1024; // 4MB
   bool dump_vcd = false;
   std::unique_ptr<VTop> top;
   std::unique_ptr<VCDTracer> vcd_tracer;
