@@ -23,7 +23,7 @@ import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
 import chisel3.util.{Cat, is, switch}
 import peripheral._
 import riscv.Parameters
-import riscv.core.{CPU, ProgramCounter}
+import riscv.core.threestage.{CPU, ProgramCounter}
 
 object BootStates extends ChiselEnum {
   val Init, Loading, Finished = Value

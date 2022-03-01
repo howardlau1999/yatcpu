@@ -21,7 +21,7 @@ import riscv._
 import peripheral.{DummySlave, InstructionROM, Memory, ROMLoader, Timer, Uart, VGADisplay}
 import bus.{BusArbiter, BusSwitch}
 import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
-import riscv.core.{CPU, ProgramCounter}
+import riscv.core.threestage.{CPU, ProgramCounter}
 
 object BootStates extends ChiselEnum {
   val Init, Loading, Finished = Value
