@@ -28,7 +28,7 @@ class MemoryAccess extends Module {
     val regs_write_source = Input(UInt(2.W))
     val csr_read_data = Input(UInt(Parameters.DataWidth))
 
-    val wb_memory_out = Output(UInt(Parameters.DataWidth))
+    val wb_memory_read_data = Output(UInt(Parameters.DataWidth))
     val ctrl_stall_flag = Output(Bool())
     val forward_to_ex = Output(UInt(Parameters.DataWidth))
 
@@ -58,7 +58,7 @@ class MemoryAccess extends Module {
   io.bus_write_data := 0.U
   io.bus_write_strobe := VecInit(Seq.fill(Parameters.WordSize)(false.B))
   io.bus_write := false.B
-  io.wb_memory_out := 0.U
+  io.wb_memory_read_data := 0.U
   io.ctrl_stall_flag := false.B
 
   when(io.memory_read_enable) {
@@ -76,7 +76,7 @@ class MemoryAccess extends Module {
       io.ctrl_stall_flag := true.B
       when(io.bus_read_valid) {
         val data = io.bus_read_data
-        io.wb_memory_out := MuxLookup(
+        io.wb_memory_read_data := MuxLookup(
           io.funct3,
           0.U,
           IndexedSeq(

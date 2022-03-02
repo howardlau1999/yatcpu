@@ -48,9 +48,9 @@ class CPU extends Module {
 
   axi4_master.io.channels <> io.axi4_channels
 
-  // The EX module takes precedence over IF (but let the previous fetch finish)
-  val ex_granted = RegInit(false.B)
-  when(ex_granted) {
+  // The MEM module takes precedence over IF (but let the previous fetch finish)
+  val mem_granted = RegInit(false.B)
+  when(mem_granted) {
     inst_fetch.io.instruction_valid := false.B
     io.bus_address := mem.io.bus_address
     axi4_master.io.bundle.read := mem.io.bus_read
@@ -59,11 +59,11 @@ class CPU extends Module {
     axi4_master.io.bundle.write_data := mem.io.bus_write_data
     axi4_master.io.bundle.write_strobe := mem.io.bus_write_strobe
     when(!mem.io.bus_request) {
-      ex_granted := false.B
+      mem_granted := false.B
     }
   }.otherwise {
     // Default to fetch instructions from main memory
-    ex_granted := false.B
+    mem_granted := false.B
     axi4_master.io.bundle.read := !axi4_master.io.bundle.busy && !axi4_master.io.bundle.read_valid && !mem.io.bus_request
     axi4_master.io.bundle.address := inst_fetch.io.bus_address
     io.bus_address := inst_fetch.io.bus_address
@@ -74,18 +74,18 @@ class CPU extends Module {
 
   when(mem.io.bus_request) {
     when(!axi4_master.io.bundle.busy && !axi4_master.io.bundle.read_valid) {
-      ex_granted := true.B
+      mem_granted := true.B
     }
   }
 
-  inst_fetch.io.instruction_valid := io.instruction_valid && axi4_master.io.bundle.read_valid && !ex_granted
+  inst_fetch.io.instruction_valid := io.instruction_valid && axi4_master.io.bundle.read_valid && !mem_granted
   inst_fetch.io.bus_data := axi4_master.io.bundle.read_data
 
   mem.io.bus_read_data := axi4_master.io.bundle.read_data
   mem.io.bus_read_valid := axi4_master.io.bundle.read_valid
   mem.io.bus_write_valid := axi4_master.io.bundle.write_valid
   mem.io.bus_busy := axi4_master.io.bundle.busy
-  mem.io.bus_granted := ex_granted
+  mem.io.bus_granted := mem_granted
 
   ctrl.io.jump_flag := id.io.if_jump_flag
   ctrl.io.stall_flag_if := inst_fetch.io.ctrl_stall_flag
@@ -181,12 +181,12 @@ class CPU extends Module {
   mem2wb.io.regs_write_enable := ex2mem.io.output_regs_write_enable
   mem2wb.io.regs_write_source := ex2mem.io.output_regs_write_source
   mem2wb.io.regs_write_address := ex2mem.io.output_regs_write_address
-  mem2wb.io.memory_out := mem.io.wb_memory_out
+  mem2wb.io.memory_read_data := mem.io.wb_memory_read_data
   mem2wb.io.csr_read_data := ex2mem.io.output_csr_read_data
 
   wb.io.instruction_address := mem2wb.io.output_instruction_address
   wb.io.alu_result := mem2wb.io.output_alu_result
-  wb.io.memory_out := mem2wb.io.output_memory_out
+  wb.io.memory_read_data := mem2wb.io.output_memory_read_data
   wb.io.regs_write_source := mem2wb.io.output_regs_write_source
   wb.io.csr_read_data := mem2wb.io.output_csr_read_data
 

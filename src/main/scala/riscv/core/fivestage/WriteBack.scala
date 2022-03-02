@@ -22,7 +22,7 @@ class WriteBack extends Module {
   val io = IO(new Bundle() {
     val instruction_address = Input(UInt(Parameters.AddrWidth))
     val alu_result = Input(UInt(Parameters.DataWidth))
-    val memory_out = Input(UInt(Parameters.DataWidth))
+    val memory_read_data = Input(UInt(Parameters.DataWidth))
     val regs_write_source = Input(UInt(2.W))
     val csr_read_data = Input(UInt(Parameters.DataWidth))
 
@@ -32,7 +32,7 @@ class WriteBack extends Module {
     io.regs_write_source,
     io.alu_result,
     IndexedSeq(
-      RegWriteSource.Memory -> io.memory_out,
+      RegWriteSource.Memory -> io.memory_read_data,
       RegWriteSource.CSR -> io.csr_read_data,
       RegWriteSource.NextInstructionAddress -> (io.instruction_address + 4.U)
     )

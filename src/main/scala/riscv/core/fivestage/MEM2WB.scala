@@ -24,7 +24,7 @@ class MEM2WB extends Module {
     val regs_write_enable = Input(Bool())
     val regs_write_source = Input(UInt(2.W))
     val regs_write_address = Input(UInt(Parameters.AddrWidth))
-    val memory_out = Input(UInt(Parameters.DataWidth))
+    val memory_read_data = Input(UInt(Parameters.DataWidth))
     val csr_read_data = Input(UInt(Parameters.DataWidth))
 
     val output_instruction_address = Output(UInt(Parameters.AddrWidth))
@@ -32,7 +32,7 @@ class MEM2WB extends Module {
     val output_regs_write_enable = Output(Bool())
     val output_regs_write_source = Output(UInt(2.W))
     val output_regs_write_address = Output(UInt(Parameters.AddrWidth))
-    val output_memory_out = Output(UInt(Parameters.DataWidth))
+    val output_memory_read_data = Output(UInt(Parameters.DataWidth))
     val output_csr_read_data = Output(UInt(Parameters.DataWidth))
   })
   val flush_enable = false.B
@@ -44,11 +44,11 @@ class MEM2WB extends Module {
   alu_result.io.flush_enable := flush_enable
   io.output_alu_result := alu_result.io.out
 
-  val memory_out = Module(new PipelineRegister())
-  memory_out.io.in := io.memory_out
-  memory_out.io.write_enable := write_enable
-  memory_out.io.flush_enable := flush_enable
-  io.output_memory_out := memory_out.io.out
+  val memory_read_data = Module(new PipelineRegister())
+  memory_read_data.io.in := io.memory_read_data
+  memory_read_data.io.write_enable := write_enable
+  memory_read_data.io.flush_enable := flush_enable
+  io.output_memory_read_data := memory_read_data.io.out
 
   val regs_write_enable = Module(new PipelineRegister(1))
   regs_write_enable.io.in := io.regs_write_enable
