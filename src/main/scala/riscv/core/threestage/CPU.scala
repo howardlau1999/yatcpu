@@ -17,18 +17,10 @@ package riscv.core.threestage
 import bus.{AXI4LiteChannels, AXI4LiteMaster}
 import chisel3._
 import riscv.Parameters
+import riscv.core.CPUBundle
 
 class CPU extends Module {
-  val io = IO(new Bundle {
-    val axi4_channels = new AXI4LiteChannels(Parameters.AddrBits, Parameters.DataBits)
-    val bus_address = Output(UInt(Parameters.AddrWidth))
-    val interrupt_flag = Input(UInt(Parameters.InterruptFlagWidth))
-    val stall_flag_bus = Input(Bool())
-    val debug_read_address = Input(UInt(Parameters.PhysicalRegisterAddrWidth))
-    val debug_read_data = Output(UInt(Parameters.DataWidth))
-
-    val instruction_valid = Input(Bool())
-  })
+  val io = IO(new CPUBundle)
 
   val ctrl = Module(new Control)
   val regs = Module(new RegisterFile)

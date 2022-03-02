@@ -17,6 +17,11 @@ package riscv
 import chisel3._
 import chisel3.util._
 
+object ImplementationType {
+  val ThreeStage = 0
+  val FiveStage = 1
+}
+
 object Parameters {
   val AddrBits = 32
   val AddrWidth = AddrBits.W
