@@ -14,14 +14,12 @@
 
 package board.verilator
 
-import bus.{AXI4LiteChannels, AXI4LiteSlave, AXI4LiteSlaveBundle, BusArbiter, BusSwitch}
+import bus.{AXI4LiteSlave, AXI4LiteSlaveBundle, BusArbiter, BusSwitch}
 import chisel3._
-import chisel3.experimental.ChiselEnum
 import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
-import chisel3.util.{is, switch}
-import peripheral.{DummySlave, InstructionROM, Memory, ROMLoader}
+import peripheral.DummySlave
 import riscv.Parameters
-import riscv.core.threestage.CPU
+import riscv.core.CPU
 
 class Top extends Module {
 

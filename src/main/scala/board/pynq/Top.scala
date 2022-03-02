@@ -23,7 +23,7 @@ import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
 import chisel3.util.{Cat, is, switch}
 import peripheral._
 import riscv.Parameters
-import riscv.core.threestage.{CPU, ProgramCounter}
+import riscv.core.CPU
 
 object BootStates extends ChiselEnum {
   val Init, Loading, Finished = Value
@@ -68,7 +68,7 @@ class Top extends Module {
   for (i <- 0 until Parameters.SlaveDeviceCount) {
     bus_switch.io.slaves(i) <> dummy.io.channels
   }
-  rom_loader.io.load_address := ProgramCounter.EntryAddress
+  rom_loader.io.load_address := Parameters.EntryAddress
   rom_loader.io.load_start := false.B
   rom_loader.io.rom_data := instruction_rom.io.data
   instruction_rom.io.address := rom_loader.io.rom_address
