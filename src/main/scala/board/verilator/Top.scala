@@ -21,7 +21,7 @@ import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
 import chisel3.util.{is, switch}
 import peripheral.{DummySlave, InstructionROM, Memory, ROMLoader}
 import riscv.Parameters
-import riscv.core.CPU
+import riscv.core.threestage.CPU
 
 class Top extends Module {
 

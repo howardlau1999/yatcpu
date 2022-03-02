@@ -343,6 +343,7 @@ verilog
 *.jou
 *.log
 .Xil
-vivado/riscv-basys3
+vivado/basys3/riscv-basys3
+vivado/pynq/riscv-pynq
 .vscode
 .metals
