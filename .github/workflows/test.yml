@@ -82,6 +82,7 @@ jobs:
         with:
           repository: "riscv-non-isa/riscv-arch-test"
           path: riscv-arch-test
+          ref: 2.6.1
       - name: Setup Toolchain
         run: sudo apt install -y verilator binutils-riscv64-unknown-elf gcc-riscv64-unknown-elf
       - name: Setup Scala
