@@ -17,6 +17,7 @@ package riscv.core.fivestage
 import chisel3._
 import chisel3.util._
 import riscv.Parameters
+import riscv.core.BusBundle
 
 class MemoryAccess extends Module {
   val io = IO(new Bundle() {
@@ -32,17 +33,7 @@ class MemoryAccess extends Module {
     val ctrl_stall_flag = Output(Bool())
     val forward_to_ex = Output(UInt(Parameters.DataWidth))
 
-    val bus_read = Output(Bool())
-    val bus_address = Output(UInt(Parameters.AddrWidth))
-    val bus_read_data = Input(UInt(Parameters.DataWidth))
-    val bus_read_valid = Input(Bool())
-    val bus_write = Output(Bool())
-    val bus_write_data = Output(UInt(Parameters.DataWidth))
-    val bus_write_strobe = Output(Vec(Parameters.WordSize, Bool()))
-    val bus_write_valid = Input(Bool())
-    val bus_busy = Input(Bool())
-    val bus_request = Output(Bool())
-    val bus_granted = Input(Bool())
+    val bus = new BusBundle
   })
   val mem_address_index = io.alu_result(log2Up(Parameters.WordSize) - 1, 0).asUInt()
   val mem_access_state = RegInit(MemoryAccessStates.Idle)
@@ -52,12 +43,12 @@ class MemoryAccess extends Module {
     io.ctrl_stall_flag := false.B
   }
 
-  io.bus_request := false.B
-  io.bus_read := false.B
-  io.bus_address := io.alu_result
-  io.bus_write_data := 0.U
-  io.bus_write_strobe := VecInit(Seq.fill(Parameters.WordSize)(false.B))
-  io.bus_write := false.B
+  io.bus.request := false.B
+  io.bus.read := false.B
+  io.bus.address := io.alu_result
+  io.bus.write_data := 0.U
+  io.bus.write_strobe := VecInit(Seq.fill(Parameters.WordSize)(false.B))
+  io.bus.write := false.B
   io.wb_memory_read_data := 0.U
   io.ctrl_stall_flag := false.B
 
@@ -65,17 +56,17 @@ class MemoryAccess extends Module {
     when(mem_access_state === MemoryAccessStates.Idle) {
       // Start the read transaction when the bus is available
       io.ctrl_stall_flag := true.B
-      io.bus_read := true.B
-      io.bus_request := true.B
-      when(io.bus_granted) {
+      io.bus.read := true.B
+      io.bus.request := true.B
+      when(io.bus.granted) {
         mem_access_state := MemoryAccessStates.Read
       }
     }.elsewhen(mem_access_state === MemoryAccessStates.Read) {
-      io.bus_request := true.B
-      io.bus_read := false.B
+      io.bus.request := true.B
+      io.bus.read := false.B
       io.ctrl_stall_flag := true.B
-      when(io.bus_read_valid) {
-        val data = io.bus_read_data
+      when(io.bus.read_valid) {
+        val data = io.bus.read_data
         io.wb_memory_read_data := MuxLookup(
           io.funct3,
           0.U,
@@ -118,39 +109,39 @@ class MemoryAccess extends Module {
     when(mem_access_state === MemoryAccessStates.Idle) {
       // Start the write transaction when there the bus is available
       io.ctrl_stall_flag := true.B
-      io.bus_write_data := io.reg2_data
-      io.bus_write := true.B
-      io.bus_write_strobe := VecInit(Seq.fill(Parameters.WordSize)(false.B))
+      io.bus.write_data := io.reg2_data
+      io.bus.write := true.B
+      io.bus.write_strobe := VecInit(Seq.fill(Parameters.WordSize)(false.B))
       when(io.funct3 === InstructionsTypeS.sb) {
-        io.bus_write_strobe(mem_address_index) := true.B
-        io.bus_write_data := io.reg2_data(Parameters.ByteBits, 0) << (mem_address_index << log2Up(Parameters.ByteBits).U)
+        io.bus.write_strobe(mem_address_index) := true.B
+        io.bus.write_data := io.reg2_data(Parameters.ByteBits, 0) << (mem_address_index << log2Up(Parameters.ByteBits).U)
       }.elsewhen(io.funct3 === InstructionsTypeS.sh) {
         when(mem_address_index === 0.U) {
           for (i <- 0 until Parameters.WordSize / 2) {
-            io.bus_write_strobe(i) := true.B
+            io.bus.write_strobe(i) := true.B
           }
-          io.bus_write_data := io.reg2_data(Parameters.WordSize / 2 * Parameters.ByteBits, 0)
+          io.bus.write_data := io.reg2_data(Parameters.WordSize / 2 * Parameters.ByteBits, 0)
         }.otherwise {
           for (i <- Parameters.WordSize / 2 until Parameters.WordSize) {
-            io.bus_write_strobe(i) := true.B
+            io.bus.write_strobe(i) := true.B
           }
-          io.bus_write_data := io.reg2_data(Parameters.WordSize / 2 * Parameters.ByteBits, 0) << (Parameters
+          io.bus.write_data := io.reg2_data(Parameters.WordSize / 2 * Parameters.ByteBits, 0) << (Parameters
             .WordSize / 2 * Parameters.ByteBits)
         }
       }.elsewhen(io.funct3 === InstructionsTypeS.sw) {
         for (i <- 0 until Parameters.WordSize) {
-          io.bus_write_strobe(i) := true.B
+          io.bus.write_strobe(i) := true.B
         }
       }
-      io.bus_request := true.B
-      when(io.bus_granted) {
+      io.bus.request := true.B
+      when(io.bus.granted) {
         mem_access_state := MemoryAccessStates.Write
       }
     }.elsewhen(mem_access_state === MemoryAccessStates.Write) {
-      io.bus_request := true.B
+      io.bus.request := true.B
       io.ctrl_stall_flag := true.B
-      io.bus_write := false.B
-      when(io.bus_write_valid) {
+      io.bus.write := false.B
+      when(io.bus.write_valid) {
         on_bus_transaction_finished()
       }
     }
