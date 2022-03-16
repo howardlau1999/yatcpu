@@ -44,19 +44,19 @@ class CPU extends Module {
   val mem_granted = RegInit(false.B)
   when(mem_granted) {
     inst_fetch.io.instruction_valid := false.B
-    io.bus_address := mem.io.bus_address
-    axi4_master.io.bundle.read := mem.io.bus_read
-    axi4_master.io.bundle.address := mem.io.bus_address
-    axi4_master.io.bundle.write := mem.io.bus_write
-    axi4_master.io.bundle.write_data := mem.io.bus_write_data
-    axi4_master.io.bundle.write_strobe := mem.io.bus_write_strobe
-    when(!mem.io.bus_request) {
+    io.bus_address := mem.io.bus.address
+    axi4_master.io.bundle.read := mem.io.bus.read
+    axi4_master.io.bundle.address := mem.io.bus.address
+    axi4_master.io.bundle.write := mem.io.bus.write
+    axi4_master.io.bundle.write_data := mem.io.bus.write_data
+    axi4_master.io.bundle.write_strobe := mem.io.bus.write_strobe
+    when(!mem.io.bus.request) {
       mem_granted := false.B
     }
   }.otherwise {
     // Default to fetch instructions from main memory
     mem_granted := false.B
-    axi4_master.io.bundle.read := !axi4_master.io.bundle.busy && !axi4_master.io.bundle.read_valid && !mem.io.bus_request
+    axi4_master.io.bundle.read := !axi4_master.io.bundle.busy && !axi4_master.io.bundle.read_valid && !mem.io.bus.request
     axi4_master.io.bundle.address := inst_fetch.io.bus_address
     io.bus_address := inst_fetch.io.bus_address
     axi4_master.io.bundle.write := false.B
@@ -64,7 +64,7 @@ class CPU extends Module {
     axi4_master.io.bundle.write_strobe := VecInit(Seq.fill(Parameters.WordSize)(false.B))
   }
 
-  when(mem.io.bus_request) {
+  when(mem.io.bus.request) {
     when(!axi4_master.io.bundle.busy && !axi4_master.io.bundle.read_valid) {
       mem_granted := true.B
     }
@@ -73,11 +73,11 @@ class CPU extends Module {
   inst_fetch.io.instruction_valid := io.instruction_valid && axi4_master.io.bundle.read_valid && !mem_granted
   inst_fetch.io.bus_data := axi4_master.io.bundle.read_data
 
-  mem.io.bus_read_data := axi4_master.io.bundle.read_data
-  mem.io.bus_read_valid := axi4_master.io.bundle.read_valid
-  mem.io.bus_write_valid := axi4_master.io.bundle.write_valid
-  mem.io.bus_busy := axi4_master.io.bundle.busy
-  mem.io.bus_granted := mem_granted
+  mem.io.bus.read_data := axi4_master.io.bundle.read_data
+  mem.io.bus.read_valid := axi4_master.io.bundle.read_valid
+  mem.io.bus.write_valid := axi4_master.io.bundle.write_valid
+  mem.io.bus.busy := axi4_master.io.bundle.busy
+  mem.io.bus.granted := mem_granted
 
   ctrl.io.jump_flag := id.io.if_jump_flag
   ctrl.io.stall_flag_if := inst_fetch.io.ctrl_stall_flag

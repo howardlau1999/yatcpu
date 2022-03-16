@@ -39,19 +39,19 @@ class CPU extends Module {
   val ex_granted = RegInit(false.B)
   when(ex_granted) {
     inst_fetch.io.instruction_valid := false.B
-    io.bus_address := ex.io.bus_address
-    axi4_master.io.bundle.read := ex.io.bus_read
-    axi4_master.io.bundle.address := ex.io.bus_address
-    axi4_master.io.bundle.write := ex.io.bus_write
-    axi4_master.io.bundle.write_data := ex.io.bus_write_data
-    axi4_master.io.bundle.write_strobe := ex.io.bus_write_strobe
-    when(!ex.io.bus_request) {
+    io.bus_address := ex.io.bus.address
+    axi4_master.io.bundle.read := ex.io.bus.read
+    axi4_master.io.bundle.address := ex.io.bus.address
+    axi4_master.io.bundle.write := ex.io.bus.write
+    axi4_master.io.bundle.write_data := ex.io.bus.write_data
+    axi4_master.io.bundle.write_strobe := ex.io.bus.write_strobe
+    when(!ex.io.bus.request) {
       ex_granted := false.B
     }
   }.otherwise {
     // Default to fetch instructions from main memory
     ex_granted := false.B
-    axi4_master.io.bundle.read := !axi4_master.io.bundle.busy && !axi4_master.io.bundle.read_valid && !ex.io.bus_request
+    axi4_master.io.bundle.read := !axi4_master.io.bundle.busy && !axi4_master.io.bundle.read_valid && !ex.io.bus.request
     axi4_master.io.bundle.address := inst_fetch.io.bus_address
     io.bus_address := inst_fetch.io.bus_address
     axi4_master.io.bundle.write := false.B
@@ -59,7 +59,7 @@ class CPU extends Module {
     axi4_master.io.bundle.write_strobe := VecInit(Seq.fill(Parameters.WordSize)(false.B))
   }
 
-  when(ex.io.bus_request) {
+  when(ex.io.bus.request) {
     when(!axi4_master.io.bundle.busy && !axi4_master.io.bundle.read_valid) {
       ex_granted := true.B
     }
@@ -68,11 +68,11 @@ class CPU extends Module {
   inst_fetch.io.instruction_valid := io.instruction_valid && axi4_master.io.bundle.read_valid && !ex_granted
   inst_fetch.io.bus_data := axi4_master.io.bundle.read_data
 
-  ex.io.bus_read_data := axi4_master.io.bundle.read_data
-  ex.io.bus_read_valid := axi4_master.io.bundle.read_valid
-  ex.io.bus_write_valid := axi4_master.io.bundle.write_valid
-  ex.io.bus_busy := axi4_master.io.bundle.busy
-  ex.io.bus_granted := ex_granted
+  ex.io.bus.read_data := axi4_master.io.bundle.read_data
+  ex.io.bus.read_valid := axi4_master.io.bundle.read_valid
+  ex.io.bus.write_valid := axi4_master.io.bundle.write_valid
+  ex.io.bus.busy := axi4_master.io.bundle.busy
+  ex.io.bus.granted := ex_granted
 
   ctrl.io.jump_flag := ex.io.ctrl_jump_flag
   ctrl.io.jump_address := ex.io.ctrl_jump_address
