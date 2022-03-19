@@ -21,7 +21,8 @@ import riscv.Parameters
 import riscv.core.BusBundle
 
 object CacheState extends ChiselEnum {
-  val Idle, Compare, Compared, Missed, Evicting = Value
+  val Idle, Read, Compare, Compared, Missed, WaitReadGranted, WaitMemoryRead, WaitMemoryWrite, WaitWriteGranted,
+  Evicted = Value
 }
 
 class Cache(cacheline_bytes: Int, cacheline_count: Int, associativity: Int) extends Module {
@@ -30,12 +31,25 @@ class Cache(cacheline_bytes: Int, cacheline_count: Int, associativity: Int) exte
     val memory_side = new BusBundle
   })
 
-  // Always granted :)
+  // Hold the state
+  val address = RegInit(0.U(Parameters.AddrWidth))
+  val read_word = RegInit(0.U(Parameters.DataWidth))
+  val write_word = RegInit(0.U(Parameters.DataWidth))
+  val write_strobe = Reg(Vec(Parameters.WordSize, Bool()))
+  val read_valid = RegInit(false.B)
+  val read = RegInit(false.B)
+  val write = RegInit(false.B)
+
+  read_valid := false.B
+
   io.cpu_side.granted := true.B
+  io.cpu_side.read_valid := read_valid
+  io.cpu_side.read_data := read_word
 
   // Cache FSM
   val state = RegInit(CacheState.Idle)
 
+  // Do some math ...
   val set_count = cacheline_count / associativity
   val set_index_bits = log2Up(set_count)
   val block_offset_bits = log2Up(cacheline_bytes)
@@ -44,71 +58,126 @@ class Cache(cacheline_bytes: Int, cacheline_count: Int, associativity: Int) exte
   val cachelines = SyncReadMem(cacheline_count, Vec(associativity, UInt((2 + tag_bits + cacheline_bits).W)))
   val valid_bit_index = block_offset_bits + tag_bits
   val dirty_bit_index = block_offset_bits + tag_bits + 1
-  val set_index = io.cpu_side.address(block_offset_bits + set_index_bits - 1, block_offset_bits)
+  // The set this address belongs to
+  val set_index = address(block_offset_bits + set_index_bits - 1, block_offset_bits)
   // Align to word (4 bytes in RV32)
-  val block_offset = (io.cpu_side.address(block_offset_bits - 1, log2Up(Parameters.WordSize)) << log2Up(Parameters.WordSize)).asUInt
+  val block_offset = (address(block_offset_bits - 1, log2Up(Parameters.WordSize)) << log2Up(Parameters.WordSize)).asUInt
   // Tag for the address
-  val tag = io.cpu_side.address(Parameters.AddrBits - 1, block_offset_bits + set_index_bits)
+  val tag = address(Parameters.AddrBits - 1, block_offset_bits + set_index_bits)
 
   val read_enable = state === CacheState.Idle && (io.cpu_side.read || io.cpu_side.write)
-  val cachelines_in_set = cachelines.read(set_index)
+  val set_data = cachelines.read(set_index, read_enable)
+  // Also hold the state
+  val cachelines_in_set = Reg(Vec(associativity, UInt()))
   val hit = RegInit(false.B)
   val hit_index = RegInit(0.U)
   val hit_cacheline = RegInit(0.U)
-
-  when(io.cpu_side.read || io.cpu_side.write) {
-    when(state === CacheState.Idle) {
-      state := CacheState.Compare
-    }.elsewhen(state === CacheState.Compare) {
-      for (i <- 0 until  associativity) {
-        val cacheline_tag = cachelines_in_set(i)(cacheline_bits + tag_bits - 1, cacheline_bits)
-        val cacheline_valid_bit = cachelines_in_set(i)(valid_bit_index)
-        when(tag === cacheline_tag && cacheline_valid_bit) {
-          hit := true.B
-          hit_index := i.U
-          hit_cacheline := cachelines_in_set(i)
-        }
-      }
-      state := CacheState.Compared
-    }
-  }
+  val evict = RegInit(false.B)
+  val victim_index = RegInit(0.U)
+  val victim_cacheline = RegInit(0.U)
 
   // How many bytes have we transferred?
   val fetched = RegInit(0.U)
   // Align to cacheline
-  val fetching_start = (io.cpu_side.address(Parameters.AddrBits - 1, block_offset_bits) << block_offset_bits).asUInt
+  val fetching_start = (address(Parameters.AddrBits - 1, block_offset_bits) << block_offset_bits).asUInt
   // Temporary space for the fetching cache line
   val fetching_cacheline = RegInit(0.U((cacheline_bytes * Parameters.ByteBits).W))
 
-  when(io.cpu_side.write) {
+  when(io.cpu_side.request && (io.cpu_side.read || io.cpu_side.write) && state === CacheState.Idle) {
+    // Save the states
+    read := io.cpu_side.read
+    write := io.cpu_side.write
+    address := io.cpu_side.address
+    write_word := io.cpu_side.write_data
+    write_strobe := io.cpu_side.write_strobe
+    state := CacheState.Read
+  }
 
-  } otherwise {
-    when(hit) {
-      // Read hit
-      io.cpu_side.read_valid := true.B
-      val read_mask = Fill(Parameters.WordSize * Parameters.ByteBits, 1.U(1.W)) << (block_offset << log2Up(Parameters.ByteBits))
-      io.cpu_side.read_data := (hit_cacheline & read_mask) >> (block_offset << log2Up(Parameters.ByteBits))
-    } otherwise {
-      // Read Miss
-      when(state === CacheState.Idle) {
+  when(state === CacheState.Read) {
+    cachelines_in_set := set_data
+    state := CacheState.Compare
+  }
+
+  when(state === CacheState.Compare) {
+    for (i <- 0 until associativity) {
+      val cacheline_tag = cachelines_in_set(i)(cacheline_bits + tag_bits - 1, cacheline_bits)
+      val cacheline_valid_bit = cachelines_in_set(i)(valid_bit_index)
+      when(tag === cacheline_tag && cacheline_valid_bit) {
+        hit := true.B
+        hit_index := i.U
+        hit_cacheline := cachelines_in_set(i)
+      }
+      when(!cacheline_valid_bit) {
+        victim_index := i.U
+      }
+    }
+    state := CacheState.Compared
+  }
+
+  when(state === CacheState.Compared) {
+    when(read) {
+      when(hit) {
+        // Read hit
+        val read_mask = Fill(Parameters.WordSize * Parameters.ByteBits, 1.U(1.W)) << (block_offset << log2Up
+        (Parameters.ByteBits))
+        read_word := (hit_cacheline & read_mask) >> (block_offset << log2Up(Parameters.ByteBits))
+        read_valid := true.B
+        state := CacheState.Idle
+      }.otherwise {
+        // Read miss
         fetched := 0.U
+        io.memory_side.address := fetching_start
         io.memory_side.request := true.B
         io.memory_side.read := true.B
-        io.memory_side.address := fetching_start
-        when(io.memory_side.granted) {
-          state := CacheState.Missed
-        }
-      }.elsewhen(state === CacheState.Missed) {
-        io.memory_side.request := true.B
-        when(fetched < cacheline_bytes.U) {
-          when(io.memory_side.read_valid) {
-            fetched := fetched + Parameters.WordSize.U
-            fetching_cacheline := fetching_cacheline | (io.memory_side.read_data << (fetched << log2Up(Parameters.ByteBits)))
-          }
-        }.otherwise {
-
-        }
+        state := CacheState.WaitReadGranted
       }
+    }
+  }
+
+  when(state === CacheState.WaitReadGranted) {
+    io.memory_side.request := true.B
+    io.memory_side.read := true.B
+    io.memory_side.address := fetching_start + fetched
+    when(io.memory_side.granted) {
+      state := CacheState.WaitMemoryRead
+    }
+  }
+
+  when(state === CacheState.WaitMemoryRead) {
+    io.memory_side.read := false.B
+    io.memory_side.request := false.B
+    io.memory_side.address := fetching_start + fetched
+    when(io.memory_side.read_valid) {
+      fetching_cacheline := fetching_cacheline | (io.memory_side.read_data << (fetched << log2Up(Parameters
+        .ByteBits)))
+      when(fetched < (cacheline_bytes - Parameters.WordSize).U) {
+        fetched := fetched + Parameters.WordSize.U
+        state := CacheState.WaitReadGranted
+        io.memory_side.request := true.B
+        io.memory_side.read := true.B
+        io.memory_side.address := fetching_start + fetched + Parameters.WordSize.U
+      }.otherwise {
+        // Fetched all bytes from memory
+        state := CacheState.Missed
+      }
+    }
+  }
+
+  when(state === CacheState.Missed) {
+    when(!victim_cacheline(dirty_bit_index)) {
+      val new_set = VecInit(Seq.fill(associativity)(0.U))
+      val new_set_mask = VecInit(Seq.fill(associativity)(false.B))
+      new_set(victim_index) := Cat(false.B, true.B, tag, fetching_cacheline)
+      new_set_mask(victim_index) := true.B
+      cachelines.write(set_index, new_set, new_set_mask)
+      val read_mask = Fill(Parameters.WordSize * Parameters.ByteBits, 1.U(1.W)) << (block_offset << log2Up
+      (Parameters.ByteBits))
+      read_word := (fetching_cacheline & read_mask) >> (block_offset << log2Up(Parameters.ByteBits))
+      read_valid := true.B
+      state := CacheState.Idle
+    }.otherwise {
+      // Write back the dirty cache line
+      state := CacheState.WaitMemoryWrite
     }
   }
 }
