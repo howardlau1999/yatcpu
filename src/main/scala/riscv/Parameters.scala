@@ -55,4 +55,16 @@ object Parameters {
   val MasterDeviceCount = 1
   val SlaveDeviceCount = 8
   val SlaveDeviceCountBits = log2Up(Parameters.SlaveDeviceCount)
+
+  // mmu
+  val PageSize = 4086
+  val PageOffsetBits = log2Up(Parameters.PageSize)
+  val PageOffsetWidth = PageOffsetBits.W
+
+  val PTESize = 4
+  val PTEBits = log2Up(Parameters.PTESize)
+  val PTEWidth = Parameters.PTEBits.W
+
+  val PhysicalPageCount = Math.ceil(MemorySizeInBytes / PageSize).toInt
+
 }
