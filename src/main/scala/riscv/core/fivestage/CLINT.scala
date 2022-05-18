@@ -53,6 +53,13 @@ class CLINT extends Module {
     val instruction = Input(UInt(Parameters.InstructionWidth))
     val instruction_address_if = Input(UInt(Parameters.AddrWidth))
 
+    //exception signals from MMU etc.
+    val exception_signal = Input(Bool())
+
+    val address_cause_exception = Input(UInt(Parameters.AddrWidth))
+    val exception_cause = Input(UInt(Parameters.DataWidth))
+
+    //Instruction and or cause exception
     val jump_flag = Input(Bool())
     val jump_address = Input(UInt(Parameters.AddrWidth))
 
@@ -106,7 +113,6 @@ class CLINT extends Module {
         io.jump_address - 4.U,
         io.instruction_address_if
       )
-
       cause := MuxLookup(
         io.instruction,
         10.U,
@@ -115,11 +121,11 @@ class CLINT extends Module {
           InstructionsEnv.ebreak -> 3.U,
         )
       )
-    }.elsewhen(interrupt_state === InterruptState.AsyncAssert) {
+    }.elsewhen(interrupt_state === InterruptState.AsyncAssert) { //
       // Asynchronous Interrupt
-      cause := 0x8000000BL.U
+      cause := 0x8000000BL.U // Interrupt from peripherals : Uart
       when(io.interrupt_flag(0)) {
-        cause := 0x80000007L.U
+        cause := 0x80000007L.U  // Interrupt from timer
       }
       csr_state := CSRState.MEPC
       instruction_address := Mux(
@@ -154,6 +160,7 @@ class CLINT extends Module {
       CSRState.MRET -> CSRRegister.MSTATUS,
     )
   ))
+
   csr_reg_write_data := MuxLookup(
     csr_state,
     0.U(Parameters.DataWidth),
@@ -164,6 +171,7 @@ class CLINT extends Module {
       CSRState.MRET -> Cat(io.csr_mstatus(31, 4), io.csr_mstatus(7), io.csr_mstatus(2, 0)),
     )
   )
+
   io.csr_reg_write_enable := csr_reg_write_enable
   io.csr_reg_write_address := csr_reg_write_address
   io.csr_reg_write_data := csr_reg_write_data

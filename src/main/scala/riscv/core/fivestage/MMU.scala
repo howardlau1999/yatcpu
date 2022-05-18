@@ -3,7 +3,9 @@ import chisel3._
 import chisel3.experimental.ChiselEnum
 import chisel3.util._
 import riscv.Parameters
-import riscv.core.BusBundle
+import riscv.core.{BusBundle, fivestage}
+
+import scala.collection.IndexedSeq
 
 object MMUStates extends ChiselEnum{
   val idle,level1,level0,setADbit,gotPhyicalAddress = Value
@@ -22,6 +24,7 @@ class MMU extends Module{
     val mmu_enable = Input(Bool())
 
     val instructions = Input(UInt(Parameters.InstructionWidth))
+    val instructions_address = Input(UInt(Parameters.AddrWidth))
 
     val ppn_from_satp = Input(UInt(10.W))
 
@@ -30,13 +33,17 @@ class MMU extends Module{
     val mem_request = Input(Bool())
     val pa_read_done = Input(Bool())
 
-    val mem_read_or_write_enable = Input(Bool())
 
     val stall_flag_if = Output(Bool())
     val stall_flag_mem = Output(Bool())
     val busy = Output(Bool())
     val pa_valid = Output(Bool())
     val pa = Output(UInt(Parameters.AddrWidth))
+
+    val page_fault_signals = Output(Bool())
+    val va_cause_page_fault = Output(Bool())
+    val ecause = Output(UInt(Parameters.DataWidth))
+    val epc = Output(UInt(Parameters.AddrWidth))
 
     val bus = new BusBundle()
   })
@@ -70,12 +77,36 @@ class MMU extends Module{
   val pte1 = Reg(UInt(Parameters.PTEWidth))
   val pte0 = Reg(UInt(Parameters.PTEWidth))
 
-  def raise_page_fault(): Unit ={
-
+  def mmu_back_to_idle(): Unit ={
+    io.stall_flag_if := false.B
+    io.stall_flag_mem := false.B
+    io.busy := false.B
+    io.pa_valid := false.B
+    state := MMUStates.idle
   }
 
-
-
+  def raise_page_fault(): Unit ={
+    io.ecause := Mux(
+      mmu_occupy_by_mem,
+      MuxLookup(
+        io.instructions,
+        10.U
+        IndexedSeq(
+          InstructionTypes.S->15.U,
+          InstructionTypes.L->13.U,
+        )
+      ),
+      12.U // Instruction page fault
+    )
+    io.va_cause_page_fault := va //for mtval
+    io.page_fault_signals := true.B
+    io.epc := Mux(    //info stored before the exception handler, will start again from this pc
+      mmu_occupy_by_mem,
+      io.instructions_address,
+      va,
+    )
+    mmu_back_to_idle()
+  }
 
   //MMU FSM
   //we ignore the (31,30) bit of ppn, because our physical address bits is 32
