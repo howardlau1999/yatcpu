@@ -6,7 +6,7 @@ import riscv.Parameters
 import riscv.core.BusBundle
 
 object MMUStates extends ChiselEnum{
-  val idle,level1,level0 = Value
+  val idle,level1,level0,setADbit,gotPhyicalAddress = Value
 }
 
 object InstructionTypes {
@@ -28,6 +28,7 @@ class MMU extends Module{
     val virtual_address = Input(UInt(Parameters.AddrWidth))
     val if_request = Input(Bool())
     val mem_request = Input(Bool())
+    val pa_read_done = Input(Bool())
 
     val mem_read_or_write_enable = Input(Bool())
 
@@ -65,21 +66,30 @@ class MMU extends Module{
   io.bus.write_strobe := VecInit(Seq.fill(Parameters.WordSize)(false.B))
   io.bus.write := false.B
 
-  val mmu_occupy_by = RegInit(true.B) // true indicate that mem are using the mmu,otherwise the IF
+  val mmu_occupy_by_mem = RegInit(true.B) // true indicate that mem are using the mmu,otherwise the IF
   val pte1 = Reg(UInt(Parameters.PTEWidth))
   val pte0 = Reg(UInt(Parameters.PTEWidth))
 
+  def raise_page_fault(): Unit ={
+
+  }
+
+
+
+
+  //MMU FSM
   //we ignore the (31,30) bit of ppn, because our physical address bits is 32
   when(io.mmu_enable && (io.if_request || io.mem_request)){
     when(state === MMUStates.idle){
       //read pte from mem when the bus is free and someone needs the translation
+      //mem request take precedence of IF
       when(io.mem_request){
-        mmu_occupy_by := true.B
+        mmu_occupy_by_mem := true.B
       }.otherwise{
-        mmu_occupy_by := false.B
+        mmu_occupy_by_mem := false.B
       }
-      io.stall_flag_if := !mmu_occupy_by
-      io.stall_flag_mem := mmu_occupy_by
+      io.stall_flag_if := !mmu_occupy_by_mem
+      io.stall_flag_mem := mmu_occupy_by_mem
       io.busy := true.B
       io.pa_valid := false.B
 
@@ -93,52 +103,82 @@ class MMU extends Module{
       }
     }.elsewhen (state === MMUStates.level1){ //don't support the huge page
       //already access the bus,wait for the pte
-      io.stall_flag_if := io.if_request
-      io.stall_flag_mem := io.mem_request
+      io.stall_flag_if := !mmu_occupy_by_mem
+      io.stall_flag_mem := mmu_occupy_by_mem
       io.bus.read := false.B
       io.bus.request := true.B
       when(io.bus.read_valid){
         val pte1 = io.bus.read_data
-        //no PMA or PMP check
+        //todo: hrpccs :no PMA or PMP check
         when(pte1(0) === 0.U || (pte1(2,1) === "b10".U) || (pte1(9,8) =/= "b00".U)){
           //raise a page-fault exception corresponding to the original access type
-        }.elsewhen(io.mem_request && mmu_occupy_by === false.B){ //memaccess take precedence over IF
+        }.elsewhen(io.mem_request && mmu_occupy_by_mem === false.B){ //memaccess take precedence over IF
           //go back to state idle,restart the translation
           state := MMUStates.idle
         }.otherwise {
           io.bus.request := true.B
           io.bus.read := true.B
           io.bus.address := ((pte1(29,10) << Parameters.PageOffsetBits) + (vpn0 << 2))//address of level 0 pte
-          state := MMUStates.level0
+          when(io.bus.granted) {
+            state := MMUStates.level0
+          }
         }
       }
     }.elsewhen (state === MMUStates.level0){
+      io.stall_flag_if := !mmu_occupy_by_mem
+      io.stall_flag_mem := mmu_occupy_by_mem
       io.bus.read := false.B
       io.bus.request := true.B
       when(io.bus.read_valid){
         val pte0 = io.bus.read_data
         when(pte0(0) === 0.U || (pte0(2,1) === "b10".U) || (pte0(9,8) =/= "b00".U) || (pte0(3,1) === "b000".U)) {
           //raise a page-fault exception corresponding to the original access type
-        }.elsewhen(io.mem_request && mmu_occupy_by === false.B){
+        }.elsewhen(io.mem_request && mmu_occupy_by_mem === false.B){
           state := MMUStates.idle
-        }.elsewhen(pte0(1) === 1.U || pte0(3) === 1.U){
+        }.elsewhen(pte0(1) === 1.U || pte0(3) === 1.U) {
           //we found a leaf pte
-          val instructionInvalid = mmu_occupy_by === false.B && pte(3) === 0
-          val storeInvalid = io.instructions(6,0) === InstructionTypes.S && pte(2) === 0
-          val loadInvalid = io.instructions(6,0) === InstructionTypes.L && pte(1) === 0
-          when(instructionInvalid || storeInvalid || loadInvalid ) {
+          val instructionInvalid = mmu_occupy_by_mem === false.B && pte(3) === 0
+          val storeInvalid = io.instructions(6, 0) === InstructionTypes.S && pte(2) === 0
+          val loadInvalid = io.instructions(6, 0) === InstructionTypes.L && pte(1) === 0
+          when(instructionInvalid || storeInvalid || loadInvalid) {
             //todo:hrpccs :when the privillege switch is done,please add the privillege check
             //raise a page-fault
-          }.elsewhen(pte0(6) === 0.U || (pte0(7) === 0.U && io.instructions(6,0) === InstructionTypes.S)){
+          }.elsewhen(pte0(6) === 0.U || (pte0(7) === 0.U && io.instructions(6, 0) === InstructionTypes.S)) {
             //set the access bit and the dirty bit if the instruction is store type
             //as we currently support single core CPU,so we can ignore the concurrent pte change
             //todo:hrpccs :when someone want to have a multicore support \
             // please modify this part acording to riscv-privilege
-            val newpte = pte0()
-            io.bus.write_data = pte0(31,8)
+            val setAbit = io.instructions(6, 0) === InstructionTypes.S
+            io.bus.write_data := Cat(pte0(31, 8), setAbit, 1.U(1.W), pte0(5, 0))
+            io.bus.request := true.B
+            io.bus.write := true.B
+            for (i <- 0 until Parameters.WordSize) {
+              io.bus.write_strobe(i) := true.B
+            }
+            when(io.bus.granted) {
+              state := MMUStates.setADbit
+            }
+          }.otherwise{
+            state := MMUStates.gotPhyicalAddress
           }
         }
-
+      }
+    }.elsewhen(state === MMUStates.setADbit){
+      io.bus.request := true.B
+      io.bus.write := false.B
+      when(io.bus.write_valid) {
+        state := MMUStates.gotPhyicalAddress
+      }
+    }.elsewhen(state === MMUStates.gotPhyicalAddress){
+      io.bus.request := false.B
+      io.stall_flag_mem := false.B
+      io.stall_flag_if := false.B
+      io.pa := Cat(pte0(31,12),pageoffset)
+      io.pa_valid := true.B
+      when(io.pa_read_done){
+        io.pa_valid := false.B
+        io.busy := false.B
+        state := MMUStates.idle
       }
     }
   }
