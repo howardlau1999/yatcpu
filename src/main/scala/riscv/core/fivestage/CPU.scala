@@ -41,7 +41,9 @@ class CPU extends Module {
   axi4_master.io.channels <> io.axi4_channels
 
   // The MEM module takes precedence over IF (but let the previous fetch finish)
+  // And the result of the previous fetch will be ignored
   val mem_granted = RegInit(false.B)
+
   when(mem_granted) {
     inst_fetch.io.instruction_valid := false.B
     io.bus_address := mem.io.bus.address
@@ -69,6 +71,14 @@ class CPU extends Module {
       mem_granted := true.B
     }
   }
+
+
+
+  /*
+
+
+   */
+
 
   inst_fetch.io.instruction_valid := io.instruction_valid && axi4_master.io.bundle.read_valid && !mem_granted
   inst_fetch.io.bus_data := axi4_master.io.bundle.read_data
