@@ -21,11 +21,13 @@ object InstructionTypes {
 
 class MMU extends Module{
   val io = IO(new Bundle() {
+    //from satp
     val mmu_enable = Input(Bool())
 
     val instructions = Input(UInt(Parameters.InstructionWidth))
     val instructions_address = Input(UInt(Parameters.AddrWidth))
 
+    //from satp
     val ppn_from_satp = Input(UInt(10.W))
 
     val virtual_address = Input(UInt(Parameters.AddrWidth))
@@ -44,6 +46,7 @@ class MMU extends Module{
     val va_cause_page_fault = Output(Bool())
     val ecause = Output(UInt(Parameters.DataWidth))
     val epc = Output(UInt(Parameters.AddrWidth))
+    val page_fault_responed = Input(Bool())
 
     val bus = new BusBundle()
   })
@@ -102,10 +105,13 @@ class MMU extends Module{
     io.page_fault_signals := true.B
     io.epc := Mux(    //info stored before the exception handler, will start again from this pc
       mmu_occupy_by_mem,
-      io.instructions_address,
-      va,
+      io.instructions_address,  //mem_access
+      va,   //IF
     )
-    mmu_back_to_idle()
+    when(io.page_fault_responed){
+      io.page_fault_signals := false.B
+      mmu_back_to_idle()
+    }
   }
 
   //MMU FSM
@@ -143,6 +149,7 @@ class MMU extends Module{
         //todo: hrpccs :no PMA or PMP check
         when(pte1(0) === 0.U || (pte1(2,1) === "b10".U) || (pte1(9,8) =/= "b00".U)){
           //raise a page-fault exception corresponding to the original access type
+          raise_page_fault()
         }.elsewhen(io.mem_request && mmu_occupy_by_mem === false.B){ //memaccess take precedence over IF
           //go back to state idle,restart the translation
           state := MMUStates.idle
@@ -164,6 +171,7 @@ class MMU extends Module{
         val pte0 = io.bus.read_data
         when(pte0(0) === 0.U || (pte0(2,1) === "b10".U) || (pte0(9,8) =/= "b00".U) || (pte0(3,1) === "b000".U)) {
           //raise a page-fault exception corresponding to the original access type
+          raise_page_fault()
         }.elsewhen(io.mem_request && mmu_occupy_by_mem === false.B){
           state := MMUStates.idle
         }.elsewhen(pte0(1) === 1.U || pte0(3) === 1.U) {
@@ -173,7 +181,7 @@ class MMU extends Module{
           val loadInvalid = io.instructions(6, 0) === InstructionTypes.L && pte(1) === 0
           when(instructionInvalid || storeInvalid || loadInvalid) {
             //todo:hrpccs :when the privillege switch is done,please add the privillege check
-            //raise a page-fault
+            raise_page_fault()
           }.elsewhen(pte0(6) === 0.U || (pte0(7) === 0.U && io.instructions(6, 0) === InstructionTypes.S)) {
             //set the access bit and the dirty bit if the instruction is store type
             //as we currently support single core CPU,so we can ignore the concurrent pte change
@@ -207,12 +215,9 @@ class MMU extends Module{
       io.pa := Cat(pte0(31,12),pageoffset)
       io.pa_valid := true.B
       when(io.pa_read_done){
-        io.pa_valid := false.B
-        io.busy := false.B
-        state := MMUStates.idle
+        mmu_back_to_idle()
       }
     }
   }
-
 
 }
