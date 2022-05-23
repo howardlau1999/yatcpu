@@ -57,7 +57,7 @@ object Parameters {
   val SlaveDeviceCountBits = log2Up(Parameters.SlaveDeviceCount)
 
   // mmu
-  val PageSize = 4086
+  val PageSize = 4096
   val PageOffsetBits = log2Up(Parameters.PageSize)
   val PageOffsetWidth = PageOffsetBits.W
 

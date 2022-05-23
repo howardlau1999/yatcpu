@@ -16,8 +16,17 @@ package riscv.core.fivestage
 
 import bus.{AXI4LiteChannels, AXI4LiteMaster}
 import chisel3._
+import chisel3.experimental.ChiselEnum
 import riscv.Parameters
 import riscv.core.CPUBundle
+
+object BUSGranted extends ChiselEnum{
+  val idle,if_granted,mem_granted,mmu_mem_granted,mmu_if_granted = Value
+}
+
+object MEMAccessState extends  ChiselEnum{
+  val idle,if_address_translate,mem_address_translate,mem_access,if_access = Value
+}
 
 class CPU extends Module {
   val io = IO(new CPUBundle)
@@ -37,57 +46,121 @@ class CPU extends Module {
   val clint = Module(new CLINT)
   val csr_regs = Module(new CSR)
   val axi4_master = Module(new AXI4LiteMaster(Parameters.AddrBits, Parameters.DataBits))
-
+  val mmu = Module(new MMU)
   axi4_master.io.channels <> io.axi4_channels
 
-  // The MEM module takes precedence over IF (but let the previous fetch finish)
-  // And the result of the previous fetch will be ignored
-  val mem_granted = RegInit(false.B)
+  val bus_granted = RegInit(BUSGranted.if_granted)
+  val mem_access_state = RegInit(MEMAccessState.idle)
+  val virtualaddress = RegInit(UInt(Parameters.AddrWidth),0.U)
+  val physical_address = RegInit(UInt(Parameters.AddrWidth),0.U)
 
-  when(mem_granted) {
-    inst_fetch.io.instruction_valid := false.B
+  when(mem_access_state === MEMAccessState.idle){
+    when(!axi4_master.io.bundle.busy && !axi4_master.io.bundle.read_valid){
+      when(csr_regs.io.mmu_enable){
+        when(mem.io.bus.request){
+          mem_access_state := MEMAccessState.mem_address_translate
+          bus_granted := BUSGranted.mmu_mem_granted
+          virtualaddress := ex2mem.io.alu_result
+        }.elsewhen(inst_fetch.io.bus.request){
+          mem_access_state := MEMAccessState.if_address_translate
+          bus_granted := BUSGranted.mmu_if_granted
+          virtualaddress := inst_fetch.io.id_instruction_address
+        }
+      }.otherwise{
+        when(mem.io.bus.request){
+          mem_access_state := MEMAccessState.mem_access
+          bus_granted := BUSGranted.mem_granted
+          physical_address := mem.io.alu_result
+        }.elsewhen(inst_fetch.io.bus.request){
+          mem_access_state := MEMAccessState.if_access
+          bus_granted := BUSGranted.if_granted
+          physical_address := inst_fetch.io.id_instruction_address
+        }
+      }
+    }
+  }.elsewhen(mem_access_state === MEMAccessState.mem_address_translate){
+    mmu.io.restart := false.B
+    when(mmu.io.pa_valid){
+      mem_access_state := MEMAccessState.mem_access
+      bus_granted := BUSGranted.mem_granted
+      physical_address := mmu.io.pa
+    }
+  }.elsewhen(mem_access_state === MEMAccessState.if_address_translate){
+    //"Interrupt" the IF address translation, turn to mem address translation
+    when(mem.io.bus.request){
+      mmu.io.restart := true.B
+      when(mmu.io.restart_done){
+        MEMAccessState.mem_address_translate
+      }
+    }.elsewhen(id.io.if_jump_flag){
+      mmu.io.restart := true.B
+      when(mmu.io.restart_done){
+        MEMAccessState.if_address_translate
+      }
+    }.otherwise{
+      when(mmu.io.pa_valid){
+        mem_access_state := MEMAccessState.if_access
+        bus_granted := BUSGranted.if_granted
+        physical_address := mmu.io.pa
+      }
+    }
+  }.elsewhen(mem_access_state === MEMAccessState.mem_access){
+    when(mem.io.bus.read_valid || mem.io.bus.write_valid){
+      mem_access_state := MEMAccessState.idle
+      bus_granted := BUSGranted.idle
+    }
+  }.elsewhen(mem_access_state === MEMAccessState.if_access){
+    when(inst_fetch.io.bus.read_valid){
+      mem_access_state := MEMAccessState.idle
+      bus_granted := BUSGranted.idle
+    }
+  }
+
+  when(bus_granted === BUSGranted.mmu_if_granted || bus_granted === BUSGranted.mmu_mem_granted){
+    io.bus_address := mmu.io.bus.address
+    axi4_master.io.bundle.read := mmu.io.bus.read
+    axi4_master.io.bundle.address := mmu.io.bus.address
+    axi4_master.io.bundle.write := mmu.io.bus.write
+    axi4_master.io.bundle.write_data := mmu.io.bus.write_data
+    axi4_master.io.bundle.write_strobe := mmu.io.bus.write_strobe
+  }.elsewhen(bus_granted === BUSGranted.mem_granted){
     io.bus_address := mem.io.bus.address
     axi4_master.io.bundle.read := mem.io.bus.read
     axi4_master.io.bundle.address := mem.io.bus.address
     axi4_master.io.bundle.write := mem.io.bus.write
     axi4_master.io.bundle.write_data := mem.io.bus.write_data
     axi4_master.io.bundle.write_strobe := mem.io.bus.write_strobe
-    when(!mem.io.bus.request) {
-      mem_granted := false.B
-    }
-  }.otherwise {
-    // Default to fetch instructions from main memory
-    mem_granted := false.B
-    axi4_master.io.bundle.read := !axi4_master.io.bundle.busy && !axi4_master.io.bundle.read_valid && !mem.io.bus.request
-    axi4_master.io.bundle.address := inst_fetch.io.bus_address
-    io.bus_address := inst_fetch.io.bus_address
-    axi4_master.io.bundle.write := false.B
-    axi4_master.io.bundle.write_data := 0.U
-    axi4_master.io.bundle.write_strobe := VecInit(Seq.fill(Parameters.WordSize)(false.B))
-  }
-
-  when(mem.io.bus.request) {
-    when(!axi4_master.io.bundle.busy && !axi4_master.io.bundle.read_valid) {
-      mem_granted := true.B
-    }
+  }.otherwise{
+    io.bus_address := inst_fetch.io.bus.address
+    axi4_master.io.bundle.read := inst_fetch.io.bus.read
+    axi4_master.io.bundle.address := inst_fetch.io.bus.address
+    axi4_master.io.bundle.write := inst_fetch.io.bus.write
+    axi4_master.io.bundle.write_data := inst_fetch.io.bus.write_data
+    axi4_master.io.bundle.write_strobe := inst_fetch.io.bus.write_strobe
   }
 
 
+  mmu.io.instructions := ex2mem.io.output_instruction
+  mmu.io.instructions_address := ex2mem.io.output_instruction_address
+  mmu.io.virtual_address := virtualaddress
+  mmu.io.restart := false.B
+  mmu.io.bus.granted := bus_granted === BUSGranted.mmu_mem_granted || bus_granted === BUSGranted.mmu_if_granted
+  mmu.io.page_fault_responed := false.B
+  mmu.io.ppn_from_satp := csr_regs.io.mmu_csr_satp(21,0)
+  mmu.io.page_fault_responed := clint.io.exception_token
+  mmu.io.mmu_occupied_by_mem := bus_granted === BUSGranted.mmu_mem_granted
 
-  /*
-
-
-   */
-
-
-  inst_fetch.io.instruction_valid := io.instruction_valid && axi4_master.io.bundle.read_valid && !mem_granted
-  inst_fetch.io.bus_data := axi4_master.io.bundle.read_data
+  inst_fetch.io.bus.read_valid := io.instruction_valid && axi4_master.io.bundle.read_valid && bus_granted === BUSGranted.if_granted
+  inst_fetch.io.bus.read_data := axi4_master.io.bundle.read_data
+  inst_fetch.io.bus.granted := bus_granted === BUSGranted.if_granted
+  inst_fetch.io.physical_address := physical_address
 
   mem.io.bus.read_data := axi4_master.io.bundle.read_data
   mem.io.bus.read_valid := axi4_master.io.bundle.read_valid
   mem.io.bus.write_valid := axi4_master.io.bundle.write_valid
   mem.io.bus.busy := axi4_master.io.bundle.busy
-  mem.io.bus.granted := mem_granted
+  mem.io.bus.granted := bus_granted === BUSGranted.mem_granted
+
 
   ctrl.io.jump_flag := id.io.if_jump_flag
   ctrl.io.stall_flag_if := inst_fetch.io.ctrl_stall_flag
@@ -208,6 +281,11 @@ class CPU extends Module {
   clint.io.csr_mstatus := csr_regs.io.clint_csr_mstatus
   clint.io.interrupt_enable := csr_regs.io.interrupt_enable
   clint.io.interrupt_flag := if2id.io.output_interrupt_flag
+  //todo: change it for handling more exceptions
+  clint.io.exception_signal := mmu.io.page_fault_signals
+  clint.io.instruction_address_cause_exception := mmu.io.epc
+  clint.io.exception_val := mmu.io.va_cause_page_fault
+  clint.io.exception_cause := mmu.io.ecause
 
   csr_regs.io.reg_write_enable_ex := id2ex.io.output_csr_write_enable
   csr_regs.io.reg_write_address_ex := id2ex.io.output_csr_address

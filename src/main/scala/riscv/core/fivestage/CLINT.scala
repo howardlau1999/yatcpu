@@ -95,6 +95,7 @@ class CLINT extends Module {
   val csr_reg_write_data = RegInit(UInt(Parameters.DataWidth), 0.U)
 
   io.ctrl_stall_flag := interrupt_state =/= InterruptState.Idle || csr_state =/= CSRState.Idle
+  io.exception_token := false.B
 
   // Interrupt FSM
   //exception cause SyncAssert

@@ -30,6 +30,7 @@ object CSRRegister {
   val MSTATUS = 0x300.U(Parameters.CSRRegisterAddrWidth)
   val MSCRATCH = 0x340.U(Parameters.CSRRegisterAddrWidth)
   val MTVAL = 0x343.U(Parameters.CSRRegisterAddrWidth)
+  val SATP = 0x180.U(Parameters.CSRRegisterAddrWidth)
 }
 
 class CSR extends Module {
@@ -45,13 +46,14 @@ class CSR extends Module {
     val reg_write_data_clint = Input(UInt(Parameters.DataWidth))
 
     val interrupt_enable = Output(Bool())
-
+    val mmu_enable = Output(Bool())
     val id_reg_data = Output(UInt(Parameters.DataWidth))
 
     val clint_reg_data = Output(UInt(Parameters.DataWidth))
     val clint_csr_mtvec = Output(UInt(Parameters.DataWidth))
     val clint_csr_mepc = Output(UInt(Parameters.DataWidth))
     val clint_csr_mstatus = Output(UInt(Parameters.DataWidth))
+    val mmu_csr_satp = Output(UInt(Parameters.DataWidth))
   })
 
 
@@ -63,12 +65,15 @@ class CSR extends Module {
   val mstatus = RegInit(UInt(Parameters.DataWidth), 0.U)
   val mscratch = RegInit(UInt(Parameters.DataWidth), 0.U)
   val mtval = RegInit(UInt(Parameters.DataWidth), 0.U)
+  val satp = RegInit(UInt(Parameters.DataWidth),0.U)
 
   cycles := cycles + 1.U
   io.clint_csr_mtvec := mtvec
   io.clint_csr_mepc := mepc
   io.clint_csr_mstatus := mstatus
   io.interrupt_enable := mstatus(3) === 1.U
+  io.mmu_csr_satp := satp
+  io.mmu_enable := satp(31) === 1.U
 
   val reg_write_address = Wire(UInt(Parameters.CSRRegisterAddrWidth))
   val reg_write_data = Wire(UInt(Parameters.DataWidth))
@@ -102,6 +107,8 @@ class CSR extends Module {
     mscratch := reg_write_data
   }.elsewhen(reg_write_address === CSRRegister.MTVAL) {
     mtval := reg_write_data
+  }.elsewhen(reg_write_address === CSRRegister.SATP){
+    satp := reg_write_data
   }
 
   val regLUT =
@@ -115,6 +122,7 @@ class CSR extends Module {
       CSRRegister.MSTATUS -> mstatus,
       CSRRegister.MSCRATCH -> mscratch,
       CSRRegister.MTVAL -> mtval,
+      CSRRegister.SATP -> satp,
     )
 
   io.id_reg_data := MuxLookup(
