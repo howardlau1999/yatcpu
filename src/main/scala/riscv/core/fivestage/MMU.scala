@@ -38,7 +38,7 @@ class MMU extends Module{
 
   val state = RegInit(MMUStates.idle)
 
-  val pa = RegInit(0.U(Parameters.AddrWidth))
+  val pa = RegInit(UInt(Parameters.AddrWidth),0.U)
   val va = io.virtual_address
   val vpn1 = va(31,22)
 
@@ -46,6 +46,8 @@ class MMU extends Module{
   val pageoffset = va(11,0)
 
   val pte = Reg(UInt(Parameters.PTEWidth))
+  //add a reg to avoid Combination loop
+  val page_fault_signals=RegInit(false.B)
 
   def mmu_back_to_idle(): Unit ={
     io.pa_valid := false.B
@@ -66,14 +68,14 @@ class MMU extends Module{
       12.U // Instruction page fault
     )
     io.va_cause_page_fault := va //for mtval
-    io.page_fault_signals := true.B
+    page_fault_signals := true.B
     io.epc := Mux(    //info stored before the exception handler, will start again from this pc
       io.mmu_occupied_by_mem,
       io.instructions_address,  //mem_access
       va,   //IF
     )
     when(io.page_fault_responed){
-      io.page_fault_signals := false.B
+      page_fault_signals := false.B
       mmu_back_to_idle()
     }
   }
@@ -85,7 +87,13 @@ class MMU extends Module{
   io.bus.write_data := 0.U
   io.bus.write_strobe := VecInit(Seq.fill(Parameters.WordSize)(false.B))
   io.bus.write := false.B
-  io.page_fault_signals := false.B
+  io.page_fault_signals := page_fault_signals
+
+  io.ecause := 0.U
+  io.pa := 0.U
+  io.restart_done := false.B
+  io.va_cause_page_fault := 0.U
+  io.epc := 0.U
 
   //MMU FSM
   //our physical address bits is 32
@@ -96,7 +104,7 @@ class MMU extends Module{
       io.pa_valid := false.B
       io.bus.read := true.B
       io.restart_done := false.B
-      io.bus.address := ((io.ppn_from_satp << Parameters.PageOffsetBits) + (vpn1 << Parameters.PTEBits)) //address of level 1 pte
+      io.bus.address := ((io.ppn_from_satp << Parameters.PageOffsetBits) + (vpn1 << 2)) //address of level 1 pte
       state := MMUStates.level1
     }.elsewhen (state === MMUStates.level1){ //don't support the huge page
       //already access the bus,wait for the pte
@@ -120,7 +128,7 @@ class MMU extends Module{
         raise_page_fault()
       }.otherwise {
         io.bus.read := true.B
-        io.bus.address := ((pte(29,10) << Parameters.PageOffsetBits) + (vpn0 << Parameters.PTEBits))//address of level 0 pte
+        io.bus.address := ((pte(29,10) << Parameters.PageOffsetBits) + (vpn0 << 2))//address of level 0 pte
         when(io.bus.granted) {
           state := MMUStates.level0
         }
@@ -159,7 +167,7 @@ class MMU extends Module{
           val setAbit = io.instructions(6, 0) === InstructionTypes.S
           io.bus.write_data := Cat(pte(31, 8), setAbit, 1.U(1.W), pte(5, 0))
           io.bus.write := true.B
-          io.bus.address := ((pte(29,10) << Parameters.PageOffsetBits) + (vpn0 << Parameters.PTEBits))
+          io.bus.address := ((pte(29,10) << Parameters.PageOffsetBits) + (vpn0 << 2))
           for (i <- 0 until Parameters.WordSize) {
             io.bus.write_strobe(i) := true.B
           }

@@ -33,6 +33,7 @@ class InstructionFetch extends Module {
     val stall_flag_ctrl = Input(Bool())
     val jump_flag_id = Input(Bool())
     val jump_address_id = Input(UInt(Parameters.AddrWidth))
+    val instruction_valid = Input(Bool())
 
     val physical_address = Input(UInt(Parameters.AddrWidth))
 
@@ -40,7 +41,7 @@ class InstructionFetch extends Module {
     val id_instruction_address = Output(UInt(Parameters.AddrWidth))
     val id_instruction = Output(UInt(Parameters.InstructionWidth))
 
-    val bus = new BusBundle()
+    val bus = new BusBundle
   })
   val pending_jump = RegInit(false.B)
   val pc = RegInit(ProgramCounter.EntryAddress)
@@ -49,6 +50,8 @@ class InstructionFetch extends Module {
   io.bus.read := false.B
   io.bus.request := true.B
   io.bus.write := false.B
+  io.bus.write_data := 0.U
+  io.bus.write_strobe := VecInit(Seq.fill(Parameters.WordSize)(false.B))
 
   pc := MuxCase(
     pc + 4.U,
@@ -70,7 +73,7 @@ class InstructionFetch extends Module {
     }
   }
 
-  when(io.bus.granted){
+  when(io.bus.granted && io.instruction_valid){
     when(state === IFAccessStates.idle){
       io.bus.request := true.B
       io.bus.read := true.B
@@ -80,15 +83,15 @@ class InstructionFetch extends Module {
       io.bus.request := true.B
       when(io.bus.read_valid){
         state := IFAccessStates.idle
-        when(!pending_jump && !io.jump_flag_id){
-          io.id_instruction := InstructionsNop.nop
-        }.otherwise{
-          io.id_instruction := io.bus.read_data
-        }
       }
     }
   }
 
+  io.id_instruction := Mux(
+    io.bus.read_valid && !pending_jump && !io.jump_flag_id,
+    io.bus.read_data,
+    InstructionsNop.nop
+  )
   io.ctrl_stall_flag := !io.bus.read_valid || pending_jump
   io.id_instruction_address := pc
   io.bus.address := io.physical_address

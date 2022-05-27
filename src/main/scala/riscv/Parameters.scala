@@ -61,9 +61,9 @@ object Parameters {
   val PageOffsetBits = log2Up(Parameters.PageSize)
   val PageOffsetWidth = PageOffsetBits.W
 
-  val PTESize = 4
-  val PTEBits = log2Up(Parameters.PTESize)
-  val PTEWidth = Parameters.PTEBits.W
+  val PTESize = 32
+  val PTEWidth = Parameters.PTESize.W
+
 
   val PhysicalPageCount = Math.ceil(MemorySizeInBytes / PageSize).toInt
 
