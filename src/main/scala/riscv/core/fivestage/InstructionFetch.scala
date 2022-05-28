@@ -33,25 +33,31 @@ class InstructionFetch extends Module {
     val stall_flag_ctrl = Input(Bool())
     val jump_flag_id = Input(Bool())
     val jump_address_id = Input(UInt(Parameters.AddrWidth))
-    val instruction_valid = Input(Bool())
 
     val physical_address = Input(UInt(Parameters.AddrWidth))
 
     val ctrl_stall_flag = Output(Bool())
     val id_instruction_address = Output(UInt(Parameters.AddrWidth))
     val id_instruction = Output(UInt(Parameters.InstructionWidth))
+    val pc_valid = Output(Bool()) // for some test which will fetch instruction when pc was not initailized
 
     val bus = new BusBundle
   })
   val pending_jump = RegInit(false.B)
   val pc = RegInit(ProgramCounter.EntryAddress)
   val state = RegInit(IFAccessStates.idle)
+  val pc_valid = RegInit(false.B)
 
   io.bus.read := false.B
   io.bus.request := true.B
   io.bus.write := false.B
   io.bus.write_data := 0.U
   io.bus.write_strobe := VecInit(Seq.fill(Parameters.WordSize)(false.B))
+  io.pc_valid := pc_valid
+
+  when(!pc_valid && pc===ProgramCounter.EntryAddress){
+    pc_valid := true.B
+  }
 
   pc := MuxCase(
     pc + 4.U,
@@ -73,7 +79,7 @@ class InstructionFetch extends Module {
     }
   }
 
-  when(io.bus.granted && io.instruction_valid){
+  when(io.bus.granted){
     when(state === IFAccessStates.idle){
       io.bus.request := true.B
       io.bus.read := true.B

@@ -20,6 +20,7 @@ import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
 import peripheral.DummySlave
 import riscv.Parameters
 import riscv.core.CPU
+import peripheral.Timer
 
 class Top extends Module {
 
@@ -45,6 +46,7 @@ class Top extends Module {
   val dummy = Module(new DummySlave)
   val bus_arbiter = Module(new BusArbiter)
   val bus_switch = Module(new BusSwitch)
+  val timer = Module(new Timer)
 
   bus_arbiter.io.bus_request(0) := true.B
 
@@ -58,6 +60,7 @@ class Top extends Module {
   cpu.io.instruction_valid := true.B
   bus_switch.io.slaves(0) <> mem_slave.io.channels
   bus_switch.io.slaves(2) <> uart_slave.io.channels
+  bus_switch.io.slaves(4) <> timer.io.channels
 
   cpu.io.interrupt_flag := io.signal_interrupt
 

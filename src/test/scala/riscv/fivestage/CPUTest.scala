@@ -152,7 +152,7 @@ class MMIOTest extends AnyFlatSpec with ChiselScalatestTester {
   it should "read and write timer register" in {
     test(new TestTopModule("mmio.asmbin")).withAnnotations(TestAnnotations.annos) { c =>
       c.io.interrupt.poke(0.U)
-      for (i <- 1 to 200) {
+      for (i <- 1 to 600) {
         c.clock.step()
         c.io.mem_debug_read_address.poke((i * 4).U) // Avoid timeout
       }
