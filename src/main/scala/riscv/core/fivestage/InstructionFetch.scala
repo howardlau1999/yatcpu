@@ -39,14 +39,15 @@ class InstructionFetch extends Module {
     val ctrl_stall_flag = Output(Bool())
     val id_instruction_address = Output(UInt(Parameters.AddrWidth))
     val id_instruction = Output(UInt(Parameters.InstructionWidth))
-    val pc_valid = Output(Bool()) // for some test which will fetch instruction when pc was not initailized
+    val pc_valid = Output(Bool())
 
     val bus = new BusBundle
   })
   val pending_jump = RegInit(false.B)
   val pc = RegInit(ProgramCounter.EntryAddress)
   val state = RegInit(IFAccessStates.idle)
-  val pc_valid = RegInit(false.B)
+  val pc_valid = RegInit(false.B) //because the romloader of verilator(sim_main.cpp) need no time cycle
+                                  //it prevent fetching instruction from 0x0, when pc haven't been initailized
 
   io.bus.read := false.B
   io.bus.request := true.B

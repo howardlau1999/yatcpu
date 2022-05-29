@@ -117,7 +117,7 @@ class FibonacciTest extends AnyFlatSpec with ChiselScalatestTester {
   it should "calculate recursively fibonacci(10)" in {
     test(new TestTopModule("fibonacci.asmbin")).withAnnotations(TestAnnotations.annos) { c =>
       c.io.interrupt.poke(0.U)
-      for (i <- 1 to 50) {
+      for (i <- 1 to 100) {
         c.clock.step(1000)
         c.io.mem_debug_read_address.poke((i * 4).U) // Avoid timeout
       }
