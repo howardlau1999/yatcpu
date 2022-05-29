@@ -49,6 +49,10 @@ class CPU extends Module {
   val mmu = Module(new MMU)
   axi4_master.io.channels <> io.axi4_channels
 
+  //debug
+  mem.io.debug_mem_address := 0x11c0.U
+  //debug end
+
   val bus_granted = RegInit(BUSGranted.idle)
   val mem_access_state = RegInit(MEMAccessState.idle)
   val virtual_address = RegInit(UInt(Parameters.AddrWidth),0.U)
@@ -230,6 +234,7 @@ class CPU extends Module {
   ctrl.io.rs2_id := id.io.regs_reg2_read_address
   ctrl.io.memory_read_enable_ex := ex2mem.io.memory_read_enable
   ctrl.io.rd_ex := ex2mem.io.regs_write_address
+  ctrl.io.csr_start_paging := csr_regs.io.start_paging
 
   regs.io.write_enable := mem2wb.io.output_regs_write_enable
   regs.io.write_address := mem2wb.io.output_regs_write_address
@@ -256,6 +261,7 @@ class CPU extends Module {
   id.io.instruction_address := if2id.io.output_instruction_address
   id.io.interrupt_assert := clint.io.id_interrupt_assert
   id.io.interrupt_handler_address := clint.io.id_interrupt_handler_address
+  id.io.csr_start_paging := csr_regs.io.start_paging
 
   id2ex.io.stall_flag := ctrl.io.id_stall
   id2ex.io.flush_enable := ctrl.io.id_flush

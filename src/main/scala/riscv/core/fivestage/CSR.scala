@@ -49,6 +49,8 @@ class CSR extends Module {
     val mmu_enable = Output(Bool())
     val id_reg_data = Output(UInt(Parameters.DataWidth))
 
+    val start_paging = Output(Bool())
+
     val clint_reg_data = Output(UInt(Parameters.DataWidth))
     val clint_csr_mtvec = Output(UInt(Parameters.DataWidth))
     val clint_csr_mepc = Output(UInt(Parameters.DataWidth))
@@ -74,6 +76,7 @@ class CSR extends Module {
   io.interrupt_enable := mstatus(3) === 1.U
   io.mmu_csr_satp := satp
   io.mmu_enable := satp(31) === 1.U
+  io.start_paging := false.B
 
   val reg_write_address = Wire(UInt(Parameters.CSRRegisterAddrWidth))
   val reg_write_data = Wire(UInt(Parameters.DataWidth))
@@ -109,6 +112,9 @@ class CSR extends Module {
     mtval := reg_write_data
   }.elsewhen(reg_write_address === CSRRegister.SATP){
     satp := reg_write_data
+    when(reg_write_data(31) === 1.U && satp(31) === 0.U){
+      io.start_paging := true.B
+    }
   }
 
   val regLUT =

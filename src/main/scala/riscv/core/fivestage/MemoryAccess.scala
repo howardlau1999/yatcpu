@@ -35,10 +35,25 @@ class MemoryAccess extends Module {
 
     val physical_address = Input(UInt(Parameters.AddrWidth))
 
+    val debug_mem_address = Input(UInt(Parameters.AddrWidth))
+    val debug_mem_load = Output(Bool())
+    val debug_mem_store = Output(Bool())
+
     val bus = new BusBundle
   })
   val mem_address_index = io.physical_address(log2Up(Parameters.WordSize) - 1, 0)
   val mem_access_state = RegInit(MemoryAccessStates.Idle)
+
+  io.debug_mem_store := false.B
+  io.debug_mem_load := false.B
+  when(io.physical_address === io.debug_mem_address){
+    when(io.bus.read_valid){
+      io.debug_mem_load := true.B
+    }
+    when(io.bus.write){
+      io.debug_mem_store := true.B
+    }
+  }
 
   def on_bus_transaction_finished() = {
     mem_access_state := MemoryAccessStates.Idle
