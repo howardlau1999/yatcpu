@@ -86,7 +86,6 @@ class CPU extends Module {
       }
     }
   }.elsewhen(mem_access_state === MEMAccessState.mem_address_translate){
-    mmu_restart := false.B
     when(mmu.io.pa_valid){
       mem_access_state := MEMAccessState.mem_access
       bus_granted := BUSGranted.mem_granted
@@ -97,6 +96,7 @@ class CPU extends Module {
     when(mem.io.bus.request){
       mmu_restart := true.B
       when(mmu.io.restart_done){
+        mmu_restart := false.B
         mem_access_state := MEMAccessState.mem_address_translate
         bus_granted := BUSGranted.mmu_mem_granted
         virtual_address := ex2mem.io.output_alu_result
@@ -104,6 +104,7 @@ class CPU extends Module {
     }.elsewhen(id.io.if_jump_flag){
       mmu_restart := true.B
       when(mmu.io.restart_done){
+        mmu_restart := false.B
         virtual_address := inst_fetch.io.id_instruction_address
       }
     }.otherwise{

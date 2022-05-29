@@ -48,21 +48,22 @@ typedef uint32* pagetable_t;
 extern void enable_paging();
 extern void enable_interrupt();
 
-void map(pagetable_t pgtbl,uint32 va,uint32 pa,int perm){
+uint32 map(pagetable_t pgtbl,uint32 va,uint32 pa,int perm){
     uint32 vpn0 = PX(0,va);
     pagetable_t pgtbl_lv0 = (void*)pgtbl[0]; 
     pgtbl_lv0[vpn0] = PA2PTE(pa) | perm;
+    return pgtbl_lv0[vpn0];//return val will be put in a0, will help debug
 }
 
 void kvminit(){
     pagetable_t pgtbl = (void*)PAGEDIR_BASE;
-    for(int i=0;i<1024;i++){
-        pgtbl[i]=0;
-    }
     //create pte mmap for text and 
-    pgtbl[0]=PA2PTE(0x14000) | PTE_V; //忽略高2位，次10位为0的页表映射到0x14000
-    map(pgtbl,0x0000,0x18000,PTE_X | PTE_W | PTE_R | PTE_V);
-    map(pgtbl,0x4000,0x1C000,PTE_R | PTE_W | PTE_V);
+    pgtbl[0]=PA2PTE(0x8000) | PTE_V; //忽略高2位，次10位为0的页表映射到0x14000
+    map(pgtbl,0x0000,0x0000,PTE_X | PTE_W | PTE_R | PTE_V);
+    map(pgtbl,0x4000,0x4000,PTE_W | PTE_R | PTE_V);
+    map(pgtbl,0x8000,0x8000,PTE_W | PTE_R | PTE_V);
+    map(pgtbl,0xC000,0xC000,PTE_W | PTE_R | PTE_V);
+
 }
 
 
@@ -81,10 +82,11 @@ void vminit(){
 
 int main(){
     enable_interrupt();
-    kvminit();
+    vminit();
     int temp = 0;
     *(uint32*)(0x4013) = 1; //Write 0x1c013
     temp = *(uint32*)(0x4013); //Read 0x1c013
-    temp = *(uint32*)(0x8123); //invalid read
+    *(uint32*)(0x11013) = 1; //Write 0x1c013
+    // temp = *(uint32*)(0x8123); //invalid read
     return 0;
 }

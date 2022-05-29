@@ -15,8 +15,11 @@
 .section .text.init
 .globl _start
 _start:
-  li sp, 4096 # Initialize stack pointer
+  li sp, 4095 # Initialize stack pointer
   call main   # Jump to main function
+
+  # debug for mmu
+  lw 
 loop:
   j loop      # Loop forever
 .globl enable_interrupt
@@ -28,8 +31,8 @@ enable_interrupt:
   ret
 .globl enable_paging
 enable_paging:
-  li t0, 0x80010000
-  csrrw t1, satp, t0
+  li t0, 0x80000008 # ppn << 12 = 0x008000
+  csrw satp, t0
   ret
 
 .globl get_epc

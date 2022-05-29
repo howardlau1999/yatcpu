@@ -27,7 +27,7 @@ class MMU extends Module{
     val pa = Output(UInt(Parameters.AddrWidth))
 
     val page_fault_signals = Output(Bool())
-    val va_cause_page_fault = Output(Bool())
+    val va_cause_page_fault = Output(UInt(Parameters.AddrWidth))
     val ecause = Output(UInt(Parameters.DataWidth))
     val epc = Output(UInt(Parameters.AddrWidth))
     val page_fault_responed = Input(Bool())

@@ -142,7 +142,6 @@ class InstructionDecode extends Module {
     val interrupt_handler_address = Input(UInt(Parameters.AddrWidth))
     val csr_start_paging = Input(Bool())
 
-    val ctrl_start_paging_flush = Output(Bool())
     val regs_reg1_read_address = Output(UInt(Parameters.PhysicalRegisterAddrWidth))
     val regs_reg2_read_address = Output(UInt(Parameters.PhysicalRegisterAddrWidth))
     val ex_reg1_data = Output(UInt(Parameters.DataWidth))

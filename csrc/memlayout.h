@@ -13,4 +13,4 @@
 // limitations under the License.
 
 
-#define PAGEDIR_BASE 0x010000
+#define PAGEDIR_BASE 0x008000
