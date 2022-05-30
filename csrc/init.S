@@ -15,11 +15,9 @@
 .section .text.init
 .globl _start
 _start:
-  li sp, 4095 # Initialize stack pointer
+  li sp, 4096 # Initialize stack pointer
   call main   # Jump to main function
 
-  # debug for mmu
-  lw 
 loop:
   j loop      # Loop forever
 .globl enable_interrupt

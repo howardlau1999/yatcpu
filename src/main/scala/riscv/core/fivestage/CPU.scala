@@ -49,9 +49,6 @@ class CPU extends Module {
   val mmu = Module(new MMU)
   axi4_master.io.channels <> io.axi4_channels
 
-  //debug
-  mem.io.debug_mem_address := 0x11c0.U
-  //debug end
 
   val bus_granted = RegInit(BUSGranted.idle)
   val mem_access_state = RegInit(MEMAccessState.idle)
@@ -85,8 +82,12 @@ class CPU extends Module {
         }
       }
     }
-  }.elsewhen(mem_access_state === MEMAccessState.mem_address_translate){
-    when(mmu.io.pa_valid){
+  }.elsewhen(mem_access_state === MEMAccessState.mem_address_translate) {
+    when(clint.io.exception_token){
+      mem_access_state := MEMAccessState.if_address_translate
+      bus_granted := BUSGranted.mmu_if_granted
+      virtual_address := id.io.if_jump_address
+    }.elsewhen(mmu.io.pa_valid){
       mem_access_state := MEMAccessState.mem_access
       bus_granted := BUSGranted.mem_granted
       physical_address := mmu.io.pa
@@ -316,6 +317,7 @@ class CPU extends Module {
   mem.io.funct3 := ex2mem.io.output_instruction(14, 12)
   mem.io.regs_write_source := ex2mem.io.output_regs_write_source
   mem.io.csr_read_data := ex2mem.io.output_csr_read_data
+  mem.io.clint_exception_token := clint.io.exception_token
 
   mem2wb.io.instruction_address := ex2mem.io.output_instruction_address
   mem2wb.io.alu_result := ex2mem.io.output_alu_result

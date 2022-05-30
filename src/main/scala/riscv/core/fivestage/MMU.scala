@@ -7,7 +7,7 @@ import riscv.core.{BusBundle, fivestage}
 
 
 object MMUStates extends ChiselEnum{
-  val idle,level1,level0,setADbit,gotPhyicalAddress,checkpte1,checkpte0 = Value
+  val idle,level1,checkpte1,level0,checkpte0,setADbit,gotPhyicalAddress = Value
 }
 
 class MMU extends Module{
@@ -49,11 +49,6 @@ class MMU extends Module{
   //add a reg to avoid Combination loop
   val page_fault_signals=RegInit(false.B)
 
-  def mmu_back_to_idle(): Unit ={
-    io.pa_valid := false.B
-    state := MMUStates.idle
-  }
-
   def raise_page_fault(): Unit ={
     io.ecause := Mux(
       io.mmu_occupied_by_mem,
@@ -76,7 +71,7 @@ class MMU extends Module{
     )
     when(io.page_fault_responed){
       page_fault_signals := false.B
-      mmu_back_to_idle()
+      state := MMUStates.idle
     }
   }
 
@@ -104,7 +99,7 @@ class MMU extends Module{
       io.pa_valid := false.B
       io.bus.read := true.B
       io.restart_done := false.B
-      io.bus.address := ((io.ppn_from_satp << Parameters.PageOffsetBits) + (vpn1 << 2)) //address of level 1 pte
+      io.bus.address := ((io.ppn_from_satp << Parameters.PageOffsetBits) + (vpn1 << 2 )) //address of level 1 pte
       state := MMUStates.level1
     }.elsewhen (state === MMUStates.level1){ //don't support the huge page
       //already access the bus,wait for the pte
@@ -191,9 +186,9 @@ class MMU extends Module{
         io.restart_done := true.B
         state := MMUStates.idle
       }.otherwise{
-        io.pa := Cat(pte(31,12),pageoffset)
+        io.pa := Cat(pte(29,10),pageoffset)
         io.pa_valid := true.B
-        mmu_back_to_idle()
+        state := MMUStates.idle
       }
     }
   }

@@ -28,6 +28,7 @@ class MemoryAccess extends Module {
     val funct3 = Input(UInt(3.W))
     val regs_write_source = Input(UInt(2.W))
     val csr_read_data = Input(UInt(Parameters.DataWidth))
+    val clint_exception_token = Input(Bool())
 
     val wb_memory_read_data = Output(UInt(Parameters.DataWidth))
     val ctrl_stall_flag = Output(Bool())
@@ -35,25 +36,11 @@ class MemoryAccess extends Module {
 
     val physical_address = Input(UInt(Parameters.AddrWidth))
 
-    val debug_mem_address = Input(UInt(Parameters.AddrWidth))
-    val debug_mem_load = Output(Bool())
-    val debug_mem_store = Output(Bool())
-
     val bus = new BusBundle
   })
   val mem_address_index = io.physical_address(log2Up(Parameters.WordSize) - 1, 0)
   val mem_access_state = RegInit(MemoryAccessStates.Idle)
 
-  io.debug_mem_store := false.B
-  io.debug_mem_load := false.B
-  when(io.physical_address === io.debug_mem_address){
-    when(io.bus.read_valid){
-      io.debug_mem_load := true.B
-    }
-    when(io.bus.write){
-      io.debug_mem_store := true.B
-    }
-  }
 
   def on_bus_transaction_finished() = {
     mem_access_state := MemoryAccessStates.Idle
@@ -69,7 +56,10 @@ class MemoryAccess extends Module {
   io.wb_memory_read_data := 0.U
   io.ctrl_stall_flag := false.B
 
-  when(io.memory_read_enable) {
+  when(io.clint_exception_token){
+    io.bus.request := false.B
+    io.ctrl_stall_flag := false.B
+  }.elsewhen(io.memory_read_enable) {
     when(mem_access_state === MemoryAccessStates.Idle) {
       // Start the read transaction when the bus is available
       io.ctrl_stall_flag := true.B

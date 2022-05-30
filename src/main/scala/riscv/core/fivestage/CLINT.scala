@@ -93,13 +93,16 @@ class CLINT extends Module {
   val csr_reg_write_enable = RegInit(Bool(), false.B)
   val csr_reg_write_address = RegInit(UInt(Parameters.CSRRegisterAddrWidth), 0.U)
   val csr_reg_write_data = RegInit(UInt(Parameters.DataWidth), 0.U)
+  val exception_token = RegInit(false.B)
 
   io.ctrl_stall_flag := interrupt_state =/= InterruptState.Idle || csr_state =/= CSRState.Idle
-  io.exception_token := false.B
+  io.exception_token := exception_token
 
   // Interrupt FSM
   //exception cause SyncAssert
-  when(io.exception_signal || io.instruction === InstructionsEnv.ecall || io.instruction === InstructionsEnv.ebreak) {
+
+  //exception_token === true indicate the exception has been token but exception haven't been cleared
+  when((io.exception_signal) || io.instruction === InstructionsEnv.ecall || io.instruction === InstructionsEnv.ebreak) {
     interrupt_state := InterruptState.SyncAssert
   }.elsewhen(io.interrupt_flag =/= InterruptStatus.None && io.interrupt_enable) {
     interrupt_state := InterruptState.AsyncAssert
@@ -114,8 +117,7 @@ class CLINT extends Module {
     when(interrupt_state === InterruptState.SyncAssert) {
       // Synchronous Interrupt
       csr_state := CSRState.MEPC
-      io.exception_token := false.B
-
+      exception_token := false.B
       //exception handling first then ecall and ebreak
       instruction_address := Mux(
         io.exception_signal,
@@ -172,14 +174,12 @@ class CLINT extends Module {
     csr_state := CSRState.MCAUSE
   }.elsewhen(csr_state === CSRState.MCAUSE) {
     csr_state := CSRState.Idle
-    io.exception_token := true.B
   }.elsewhen(csr_state === CSRState.MRET) {
     csr_state := CSRState.Idle
-    io.exception_token := true.B
   }.otherwise {
     csr_state := CSRState.Idle
-    io.exception_token := true.B
   }
+  exception_token := csr_state === CSRState.MCAUSE
 
   csr_reg_write_enable := csr_state =/= CSRState.Idle
   csr_reg_write_address := Cat(Fill(20, 0.U(1.W)), MuxLookup(
@@ -190,6 +190,7 @@ class CLINT extends Module {
       CSRState.MCAUSE -> CSRRegister.MCAUSE,
       CSRState.MSTATUS -> CSRRegister.MSTATUS,
       CSRState.MRET -> CSRRegister.MSTATUS,
+      CSRState.MTVAL -> CSRRegister.MTVAL
     )
   ))
 
@@ -201,6 +202,7 @@ class CLINT extends Module {
       CSRState.MCAUSE -> cause,
       CSRState.MSTATUS -> Cat(io.csr_mstatus(31, 4), 0.U(1.W), io.csr_mstatus(2, 0)),
       CSRState.MRET -> Cat(io.csr_mstatus(31, 4), io.csr_mstatus(7), io.csr_mstatus(2, 0)),
+      CSRState.MTVAL -> trap_val,
     )
   )
 
