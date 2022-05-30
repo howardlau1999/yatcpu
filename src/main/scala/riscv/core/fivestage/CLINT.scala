@@ -94,15 +94,25 @@ class CLINT extends Module {
   val csr_reg_write_address = RegInit(UInt(Parameters.CSRRegisterAddrWidth), 0.U)
   val csr_reg_write_data = RegInit(UInt(Parameters.DataWidth), 0.U)
   val exception_token = RegInit(false.B)
-
+  val exception_signal = RegInit(false.B)
   io.ctrl_stall_flag := interrupt_state =/= InterruptState.Idle || csr_state =/= CSRState.Idle
   io.exception_token := exception_token
 
+
+  when(csr_state === CSRState.MCAUSE){
+    exception_token := true.B
+    exception_signal := false.B
+  }.elsewhen(io.exception_signal) {
+    exception_signal := true.B
+    exception_token := false.B
+  }.otherwise{
+    exception_signal := false.B
+    exception_token := false.B
+  }
+
   // Interrupt FSM
   //exception cause SyncAssert
-
-  //exception_token === true indicate the exception has been token but exception haven't been cleared
-  when((io.exception_signal) || io.instruction === InstructionsEnv.ecall || io.instruction === InstructionsEnv.ebreak) {
+  when(exception_signal || io.instruction === InstructionsEnv.ecall || io.instruction === InstructionsEnv.ebreak) {
     interrupt_state := InterruptState.SyncAssert
   }.elsewhen(io.interrupt_flag =/= InterruptStatus.None && io.interrupt_enable) {
     interrupt_state := InterruptState.AsyncAssert
@@ -179,7 +189,6 @@ class CLINT extends Module {
   }.otherwise {
     csr_state := CSRState.Idle
   }
-  exception_token := csr_state === CSRState.MCAUSE
 
   csr_reg_write_enable := csr_state =/= CSRState.Idle
   csr_reg_write_address := Cat(Fill(20, 0.U(1.W)), MuxLookup(
