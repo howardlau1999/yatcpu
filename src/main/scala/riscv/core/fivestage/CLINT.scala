@@ -110,6 +110,18 @@ class CLINT extends Module {
     exception_token := false.B
   }
 
+  when(csr_state === CSRState.MCAUSE) {
+    exception_token := true.B
+  }.otherwise{
+    exception_token := false.B
+  }
+
+  when(exception_token){
+    exception_signal := false.B
+  }.elsewhen(exception_signal === false.B && io.exception_signal){
+    exception_signal := true.B
+  }
+
   // Interrupt FSM
   //exception cause SyncAssert
   when(exception_signal || io.instruction === InstructionsEnv.ecall || io.instruction === InstructionsEnv.ebreak) {
