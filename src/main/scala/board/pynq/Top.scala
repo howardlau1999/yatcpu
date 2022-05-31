@@ -30,7 +30,7 @@ object BootStates extends ChiselEnum {
 }
 
 class Top extends Module {
-  val binaryFilename = "tetris.asmbin"
+  val binaryFilename = "paging.asmbin"
   val io = IO(new Bundle() {
     val hdmi_clk_n = Output(Bool())
     val hdmi_clk_p = Output(Bool())

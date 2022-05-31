@@ -39,7 +39,7 @@ class Control extends Module {
   })
 
   val id_hazard = io.memory_read_enable_ex && (io.rd_ex === io.rs1_id || io.rd_ex === io.rs2_id)
-  io.if_flush := io.jump_flag
+  io.if_flush := io.jump_flag || io.csr_start_paging
   io.id_flush := id_hazard || io.csr_start_paging
 
   io.pc_stall := io.stall_flag_mem || io.stall_flag_clint || id_hazard || io.stall_flag_bus || io.stall_flag_if

@@ -98,19 +98,7 @@ class CLINT extends Module {
   io.ctrl_stall_flag := interrupt_state =/= InterruptState.Idle || csr_state =/= CSRState.Idle
   io.exception_token := exception_token
 
-
-  when(csr_state === CSRState.MCAUSE){
-    exception_token := true.B
-    exception_signal := false.B
-  }.elsewhen(io.exception_signal) {
-    exception_signal := true.B
-    exception_token := false.B
-  }.otherwise{
-    exception_signal := false.B
-    exception_token := false.B
-  }
-
-  when(csr_state === CSRState.MCAUSE) {
+  when(exception_signal && csr_state === CSRState.MCAUSE) {
     exception_token := true.B
   }.otherwise{
     exception_token := false.B
@@ -139,10 +127,9 @@ class CLINT extends Module {
     when(interrupt_state === InterruptState.SyncAssert) {
       // Synchronous Interrupt
       csr_state := CSRState.MEPC
-      exception_token := false.B
       //exception handling first then ecall and ebreak
       instruction_address := Mux(
-        io.exception_signal,
+        exception_signal,
         io.instruction_address_cause_exception,
         Mux(
           io.jump_flag,
@@ -152,7 +139,7 @@ class CLINT extends Module {
       )
 
       cause := Mux(
-        io.exception_signal,
+        exception_signal,
         io.exception_cause,
         MuxLookup(
           io.instruction,
@@ -167,7 +154,7 @@ class CLINT extends Module {
       // todo: redesign CLINT to fully handle exception, like trap priority handling
       // hint: currently we have only page_fault to write mtval
       trap_val := Mux(
-        io.exception_signal,
+        exception_signal,
         io.exception_val,
         0.U
       )

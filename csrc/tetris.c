@@ -395,7 +395,7 @@ void on_timer() {
 void trap_handler(void *epc, unsigned int cause) {
 	if (cause == 0x80000007) {
 		on_timer();
-	} else {
+	} else if (cause == 0x8000000B){
 		unsigned int ch = *UART_RECV;
 		*UART_SEND = ch;
 		on_input(ch);
