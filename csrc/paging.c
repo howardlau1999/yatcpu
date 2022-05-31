@@ -116,7 +116,7 @@ void kvminit(){
 
 
 void putch_at(int x, int y, unsigned char ch) {
-	VA_VRAM[wk_mul(y,SCREEN_COLS) + x] = ch;
+	// VA_VRAM[wk_mul(y,SCREEN_COLS) + x] = ch;
 }
 
 void trap_handler(void *epc, unsigned int cause) {
@@ -142,6 +142,9 @@ void trap_handler(void *epc, unsigned int cause) {
         }
     }
     timerflag += 1;
+    if(timerflag > SCREEN_ROWS){
+        timerflag = 1;
+    }
 }
 
 
