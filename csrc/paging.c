@@ -67,8 +67,16 @@ char info[][16] = {
     "page fault      ",
     "start paging    ",
     "timer interrupt ",
+    "out of mem      ",
 };
 
+void putch_at(int x, int y, unsigned char ch) {
+	VRAM[wk_mul(y,SCREEN_COLS) + x] = ch;
+}
+
+void vputch_at(int x, int y, unsigned char ch) {
+	VA_VRAM[wk_mul(y,SCREEN_COLS) + x] = ch;
+}
 
 int alloc(){
     int index = 0;
@@ -83,19 +91,21 @@ int alloc(){
     return index == max ? -1 : index;
 }
 
-int map(pagetable_t pgtbl,uint32 va,uint32 pa,int perm){
+void map(pagetable_t pgtbl,uint32 va,uint32 pa,int perm){
     int t;
-    if((pgtbl[PX(1,va)] | PTE_V )!= 1){
-        t=alloc();
+    if((pgtbl[PX(1,va)] & PTE_V )!= PTE_V){ //前缀不存在
+        t=alloc(); //申请一个页给前缀页表
         if(t>=0){
             pgtbl[PX(1,va)] = PA2PTE(t<<12) | PTE_V;
         }else{
-            return -1;
+            for(int i=0;i<16;i++){
+                putch_at(50+i,0,info[3][i]);
+            }
+            while(1);
         }
     }
-    t=PTE2PA(pgtbl[PX(1,va)]);
-    ((pagetable_t) t)[PX(0,va)] = PA2PTE(pa) | perm | PTE_V;
-    return 0;
+    pagetable_t n = (void*)PTE2PA(pgtbl[PX(1,va)]);
+    n[PX(0,va)] = PA2PTE(pa) | perm | PTE_V;
 }
 
 void kvminit(){
@@ -108,15 +118,10 @@ void kvminit(){
     map(pgtbl,0x2000,0x2000, PTE_W | PTE_R | PTE_X ); //
     map(pgtbl,0x3000,0x3000, PTE_W | PTE_R | PTE_X ); //
     map(pgtbl,0x4000,0x4000, PTE_W | PTE_R | PTE_X ); //
-    map(pgtbl,VRAM_BASE,VRAM_BASE, PTE_W | PTE_R ); //
-    map(pgtbl,UART_BASE,UART_BASE, PTE_W | PTE_R ); //
-    map(pgtbl,TIMER_BASE,TIMER_BASE, PTE_W | PTE_R ); //
-}
-
-
-
-void putch_at(int x, int y, unsigned char ch) {
-	// VA_VRAM[wk_mul(y,SCREEN_COLS) + x] = ch;
+    map(pgtbl,VA_VRAM_BASE,VRAM_BASE, PTE_W | PTE_R ); //
+    map(pgtbl,VA_VRAM_BASE + PGSIZE,VRAM_BASE + PGSIZE, PTE_W | PTE_R);
+    map(pgtbl,VA_UART_BASE,UART_BASE, PTE_W | PTE_R ); //
+    map(pgtbl,VA_TIMER_BASE,TIMER_BASE, PTE_W | PTE_R ); //
 }
 
 void trap_handler(void *epc, unsigned int cause) {
@@ -124,34 +129,40 @@ void trap_handler(void *epc, unsigned int cause) {
 	if (cause == 10 || cause == 15 || cause == 13) {
         t=info[0];
         for(int i=0;i<16;i++){
-            putch_at(i,timerflag,t[i]);
+            vputch_at(i,timerflag,t[i]);
         }
         while(1);
 	} else if(cause == 0x80000007){
         if (timerflag == 0){
             t=info[1];
             for(int i=0;i<16;i++){
-                VRAM[wk_mul(timerflag,SCREEN_COLS)+i]=t[i];
+                putch_at(i,timerflag,t[i]);
             }
             enable_paging();
         } else{
             t=info[2];
             for(int i=0;i<16;i++){
-                putch_at(i,timerflag,t[i]);
+                vputch_at(i,timerflag,t[i]);
             }
         }
+        
     }
     timerflag += 1;
-    if(timerflag > SCREEN_ROWS){
+    if(timerflag >= SCREEN_ROWS){
         timerflag = 1;
     }
 }
 
+void clear_screen() {
+	int *vram = ((int *) VRAM_BASE);
+	for (int i = 0; i < 600; ++i) vram[i] = 0x20202020;
+}
+
 
 int main(){
-    for (int i = 0; i < 600; ++i) VRAM[i] = 0x20202020;
+    clear_screen();
     for(int i=0;i<22;i++){
-        VRAM[20+i]="printout before paging"[i];
+        putch_at(20+i,0,"printout before paging"[i]);
     }
     kvminit();
     enable_interrupt();
