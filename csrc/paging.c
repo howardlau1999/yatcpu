@@ -114,11 +114,15 @@ void kvminit(){
     pm[0]=1;
     pm[1]=1;
     pm[2]=1;
+    pm[3]=1;
+    pm[4]=1;
     //create pte mmap for text
     map(pgtbl,PAGEDIR_BASE,PAGEDIR_BASE,PTE_R | PTE_W);
     map(pgtbl,0x0,0x0, PTE_W | PTE_R ); //kernel stack
     map(pgtbl,0x1000,0x1000, PTE_W | PTE_R | PTE_X ); //
     map(pgtbl,0x2000,0x2000, PTE_W | PTE_R | PTE_X ); //
+    map(pgtbl,0x3000,0x3000, PTE_W | PTE_R | PTE_X ); //
+    map(pgtbl,0x4000,0x4000, PTE_W | PTE_R | PTE_X ); //
     map(pgtbl,VA_VRAM_BASE,VRAM_BASE, PTE_W | PTE_R ); //
     map(pgtbl,VA_VRAM_BASE + PGSIZE,VRAM_BASE + PGSIZE, PTE_W | PTE_R);
     map(pgtbl,VA_UART_BASE,UART_BASE, PTE_W | PTE_R ); //
@@ -149,12 +153,14 @@ void clear_screen() {
 }
 
 int main(){
-    // clear_screen();
-    // for(int i=0;i<24;i++){
-    //     putch_at(20+i,0,"printout before paging"[i]);
-    // }
+    clear_screen();
+    for(int i=0;i<24;i++){
+        putch_at(20+i,0,"printout before paging"[i]);
+    }
     kvminit();
     enable_paging();
+    int *vram = ((int *) VA_VRAM_BASE);
+	for (int i = 0; i < 600; ++i) vram[i] = 0x31313131;
     enable_interrupt();
     *VA_TIMER_ENABLED = 1;
     *VA_TIMER_LIMIT = INT_TIMER_LIMIT;
