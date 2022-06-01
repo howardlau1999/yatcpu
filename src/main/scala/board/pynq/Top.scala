@@ -43,7 +43,7 @@ class Top extends Module {
 
     val led = Output(UInt(4.W))
   })
-  io.led := 15.U(4.W)
+
   val boot_state = RegInit(BootStates.Init)
 
   val uart = Module(new Uart(125000000, 115200))
@@ -61,6 +61,7 @@ class Top extends Module {
   val rom_loader = Module(new ROMLoader(instruction_rom.capacity))
 
   val hdmi_display = Module(new HDMIDisplay)
+  io.led := Cat(timer.io.signal_interrupt,timer.io.debug_enabled,3.U(2.W))
   bus_arbiter.io.bus_request(0) := true.B
 
   bus_switch.io.master <> cpu.io.axi4_channels

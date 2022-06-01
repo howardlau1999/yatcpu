@@ -27,7 +27,7 @@
 #define VA_TIMER_BASE 0x00200000
 #define VA_TIMER_LIMIT ((volatile unsigned int *) (VA_TIMER_BASE + 4))
 #define VA_TIMER_ENABLED ((volatile unsigned int *) (VA_TIMER_BASE + 8))
-#define VA_UART_BASE 0x00400000
+#define VA_UART_BASE 0x00300000
 #define VA_UART_BAUDRATE ((volatile unsigned int *) (VA_UART_BASE + 4))
 #define VA_UART_RECV ((volatile unsigned int *) (VA_UART_BASE + 12))
 #define VA_UART_SEND ((volatile unsigned int *) (VA_UART_BASE + 16))

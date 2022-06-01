@@ -29,7 +29,7 @@ enable_interrupt:
   ret
 .globl enable_paging
 enable_paging:
-  li t0, 0x80000008 # ppn << 12 = 0x008000
+  li t0, 0x80000005 # ppn << 12 = 0x005000
   csrw satp, t0
   ret
 

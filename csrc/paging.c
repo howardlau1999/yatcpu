@@ -61,7 +61,7 @@ int wk_mul(int a, int b) {
 }
 
 uint32 pm[8]; //板子上有32kb内存，八个页
-int timerflag=0;
+uint32 timercount=0;
 
 char info[][16] = {
     "page fault      ",
@@ -111,13 +111,14 @@ void map(pagetable_t pgtbl,uint32 va,uint32 pa,int perm){
 void kvminit(){
     pagetable_t pgtbl = (void*)PAGEDIR_BASE;
     pm[PAGEDIR_BASE >> 12] = 1;
+    pm[0]=1;
+    pm[1]=1;
+    pm[2]=1;
     //create pte mmap for text
     map(pgtbl,PAGEDIR_BASE,PAGEDIR_BASE,PTE_R | PTE_W);
     map(pgtbl,0x0,0x0, PTE_W | PTE_R ); //kernel stack
     map(pgtbl,0x1000,0x1000, PTE_W | PTE_R | PTE_X ); //
     map(pgtbl,0x2000,0x2000, PTE_W | PTE_R | PTE_X ); //
-    map(pgtbl,0x3000,0x3000, PTE_W | PTE_R | PTE_X ); //
-    map(pgtbl,0x4000,0x4000, PTE_W | PTE_R | PTE_X ); //
     map(pgtbl,VA_VRAM_BASE,VRAM_BASE, PTE_W | PTE_R ); //
     map(pgtbl,VA_VRAM_BASE + PGSIZE,VRAM_BASE + PGSIZE, PTE_W | PTE_R);
     map(pgtbl,VA_UART_BASE,UART_BASE, PTE_W | PTE_R ); //
@@ -129,28 +130,17 @@ void trap_handler(void *epc, unsigned int cause) {
 	if (cause == 10 || cause == 15 || cause == 13) {
         t=info[0];
         for(int i=0;i<16;i++){
-            vputch_at(i,timerflag,t[i]);
+            vputch_at(50+i,timercount,t[i]);
         }
         while(1);
 	} else if(cause == 0x80000007){
-        if (timerflag == 0){
-            t=info[1];
-            for(int i=0;i<16;i++){
-                putch_at(i,timerflag,t[i]);
-            }
-            enable_paging();
-        } else{
-            t=info[2];
-            for(int i=0;i<16;i++){
-                vputch_at(i,timerflag,t[i]);
-            }
+        t=info[2];
+        for(int i=0;i<16;i++){
+            vputch_at(i,timercount,t[i]);
         }
-        
+        timercount += 1;
     }
-    timerflag += 1;
-    if(timerflag >= SCREEN_ROWS){
-        timerflag = 1;
-    }
+    
 }
 
 void clear_screen() {
@@ -158,15 +148,15 @@ void clear_screen() {
 	for (int i = 0; i < 600; ++i) vram[i] = 0x20202020;
 }
 
-
 int main(){
-    clear_screen();
-    for(int i=0;i<22;i++){
-        putch_at(20+i,0,"printout before paging"[i]);
-    }
+    // clear_screen();
+    // for(int i=0;i<24;i++){
+    //     putch_at(20+i,0,"printout before paging"[i]);
+    // }
     kvminit();
+    enable_paging();
     enable_interrupt();
-    *TIMER_ENABLED = 1;
-    *TIMER_LIMIT = INT_TIMER_LIMIT;
+    *VA_TIMER_ENABLED = 1;
+    *VA_TIMER_LIMIT = INT_TIMER_LIMIT;
     for(;;);
 }

@@ -45,7 +45,8 @@ class MMU extends Module{
   val vpn0 = va(21,12)
   val pageoffset = va(11,0)
 
-  val pte = Reg(UInt(Parameters.PTEWidth))
+  val pte1 = Reg(UInt(Parameters.PTEWidth))
+  val pte0 = Reg(UInt(Parameters.PTEWidth))
   //add a reg to avoid Combination loop
   val page_fault_signals=RegInit(false.B)
 
@@ -105,7 +106,7 @@ class MMU extends Module{
       //already access the bus,wait for the pte
       io.bus.read := false.B
       when(io.bus.read_valid){
-        pte := io.bus.read_data
+        pte1 := io.bus.read_data
         when(io.restart){
           io.restart_done := true.B
           state := MMUStates.idle
@@ -118,12 +119,12 @@ class MMU extends Module{
       when(io.restart) {
         io.restart_done := true.B
         state := MMUStates.idle
-      }.elsewhen(pte(0) === 0.U || (pte(2,1) === "b10".U) || (pte(9,8) =/= "b00".U)){
+      }.elsewhen(pte1(0) === 0.U || (pte1(2,1) === "b10".U) || (pte1(9,8) =/= "b00".U)){
         //raise a page-fault exception corresponding to the original access type
         raise_page_fault()
       }.otherwise {
         io.bus.read := true.B
-        io.bus.address := ((pte(29,10) << Parameters.PageOffsetBits) + (vpn0 << 2))//address of level 0 pte
+        io.bus.address := ((pte1(29,10) << Parameters.PageOffsetBits) + (vpn0 << 2))//address of level 0 pte
         when(io.bus.granted) {
           state := MMUStates.level0
         }
@@ -131,7 +132,7 @@ class MMU extends Module{
     }.elsewhen (state === MMUStates.level0){
       io.bus.read := false.B
       when(io.bus.read_valid){
-        pte := io.bus.read_data
+        pte0 := io.bus.read_data
         when(io.restart){
           io.restart_done := true.B
           state := MMUStates.idle
@@ -143,26 +144,26 @@ class MMU extends Module{
       when(io.restart){
         io.restart_done := true.B
         state := MMUStates.idle
-      }.elsewhen(pte(0) === 0.U || (pte(2,1) === "b10".U) || (pte(9,8) =/= "b00".U) || (pte(3,1) === "b000".U)) {
+      }.elsewhen(pte0(0) === 0.U || (pte0(2,1) === "b10".U) || (pte0(9,8) =/= "b00".U) || (pte0(3,1) === "b000".U)) {
         //raise a page-fault exception corresponding to the original access type
         raise_page_fault()
-      }.elsewhen(pte(1) === 1.U || pte(3) === 1.U) {
+      }.elsewhen(pte0(1) === 1.U || pte0(3) === 1.U) {
         //we found a leaf pte
-        val instructionInvalid = io.mmu_occupied_by_mem === false.B && pte(3) === 0.U
-        val storeInvalid = io.instructions(6, 0) === InstructionTypes.S && pte(2) === 0.U
-        val loadInvalid = io.instructions(6, 0) === InstructionTypes.L && pte(1) === 0.U
+        val instructionInvalid = io.mmu_occupied_by_mem === false.B && pte0(3) === 0.U
+        val storeInvalid = io.instructions(6, 0) === InstructionTypes.S && pte0(2) === 0.U
+        val loadInvalid = io.instructions(6, 0) === InstructionTypes.L && pte0(1) === 0.U
         when(instructionInvalid || storeInvalid || loadInvalid) {
           //todo:hrpccs :when the privillege switch is done,please add the privillege check
           raise_page_fault()
-        }.elsewhen(pte(6) === 0.U || (pte(7) === 0.U && io.instructions(6, 0) === InstructionTypes.S)) {
+        }.elsewhen(pte0(6) === 0.U || (pte0(7) === 0.U && io.instructions(6, 0) === InstructionTypes.S)) {
           //set the access bit and the dirty bit if the instruction is store type
           //as we currently support single core CPU,so we can ignore the concurrent pte change
           //todo:hrpccs :when someone want to have a multicore support \
           // please modify this part acording to riscv-privilege
           val setAbit = io.instructions(6, 0) === InstructionTypes.S
-          io.bus.write_data := Cat(pte(31, 8), setAbit, 1.U(1.W), pte(5, 0))
+          io.bus.write_data := Cat(pte0(31, 8), setAbit, 1.U(1.W), pte0(5, 0))
           io.bus.write := true.B
-          io.bus.address := ((pte(29,10) << Parameters.PageOffsetBits) + (vpn0 << 2))
+          io.bus.address := ((pte1(29,10) << Parameters.PageOffsetBits) + (vpn0 << 2))
           for (i <- 0 until Parameters.WordSize) {
             io.bus.write_strobe(i) := true.B
           }
@@ -186,7 +187,7 @@ class MMU extends Module{
         io.restart_done := true.B
         state := MMUStates.idle
       }.otherwise{
-        io.pa := Cat(pte(29,10),pageoffset)
+        io.pa := Cat(pte0(29,10),pageoffset)
         io.pa_valid := true.B
         state := MMUStates.idle
       }
