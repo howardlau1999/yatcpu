@@ -32,8 +32,28 @@ foreach(program IN LISTS ASM_PROGRAMS)
 	set_target_properties(${program} PROPERTIES LINK_DEPENDS ${LINKER_SCRIPT})
 endforeach()
 
-# Copy the .text section to .asmbin files
-foreach(program IN LISTS C_PROGRAMS ASM_PROGRAMS)
+set(PROGRAMS litenes)
+# NES Emulator
+include_directories(${CMAKE_SOURCE_DIR}/LiteNES/include)
+add_library(fce
+	${CMAKE_SOURCE_DIR}/LiteNES/src/fce/common.c
+	${CMAKE_SOURCE_DIR}/LiteNES/src/fce/cpu-addressing.c
+	${CMAKE_SOURCE_DIR}/LiteNES/src/fce/cpu.c
+	${CMAKE_SOURCE_DIR}/LiteNES/src/fce/fce.c
+	${CMAKE_SOURCE_DIR}/LiteNES/src/fce/memory.c
+	${CMAKE_SOURCE_DIR}/LiteNES/src/fce/mmc.c
+	${CMAKE_SOURCE_DIR}/LiteNES/src/fce/ppu.c
+	${CMAKE_SOURCE_DIR}/LiteNES/src/fce/psg.c
+)
+add_executable(litenes 
+	${CMAKE_SOURCE_DIR}/LiteNES/src/main.c
+  ${CMAKE_SOURCE_DIR}/LiteNES/src/hal.c
+)
+set_target_properties(litenes PROPERTIES LINK_DEPENDS ${LINKER_SCRIPT})
+target_link_libraries(litenes prelude fce ${LINKER_FLAGS})
+
+# Copy the .text and .data section to .asmbin files
+foreach(program IN LISTS C_PROGRAMS ASM_PROGRAMS PROGRAMS)
 	add_custom_command(
 		TARGET ${program}
 		POST_BUILD
