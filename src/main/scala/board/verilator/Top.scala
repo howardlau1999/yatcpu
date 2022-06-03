@@ -14,7 +14,7 @@
 
 package board.verilator
 
-import bus.{AXI4LiteSlave, AXI4LiteSlaveBundle, BusArbiter, BusSwitch}
+import bus.{AXI4Slave, AXI4SlaveBundle, BusArbiter, BusSwitch}
 import chisel3._
 import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
 import peripheral.DummySlave
@@ -26,19 +26,19 @@ class Top extends Module {
   val io = IO(new Bundle {
     val signal_interrupt = Input(Bool())
 
-    val mem_slave = new AXI4LiteSlaveBundle(Parameters.AddrBits, Parameters.DataBits)
-    val uart_slave = new AXI4LiteSlaveBundle(Parameters.AddrBits, Parameters.DataBits)
+    val mem_slave = new AXI4SlaveBundle(Parameters.AddrBits, Parameters.DataBits)
+    val uart_slave = new AXI4SlaveBundle(Parameters.AddrBits, Parameters.DataBits)
 
     val cpu_debug_read_address = Input(UInt(Parameters.PhysicalRegisterAddrWidth))
     val cpu_debug_read_data = Output(UInt(Parameters.DataWidth))
   })
 
   // Memory is controlled in C++ code
-  val mem_slave = Module(new AXI4LiteSlave(Parameters.AddrBits, Parameters.DataBits))
+  val mem_slave = Module(new AXI4Slave(Parameters.AddrBits, Parameters.DataBits))
   io.mem_slave <> mem_slave.io.bundle
 
   // UART is controlled in C++ code
-  val uart_slave = Module(new AXI4LiteSlave(Parameters.AddrBits, Parameters.DataBits))
+  val uart_slave = Module(new AXI4Slave(Parameters.AddrBits, Parameters.DataBits))
   io.uart_slave <> uart_slave.io.bundle
 
   val cpu = Module(new CPU)

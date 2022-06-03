@@ -14,16 +14,16 @@
 
 package peripheral
 
-import bus.{AXI4LiteChannels, AXI4LiteMaster}
+import bus.{AXI4Channels, AXI4Master}
 import chisel3._
 import riscv.Parameters
 
 // A dummy master that never initiates reads or writes
 class DummyMaster extends Module {
   val io = IO(new Bundle {
-    val channels = new AXI4LiteChannels(Parameters.AddrBits, Parameters.DataBits)
+    val channels = new AXI4Channels(Parameters.AddrBits, Parameters.DataBits)
   })
-  val master = Module(new AXI4LiteMaster(Parameters.AddrBits, Parameters.DataBits))
+  val master = Module(new AXI4Master(Parameters.AddrBits, Parameters.DataBits))
   master.io.channels <> io.channels
   master.io.bundle.write_strobe := VecInit(Seq.fill(Parameters.WordSize)(false.B))
   master.io.bundle.write_data := 0.U
