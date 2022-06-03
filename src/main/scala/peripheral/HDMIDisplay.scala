@@ -14,7 +14,7 @@
 
 package peripheral
 
-import bus.{AXI4LiteChannels, AXI4LiteSlave}
+import bus.{AXI4Channels, AXI4Slave}
 import chisel3._
 import chisel3.util._
 import riscv.Parameters
@@ -190,7 +190,7 @@ class TMDS_encoder extends Module {
 
 class HDMIDisplay extends Module {
   val io = IO(new Bundle() {
-    val channels = Flipped(new AXI4LiteChannels(32, Parameters.DataBits))
+    val channels = Flipped(new AXI4Channels(32, Parameters.DataBits))
 
     val TMDSclk_p = Output(Bool())
     val TMDSdata_p = Output(UInt(3.W))

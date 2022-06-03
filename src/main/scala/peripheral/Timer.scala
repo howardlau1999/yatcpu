@@ -14,20 +14,20 @@
 
 package peripheral
 
-import bus.{AXI4LiteChannels, AXI4LiteSlave}
+import bus.{AXI4Channels, AXI4Slave}
 import chisel3._
 import chisel3.util._
 import riscv.Parameters
 
 class Timer extends Module {
   val io = IO(new Bundle {
-    val channels = Flipped(new AXI4LiteChannels(8, Parameters.DataBits))
+    val channels = Flipped(new AXI4Channels(8, Parameters.DataBits))
     val signal_interrupt = Output(Bool())
 
     val debug_limit = Output(UInt(Parameters.DataWidth))
     val debug_enabled = Output(Bool())
   })
-  val slave = Module(new AXI4LiteSlave(8, Parameters.DataBits))
+  val slave = Module(new AXI4Slave(8, Parameters.DataBits))
   slave.io.channels <> io.channels
 
   val count = RegInit(0.U(32.W))

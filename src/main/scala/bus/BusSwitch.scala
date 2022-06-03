@@ -21,8 +21,8 @@ import riscv.Parameters
 class BusSwitch extends Module {
   val io = IO(new Bundle {
     val address = Input(UInt(Parameters.AddrWidth))
-    val slaves = Vec(Parameters.SlaveDeviceCount, new AXI4LiteChannels(Parameters.AddrBits, Parameters.DataBits))
-    val master = Flipped(new AXI4LiteChannels(Parameters.AddrBits, Parameters.DataBits))
+    val slaves = Vec(Parameters.SlaveDeviceCount, new AXI4Channels(Parameters.AddrBits, Parameters.DataBits))
+    val master = Flipped(new AXI4Channels(Parameters.AddrBits, Parameters.DataBits))
   })
   val dummy = Module(new DummyMaster)
   val index = io.address(Parameters.AddrBits - 1, Parameters.AddrBits - Parameters.SlaveDeviceCountBits)

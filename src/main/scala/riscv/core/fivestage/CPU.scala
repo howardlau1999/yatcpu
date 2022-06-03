@@ -14,7 +14,7 @@
 
 package riscv.core.fivestage
 
-import bus.{AXI4LiteChannels, AXI4LiteMaster}
+import bus.{AXI4Channels, AXI4Master}
 import chisel3._
 import riscv.Parameters
 import riscv.core.CPUBundle
@@ -36,7 +36,7 @@ class CPU extends Module {
   val forwarding = Module(new Forwarding)
   val clint = Module(new CLINT)
   val csr_regs = Module(new CSR)
-  val axi4_master = Module(new AXI4LiteMaster(Parameters.AddrBits, Parameters.DataBits))
+  val axi4_master = Module(new AXI4Master(Parameters.AddrBits, Parameters.DataBits))
 
   axi4_master.io.channels <> io.axi4_channels
 

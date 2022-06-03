@@ -14,14 +14,14 @@
 
 package peripheral
 
-import bus.{AXI4LiteChannels, AXI4LiteSlave}
+import bus.{AXI4Channels, AXI4Slave}
 import chisel3._
 import chisel3.util.log2Up
 import riscv.Parameters
 
 class PixelDisplay extends Module {
   val io = IO(new Bundle() {
-    val channels = Flipped(new AXI4LiteChannels(32, Parameters.DataBits))
+    val channels = Flipped(new AXI4Channels(32, Parameters.DataBits))
 
     val x = Input(UInt(16.W))
     val y = Input(UInt(16.W))
@@ -29,7 +29,7 @@ class PixelDisplay extends Module {
 
     val rgb = Output(UInt(24.W))
   })
-  val slave = Module(new AXI4LiteSlave(log2Up(CharacterBufferInfo.Chars), Parameters.DataBits))
+  val slave = Module(new AXI4Slave(log2Up(CharacterBufferInfo.Chars), Parameters.DataBits))
   slave.io.channels <> io.channels
 
   // RGB565

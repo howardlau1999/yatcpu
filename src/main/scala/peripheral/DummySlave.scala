@@ -14,7 +14,7 @@
 
 package peripheral
 
-import bus.{AXI4LiteChannels, AXI4LiteSlave}
+import bus.{AXI4Channels, AXI4Slave}
 import chisel3._
 import riscv.Parameters
 
@@ -22,10 +22,10 @@ import riscv.Parameters
 // and ignores all writes
 class DummySlave extends Module {
   val io = IO(new Bundle {
-    val channels = Flipped(new AXI4LiteChannels(4, Parameters.DataBits))
+    val channels = Flipped(new AXI4Channels(4, Parameters.DataBits))
   })
 
-  val slave = Module(new AXI4LiteSlave(Parameters.AddrBits, Parameters.DataBits))
+  val slave = Module(new AXI4Slave(Parameters.AddrBits, Parameters.DataBits))
   slave.io.channels <> io.channels
   slave.io.bundle.read_valid := true.B
   slave.io.bundle.read_data := 0.U
