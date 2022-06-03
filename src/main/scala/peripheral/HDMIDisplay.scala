@@ -16,16 +16,8 @@ package peripheral
 
 import bus.{AXI4LiteChannels, AXI4LiteSlave}
 import chisel3._
-import chisel3.experimental.{ChiselAnnotation, annotate}
 import chisel3.util._
-import chisel3.util.experimental.loadMemoryFromFileInline
-import firrtl.annotations.MemorySynthInit
-import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
 import riscv.Parameters
-
-import java.io.FileWriter
-import java.nio.file.Paths
-import javax.imageio.ImageIO
 
 class HDMISync extends Module {
   val io = IO(new Bundle {
@@ -74,7 +66,7 @@ class HDMISync extends Module {
   val vsync_next = Wire(Bool())
   val hsync_next = Wire(Bool())
 
-  pixel_next := Mux(pixel === 4.U , 0.U , pixel + 1.U)
+  pixel_next := Mux(pixel === 4.U, 0.U, pixel + 1.U)
   pixel_tick := pixel === 0.U
 
   h_count_next := Mux(
@@ -106,7 +98,8 @@ class HDMISync extends Module {
   io.p_tick := pixel_tick
   io.f_tick := io.x === 0.U && io.y === 0.U
 }
-class TMDS_encoder extends  Module{
+
+class TMDS_encoder extends Module {
   val io = IO(new Bundle() {
     val video_data = Input(UInt(8.W)) //r,g,b,8bit
     val control_data = Input(UInt(2.W))
@@ -115,24 +108,27 @@ class TMDS_encoder extends  Module{
   })
   val Nb1s = PopCount(io.video_data)
   val XNOR = Wire(Bool())
-  XNOR := (Nb1s>4.U(4.W)) || (Nb1s === 4.U(4.W) && io.video_data(0) === 0.U)
-  //using recursion to compute
-  def xorfunc(value: UInt):UInt = {
+  XNOR := (Nb1s > 4.U(4.W)) || (Nb1s === 4.U(4.W) && io.video_data(0) === 0.U)
+
+  // using recursion to compute
+  def xorfunc(value: UInt): UInt = {
     value.getWidth match {
       case 1 => value(0)
       case s => val res = xorfunc(VecInit(value.asBools.drop(1)).asUInt)
-            value.asBools.head ^ res.asBools.head ## res
+        value.asBools.head ^ res.asBools.head ## res
     }
   }
+
   val xored = 1.U(1.W) ## xorfunc(io.video_data)
 
   def xnorfunc(value: UInt): UInt = {
     value.getWidth match {
       case 1 => value(0)
       case s => val res = xnorfunc(VecInit(value.asBools.drop(1)).asUInt)
-            !(value.asBools.head ^ res.asBools.head) ## res
+        !(value.asBools.head ^ res.asBools.head) ## res
     }
   }
+
   val xnored = 0.U(1.W) ## xnorfunc(io.video_data)
 
   val q_m = Mux(
@@ -148,36 +144,42 @@ class TMDS_encoder extends  Module{
   val disparityReg = RegInit(0.S(disparitySize.W))
   val doutReg = RegInit("b1010101011".U(10.W))
 
-  when(io.video_on === false.B){
+  when(io.video_on === false.B) {
     disparityReg := 0.S
     doutReg := "b1010101011".U(10.W)
-    switch(io.control_data){
-      is("b00".U(2.W)){doutReg := "b1101010100".U(10.W)}
-      is("b01".U(2.W)){doutReg := "b0010101011".U(10.W)}
-      is("b10".U(2.W)){doutReg := "b0101010100".U(10.W)}
+    switch(io.control_data) {
+      is("b00".U(2.W)) {
+        doutReg := "b1101010100".U(10.W)
+      }
+      is("b01".U(2.W)) {
+        doutReg := "b0010101011".U(10.W)
+      }
+      is("b10".U(2.W)) {
+        doutReg := "b0101010100".U(10.W)
+      }
     }
-  }.otherwise{
-    when(disparityReg === 0.S || diff === 0.S){
-      when(q_m(8) === false.B){
+  }.otherwise {
+    when(disparityReg === 0.S || diff === 0.S) {
+      when(q_m(8) === false.B) {
         doutReg := "b10".U(2.W) ## q_m(7, 0)
         disparityReg := disparityReg - diff
-      }.otherwise{
+      }.otherwise {
         doutReg := "b01".U(2.W) ## q_m(7, 0)
         disparityReg := disparityReg + diff
       }
-    }.elsewhen( (!diff(diffSize-1) && !disparityReg(disparitySize - 1))
-      || (diff(diffSize-1) && disparityReg(disparitySize - 1))){
+    }.elsewhen((!diff(diffSize - 1) && !disparityReg(disparitySize - 1))
+      || (diff(diffSize - 1) && disparityReg(disparitySize - 1))) {
       doutReg := 1.U(1.W) ## q_m(8) ## ~q_m(7, 0)
-      when(q_m(8)){
+      when(q_m(8)) {
         disparityReg := disparityReg + 1.S - diff
-      }.otherwise{
+      }.otherwise {
         disparityReg := disparityReg - diff
       }
-    }.otherwise{
+    }.otherwise {
       doutReg := 0.U(1.W) ## q_m
-      when(q_m(8)){
+      when(q_m(8)) {
         disparityReg := disparityReg + diff
-      }.otherwise{
+      }.otherwise {
         disparityReg := disparityReg - 1.S + diff
       }
     }
@@ -186,7 +188,7 @@ class TMDS_encoder extends  Module{
   io.TMDS := doutReg
 }
 
-class HDMIDisplay extends Module{
+class HDMIDisplay extends Module {
   val io = IO(new Bundle() {
     val channels = Flipped(new AXI4LiteChannels(log2Up(ScreenInfo.Chars), Parameters.DataBits))
 
@@ -196,56 +198,29 @@ class HDMIDisplay extends Module{
     val TMDSdata_n = Output(UInt(3.W))
 
   })
-  val slave = Module(new AXI4LiteSlave(log2Up(ScreenInfo.Chars), Parameters.DataBits))
-  slave.io.channels <> io.channels
-  val mem = Module(new BlockRAM(ScreenInfo.Chars / Parameters.WordSize))
-  slave.io.bundle.read_valid := true.B
-  mem.io.write_enable := slave.io.bundle.write
-  mem.io.write_data := slave.io.bundle.write_data
-  mem.io.write_address := slave.io.bundle.address
-  mem.io.write_strobe := slave.io.bundle.write_strobe
-
-  mem.io.read_address := slave.io.bundle.address
-  slave.io.bundle.read_data := mem.io.read_data
-
+  val rgb = Wire(UInt(24.W)) // RGB 8:8:8
   val pixel_clk = Wire(Bool())
   val hsync = Wire(Bool())
   val vsync = Wire(Bool())
   val sync = Module(new HDMISync)
+  val character_display = Module(new CharacterDisplay)
+  character_display.io.channels <> io.channels
+  character_display.io.video_on := sync.io.video_on
+  character_display.io.x := sync.io.x
+  character_display.io.y := sync.io.y
+
   hsync := sync.io.hsync
   vsync := sync.io.vsync
   pixel_clk := sync.io.p_tick
 
-  val font_rom = Module(new FontROM)
-  val row = (sync.io.y >> log2Up(GlyphInfo.glyphHeight)).asUInt
-  val col = (sync.io.x >> log2Up(GlyphInfo.glyphWidth)).asUInt
-  val char_index = (row * ScreenInfo.CharCols.U) + col
-  val offset = char_index(1, 0)
-  val ch = Wire(UInt(8.W))
+  rgb := character_display.io.rgb
 
-  mem.io.debug_read_address := char_index
-  ch := MuxLookup(
-    offset,
-    0.U,
-    IndexedSeq(
-      0.U -> mem.io.debug_read_data(7, 0).asUInt,
-      1.U -> mem.io.debug_read_data(15, 8).asUInt,
-      2.U -> mem.io.debug_read_data(23, 16).asUInt,
-      3.U -> mem.io.debug_read_data(31, 24).asUInt
-    )
-  )
-  font_rom.io.glyph_index := Mux(ch >= 32.U, ch - 31.U, 0.U)
-  font_rom.io.glyph_y := sync.io.y(log2Up(GlyphInfo.glyphHeight) - 1, 0)
-  val rgb = Wire(UInt(24.W)) //RGB 8:8:8
-  // White if pixel_on and glyph pixel on
-  val glyph_x = sync.io.x(log2Up(GlyphInfo.glyphWidth) - 1, 0)
-  rgb := Mux(sync.io.video_on && font_rom.io.glyph_pixel_byte(glyph_x), 0xFFFFFFF.U, 0.U)
-  //TMDS_PLLVR is a vivado IP core, check it in /verilog/pynq/TMDS_PLLVR.v
+  // TMDS_PLLVR is a vivado IP core, check it in /verilog/pynq/TMDS_PLLVR.v
   val serial_clk = Wire(Clock())
   val pll_lock = Wire(Bool())
   val tmdspll = Module(new TMDS_PLLVR)
   val rst = Wire(Reset())
-  tmdspll.io.clkin := pixel_clk.asClock()
+  tmdspll.io.clkin := pixel_clk.asClock
   serial_clk := tmdspll.io.clkout
   pll_lock := tmdspll.io.lock
   tmdspll.io.reset := reset
@@ -253,7 +228,7 @@ class HDMIDisplay extends Module{
 
   val tmds = Wire(UInt(3.W))
   val tmds_clk = Wire(Bool())
-  withClockAndReset(pixel_clk.asClock(),rst){
+  withClockAndReset(pixel_clk.asClock, rst) {
     val tmds_channel1 = Wire(UInt(10.W))
     val tmds_channel2 = Wire(UInt(10.W))
     val tmds_channel0 = Wire(UInt(10.W))
@@ -270,9 +245,9 @@ class HDMIDisplay extends Module{
     tmds_green.io.control_data := 0.U
     tmds_red.io.control_data := 0.U
 
-    tmds_red.io.video_data := rgb(23,16)
-    tmds_blue.io.video_data := rgb(15,8)
-    tmds_green.io.video_data := rgb(7,0)
+    tmds_red.io.video_data := rgb(23, 16)
+    tmds_blue.io.video_data := rgb(15, 8)
+    tmds_green.io.video_data := rgb(7, 0)
 
     tmds_channel0 := tmds_blue.io.TMDS
     tmds_channel1 := tmds_green.io.TMDS
@@ -327,6 +302,7 @@ class TMDS_PLLVR extends BlackBox {
     val lock = Output(Bool())
   })
 }
+
 /* OSER10 : serializer 10:1*/
 class OSER10 extends Module {
   val io = IO(new Bundle {
@@ -346,7 +322,7 @@ class OSER10 extends Module {
     val RESET = Input(Reset()) // Asynchronous reset input signal,
     //active-high.
   })
-  withClockAndReset(io.FCLK,io.RESET){
+  withClockAndReset(io.FCLK, io.RESET) {
     val count = RegInit(0.U(4.W))
     val countnext = Wire(UInt(4.W))
     io.Q := MuxLookup(
@@ -366,11 +342,12 @@ class OSER10 extends Module {
       )
     )
     countnext := Mux(
-      count === 9.U , 0.U, count + 1.U
+      count === 9.U, 0.U, count + 1.U
     )
     count := countnext
   }
 }
+
 class Oser10Module extends Module {
   val io = IO(new Bundle {
     val q = Output(Bool())
@@ -392,8 +369,9 @@ class Oser10Module extends Module {
   osr10.io.D9 := io.data(9)
   osr10.io.PCLK := clock
   osr10.io.FCLK := io.fclk
-  osr10.io.RESET:= reset
+  osr10.io.RESET := reset
 }
+
 /* lvds output */
 class OBUFDS extends BlackBox {
   val io = IO(new Bundle {
