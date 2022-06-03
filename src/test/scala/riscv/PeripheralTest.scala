@@ -14,7 +14,7 @@
 
 package riscv
 
-import bus.{AXI4LiteMaster, AXI4LiteMasterBundle, AXI4LiteSlave, AXI4LiteSlaveBundle}
+import bus.{AXI4Master, AXI4MasterBundle, AXI4Slave, AXI4SlaveBundle}
 import chisel3._
 import chiseltest._
 import org.scalatest.flatspec.AnyFlatSpec
@@ -24,10 +24,10 @@ class TimerTest extends AnyFlatSpec with ChiselScalatestTester {
   class TestTimerLimit extends Module {
     val io = IO(new Bundle {
       val limit = Output(UInt())
-      val bundle = new AXI4LiteMasterBundle(Parameters.AddrBits, Parameters.DataBits)
+      val bundle = new AXI4MasterBundle(Parameters.AddrBits, Parameters.DataBits)
     })
     val timer = Module(new peripheral.Timer)
-    val master = Module(new AXI4LiteMaster(Parameters.AddrBits, Parameters.DataBits))
+    val master = Module(new AXI4Master(Parameters.AddrBits, Parameters.DataBits))
     io.limit := timer.io.debug_limit
     master.io.bundle <> io.bundle
     timer.io.channels <> master.io.channels
@@ -65,12 +65,12 @@ class TimerTest extends AnyFlatSpec with ChiselScalatestTester {
 class MemoryTest extends AnyFlatSpec with ChiselScalatestTester {
   class MemoryTest extends Module {
     val io = IO(new Bundle {
-      val bundle = new AXI4LiteMasterBundle(Parameters.AddrBits, Parameters.DataBits)
+      val bundle = new AXI4MasterBundle(Parameters.AddrBits, Parameters.DataBits)
 
       val write_strobe = Input(UInt(4.W))
     })
     val memory = Module(new Memory(4096))
-    val master = Module(new AXI4LiteMaster(Parameters.AddrBits, Parameters.DataBits))
+    val master = Module(new AXI4Master(Parameters.AddrBits, Parameters.DataBits))
 
     master.io.bundle <> io.bundle
     master.io.bundle.write_strobe := VecInit(io.write_strobe.asBools())
@@ -118,7 +118,7 @@ class ROMLoaderTest extends AnyFlatSpec with ChiselScalatestTester {
       val load_address = Input(UInt(32.W))
       val load_finished = Output(Bool())
 
-      val bundle = new AXI4LiteSlaveBundle(32, 32)
+      val bundle = new AXI4SlaveBundle(32, 32)
     })
 
     val rom_loader = Module(new ROMLoader(2))
@@ -128,7 +128,7 @@ class ROMLoaderTest extends AnyFlatSpec with ChiselScalatestTester {
     io.load_finished := rom_loader.io.load_finished
     io.rom_address := rom_loader.io.rom_address
 
-    val slave = Module(new AXI4LiteSlave(Parameters.AddrBits, Parameters.DataBits))
+    val slave = Module(new AXI4Slave(Parameters.AddrBits, Parameters.DataBits))
     slave.io.bundle <> io.bundle
     slave.io.channels <> rom_loader.io.channels
     slave.io.bundle.read_data := 0.U

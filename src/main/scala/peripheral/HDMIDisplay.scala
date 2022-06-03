@@ -14,7 +14,7 @@
 
 package peripheral
 
-import bus.{AXI4LiteChannels, AXI4LiteSlave}
+import bus.{AXI4Channels, AXI4Slave}
 import chisel3._
 import chisel3.experimental.{ChiselAnnotation, annotate}
 import chisel3.util._
@@ -188,7 +188,7 @@ class TMDS_encoder extends  Module{
 
 class HDMIDisplay extends Module{
   val io = IO(new Bundle() {
-    val channels = Flipped(new AXI4LiteChannels(log2Up(ScreenInfo.Chars), Parameters.DataBits))
+    val channels = Flipped(new AXI4Channels(log2Up(ScreenInfo.Chars), Parameters.DataBits))
 
     val TMDSclk_p = Output(Bool())
     val TMDSdata_p = Output(UInt(3.W))
@@ -196,7 +196,7 @@ class HDMIDisplay extends Module{
     val TMDSdata_n = Output(UInt(3.W))
 
   })
-  val slave = Module(new AXI4LiteSlave(log2Up(ScreenInfo.Chars), Parameters.DataBits))
+  val slave = Module(new AXI4Slave(log2Up(ScreenInfo.Chars), Parameters.DataBits))
   slave.io.channels <> io.channels
   val mem = Module(new BlockRAM(ScreenInfo.Chars / Parameters.WordSize))
   slave.io.bundle.read_valid := true.B

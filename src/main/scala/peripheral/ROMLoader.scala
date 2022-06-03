@@ -14,14 +14,14 @@
 
 package peripheral
 
-import bus.{AXI4LiteChannels, AXI4LiteMaster}
+import bus.{AXI4Channels, AXI4Master}
 import chisel3._
 import chisel3.util._
 import riscv.Parameters
 
 class ROMLoader(capacity: Int) extends Module {
   val io = IO(new Bundle {
-    val channels = new AXI4LiteChannels(Parameters.AddrBits, Parameters.InstructionBits)
+    val channels = new AXI4Channels(Parameters.AddrBits, Parameters.InstructionBits)
 
     val rom_address = Output(UInt(Parameters.AddrWidth))
     val rom_data = Input(UInt(Parameters.InstructionWidth))
@@ -30,7 +30,7 @@ class ROMLoader(capacity: Int) extends Module {
     val load_address = Input(UInt(Parameters.AddrWidth))
     val load_finished = Output(Bool())
   })
-  val master = Module(new AXI4LiteMaster(Parameters.AddrBits, Parameters.InstructionBits))
+  val master = Module(new AXI4Master(Parameters.AddrBits, Parameters.InstructionBits))
   master.io.channels <> io.channels
 
   val address = RegInit(0.U(32.W))

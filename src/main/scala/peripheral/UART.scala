@@ -14,7 +14,7 @@
 
 package peripheral
 
-import bus.{AXI4LiteChannels, AXI4LiteSlave}
+import bus.{AXI4Channels, AXI4Slave}
 import chisel3._
 import chisel3.util._
 import riscv.Parameters
@@ -162,7 +162,7 @@ class BufferedTx(frequency: Int, baudRate: Int) extends Module {
 
 class Uart(frequency: Int, baudRate: Int) extends Module {
   val io = IO(new Bundle {
-    val channels = Flipped(new AXI4LiteChannels(8, Parameters.DataBits))
+    val channels = Flipped(new AXI4Channels(8, Parameters.DataBits))
     val rxd = Input(UInt(1.W))
     val txd = Output(UInt(1.W))
 
@@ -170,7 +170,7 @@ class Uart(frequency: Int, baudRate: Int) extends Module {
   })
   val interrupt = RegInit(false.B)
   val rxData = RegInit(0.U)
-  val slave = Module(new AXI4LiteSlave(8, Parameters.DataBits))
+  val slave = Module(new AXI4Slave(8, Parameters.DataBits))
   slave.io.channels <> io.channels
 
   val tx = Module(new BufferedTx(frequency, baudRate))
