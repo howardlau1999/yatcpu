@@ -26,21 +26,6 @@ import java.io.FileWriter
 import java.nio.file.Paths
 import javax.imageio.ImageIO
 
-object GlyphInfo {
-  val glyphWidth = 8
-  val glyphHeight = 16
-  // ASCII printable characters start from here
-  val spaceIndex = 1
-}
-
-object ScreenInfo {
-  val DisplayHorizontal = 640
-  val DisplayVertical = 480
-
-  val CharCols = DisplayHorizontal / GlyphInfo.glyphWidth
-  val CharRows = DisplayVertical / GlyphInfo.glyphHeight
-  val Chars = CharCols * CharRows
-}
 
 
 
@@ -126,7 +111,7 @@ class VGASync extends Module {
 
 class VGADisplay extends Module {
   val io = IO(new Bundle() {
-    val channels = Flipped(new AXI4LiteChannels(log2Up(ScreenInfo.Chars), Parameters.DataBits))
+    val channels = Flipped(new AXI4LiteChannels(32, Parameters.DataBits))
 
     val hsync = Output(Bool())
     val vsync = Output(Bool())
@@ -144,5 +129,5 @@ class VGADisplay extends Module {
   character_display.io.x := sync.io.x
   character_display.io.y := sync.io.y
 
-  io.rgb := character_display.io.rgb
+  io.rgb := character_display.io.rgb(24, 20) ## character_display.io.rgb(16, 12) ## character_display.io.rgb(8, 4)
 }

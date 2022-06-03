@@ -190,7 +190,7 @@ class TMDS_encoder extends Module {
 
 class HDMIDisplay extends Module {
   val io = IO(new Bundle() {
-    val channels = Flipped(new AXI4LiteChannels(log2Up(ScreenInfo.Chars), Parameters.DataBits))
+    val channels = Flipped(new AXI4LiteChannels(32, Parameters.DataBits))
 
     val TMDSclk_p = Output(Bool())
     val TMDSdata_p = Output(UInt(3.W))
