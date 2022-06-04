@@ -18,7 +18,7 @@ import chisel3._
 import chisel3.experimental.ChiselEnum
 import chisel3.util._
 import riscv._
-import peripheral.{DummySlave, InstructionROM, Memory, ROMLoader, Timer, Uart, VGADisplay}
+import peripheral.{CharacterDisplay, DummySlave, InstructionROM, Memory, ROMLoader, Timer, Uart, VGADisplay}
 import bus.{BusArbiter, BusSwitch}
 import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
 import riscv.core.CPU
@@ -93,7 +93,8 @@ class Top extends Module {
       cpu.io.instruction_valid := true.B
     }
   }
-  bus_switch.io.slaves(1) <> vga_display.io.channels
+  val display = Module(new CharacterDisplay)
+  bus_switch.io.slaves(1) <> display.io.channels
   bus_switch.io.slaves(2) <> uart.io.channels
   bus_switch.io.slaves(4) <> timer.io.channels
 
@@ -105,7 +106,11 @@ class Top extends Module {
   io.hsync := vga_display.io.hsync
   io.vsync := vga_display.io.vsync
 
-  io.rgb := vga_display.io.rgb
+  display.io.x := vga_display.io.x
+  display.io.y := vga_display.io.y
+  display.io.video_on := vga_display.io.video_on
+
+  io.rgb := display.io.rgb
 
   mem.io.debug_read_address := io.switch(15, 1).asUInt << 2
   io.led := Mux(

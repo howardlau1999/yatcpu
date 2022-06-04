@@ -190,30 +190,29 @@ class TMDS_encoder extends Module {
 
 class HDMIDisplay extends Module {
   val io = IO(new Bundle() {
-    val channels = Flipped(new AXI4Channels(32, Parameters.DataBits))
+    val rgb = Input(UInt(24.W))
+    val x = Output(UInt(16.W))
+    val y = Output(UInt(16.W))
+    val video_on = Output(Bool())
 
     val TMDSclk_p = Output(Bool())
     val TMDSdata_p = Output(UInt(3.W))
     val TMDSclk_n = Output(Bool())
     val TMDSdata_n = Output(UInt(3.W))
-
   })
-  val rgb = Wire(UInt(24.W)) // RGB 8:8:8
+  val rgb = io.rgb
   val pixel_clk = Wire(Bool())
   val hsync = Wire(Bool())
   val vsync = Wire(Bool())
   val sync = Module(new HDMISync)
-  val character_display = Module(new CharacterDisplay)
-  character_display.io.channels <> io.channels
-  character_display.io.video_on := sync.io.video_on
-  character_display.io.x := sync.io.x
-  character_display.io.y := sync.io.y
+
+  io.x := sync.io.x
+  io.y := sync.io.y
+  io.video_on := sync.io.video_on
 
   hsync := sync.io.hsync
   vsync := sync.io.vsync
   pixel_clk := sync.io.p_tick
-
-  rgb := character_display.io.rgb
 
   // TMDS_PLLVR is a vivado IP core, check it in /verilog/pynq/TMDS_PLLVR.v
   val serial_clk = Wire(Clock())

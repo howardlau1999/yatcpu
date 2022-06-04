@@ -92,7 +92,9 @@ class Top extends Module {
       cpu.io.instruction_valid := true.B
     }
   }
-  bus_switch.io.slaves(1) <> hdmi_display.io.channels
+
+  val display = Module(new CharacterDisplay)
+  bus_switch.io.slaves(1) <> display.io.channels
   bus_switch.io.slaves(2) <> uart.io.channels
   bus_switch.io.slaves(4) <> timer.io.channels
 
@@ -100,6 +102,11 @@ class Top extends Module {
 
   cpu.io.debug_read_address := 0.U
   mem.io.debug_read_address := 0.U
+
+  display.io.x := hdmi_display.io.x
+  display.io.y := hdmi_display.io.y
+  display.io.video_on := hdmi_display.io.video_on
+  hdmi_display.io.rgb := display.io.rgb
 
   io.hdmi_hpdn := 1.U
   io.hdmi_data_n := hdmi_display.io.TMDSdata_n

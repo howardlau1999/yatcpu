@@ -111,23 +111,19 @@ class VGASync extends Module {
 
 class VGADisplay extends Module {
   val io = IO(new Bundle() {
-    val channels = Flipped(new AXI4Channels(32, Parameters.DataBits))
+    val rgb = Input(UInt(24.W))
+    val x = Output(UInt(16.W))
+    val y = Output(UInt(16.W))
+    val video_on = Output(Bool())
 
     val hsync = Output(Bool())
     val vsync = Output(Bool())
-
-    val rgb = Output(UInt(12.W))
   })
 
   val sync = Module(new VGASync)
   io.hsync := sync.io.hsync
   io.vsync := sync.io.vsync
-
-  val character_display = Module(new CharacterDisplay)
-  character_display.io.channels <> io.channels
-  character_display.io.video_on := sync.io.video_on
-  character_display.io.x := sync.io.x
-  character_display.io.y := sync.io.y
-
-  io.rgb := character_display.io.rgb(24, 20) ## character_display.io.rgb(16, 12) ## character_display.io.rgb(8, 4)
+  io.x := sync.io.x
+  io.y := sync.io.y
+  io.video_on := sync.io.y
 }
