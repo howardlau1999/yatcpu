@@ -14,7 +14,7 @@
 
 package peripheral
 
-import bus.{AXI4Channels, AXI4Slave}
+import bus.{AXI4LiteChannels, AXI4LiteSlave}
 import chisel3._
 import chisel3.util._
 import riscv.Parameters

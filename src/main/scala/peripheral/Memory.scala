@@ -14,7 +14,7 @@
 
 package peripheral
 
-import bus.{AXI4Channels, AXI4Slave}
+import bus.{AXI4LiteChannels, AXI4LiteSlave}
 import chisel3._
 import riscv.Parameters
 
@@ -48,14 +48,14 @@ class BlockRAM(capacity: Int) extends Module {
 // This module wraps the Block RAM with an AXI4-Lite interface
 class Memory(capacity: Int) extends Module {
   val io = IO(new Bundle {
-    val channels = Flipped(new AXI4Channels(Parameters.AddrBits, Parameters.DataBits))
+    val channels = Flipped(new AXI4LiteChannels(Parameters.AddrBits, Parameters.DataBits))
 
     val debug_read_address = Input(UInt(Parameters.AddrWidth))
     val debug_read_data = Output(UInt(Parameters.DataWidth))
   })
 
   val mem = Module(new BlockRAM(capacity))
-  val slave = Module(new AXI4Slave(Parameters.AddrBits, Parameters.DataBits))
+  val slave = Module(new AXI4LiteSlave(Parameters.AddrBits, Parameters.DataBits))
   slave.io.channels <> io.channels
   slave.io.bundle.read_valid := true.B
 
