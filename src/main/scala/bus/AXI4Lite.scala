@@ -60,6 +60,28 @@ class AXI4LiteReadDataChannel(dataWidth: Int) extends Bundle {
   val RRESP = Input(UInt(AXI4Lite.respWidth.W))
 }
 
+class AXI4LiteInterface(addrWidth: Int, dataWidth: Int) extends Bundle {
+    val AWVALID = Output(Bool())
+    val AWREADY = Input(Bool())
+    val AWADDR = Output(UInt(addrWidth.W))
+    val AWPROT = Output(UInt(AXI4Lite.protWidth.W))
+    val WVALID = Output(Bool())
+    val WREADY = Input(Bool())
+    val WDATA = Output(UInt(dataWidth.W))
+    val WSTRB = Output(UInt((dataWidth / 8).W))
+    val BVALID = Input(Bool())
+    val BREADY = Output(Bool())
+    val BRESP = Input(UInt(AXI4Lite.respWidth.W))
+    val ARVALID = Output(Bool())
+    val ARREADY = Input(Bool())
+    val ARADDR = Output(UInt(addrWidth.W))
+    val ARPROT = Output(UInt(AXI4Lite.protWidth.W))
+    val RVALID = Input(Bool())
+    val RREADY = Output(Bool())
+    val RDATA = Input(UInt(dataWidth.W))
+    val RRESP = Input(UInt(AXI4Lite.respWidth.W))
+}
+
 class AXI4LiteChannels(addrWidth: Int, dataWidth: Int) extends Bundle {
   val write_address_channel = new AXI4LiteWriteAddressChannel(addrWidth)
   val write_data_channel = new AXI4LiteWriteDataChannel(dataWidth)
@@ -245,9 +267,9 @@ class AXI4LiteMaster(addrWidth: Int, dataWidth: Int) extends Module {
     }
     is(AXI4LiteStates.ReadAddr) {
       ARVALID := true.B
+      io.channels.read_address_channel.ARADDR := addr
       when(io.channels.read_address_channel.ARREADY && ARVALID) {
         state := AXI4LiteStates.ReadData
-        io.channels.read_address_channel.ARADDR := addr
         ARVALID := false.B
       }
     }
@@ -262,9 +284,9 @@ class AXI4LiteMaster(addrWidth: Int, dataWidth: Int) extends Module {
     }
     is(AXI4LiteStates.WriteAddr) {
       AWVALID := true.B
+      io.channels.write_address_channel.AWADDR := addr
       when(io.channels.write_address_channel.AWREADY && AWVALID) {
         state := AXI4LiteStates.WriteData
-        io.channels.write_address_channel.AWADDR := addr
         AWVALID := false.B
       }
     }
