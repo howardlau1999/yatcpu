@@ -20,11 +20,11 @@ import chisel3.experimental.ChiselEnum
 import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
 import chisel3.util.{Cat, is, switch}
 import peripheral._
-import riscv.Parameters
-import riscv.core.CPU
+import riscv.{ImplementationType, Parameters}
+import riscv.core.{CPU, CPUBundle}
 
 object BootStates extends ChiselEnum {
-  val Init, Loading, Finished = Value
+  val Init, Loading, BusWait, Finished = Value
 }
 
 class Top extends Module {
@@ -42,6 +42,8 @@ class Top extends Module {
     val rx = Input(Bool())
 
     val led = Output(UInt(4.W))
+
+    val debug = Output(Vec(8, UInt(32.W)))
   })
   val boot_state = RegInit(BootStates.Init)
   io.led := boot_state.asUInt
@@ -93,26 +95,43 @@ class Top extends Module {
   instruction_rom.io.address := rom_loader.io.rom_address
   cpu.io.stall_flag_bus := true.B
   cpu.io.instruction_valid := false.B
-  bus_switch.io.slaves(0) <> mem
   rom_loader.io.channels <> dummy.io.channels
+  bus_switch.io.slaves(0) <> mem
   switch(boot_state) {
     is(BootStates.Init) {
       rom_loader.io.load_start := true.B
       boot_state := BootStates.Loading
       rom_loader.io.channels <> mem
+      bus_switch.io.slaves(0) <> dummy.io.channels
     }
     is(BootStates.Loading) {
       rom_loader.io.load_start := false.B
       rom_loader.io.channels <> mem
+      bus_switch.io.slaves(0) <> dummy.io.channels
       when(rom_loader.io.load_finished) {
+        boot_state := BootStates.BusWait
+      }
+    }
+    is(BootStates.BusWait) {
+      when(!cpu.io.bus_busy) {
         boot_state := BootStates.Finished
       }
     }
     is(BootStates.Finished) {
       cpu.io.stall_flag_bus := false.B
       cpu.io.instruction_valid := true.B
+      rom_loader.io.channels <> dummy.io.channels
+      bus_switch.io.slaves(0) <> mem
     }
   }
+  io.debug(0) := cpu.io.instruction_valid
+  io.debug(1) := cpu.io.debug(0)
+  io.debug(2) := cpu.io.debug(1)
+  io.debug(3) := cpu.io.debug(2)
+  io.debug(4) := cpu.io.debug(3)
+  io.debug(5) := cpu.io.debug(4)
+  io.debug(6) := cpu.io.debug(5)
+  io.debug(7) := cpu.io.interrupt_flag
 
   val display = Module(new CharacterDisplay)
   bus_switch.io.slaves(1) <> display.io.channels

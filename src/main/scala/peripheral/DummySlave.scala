@@ -28,5 +28,5 @@ class DummySlave extends Module {
   val slave = Module(new AXI4LiteSlave(Parameters.AddrBits, Parameters.DataBits))
   slave.io.channels <> io.channels
   slave.io.bundle.read_valid := true.B
-  slave.io.bundle.read_data := 0.U
+  slave.io.bundle.read_data := 0xDEADBEEFL.U
 }

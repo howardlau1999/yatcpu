@@ -39,6 +39,13 @@ class CPU extends Module {
   val axi4_master = Module(new AXI4LiteMaster(Parameters.AddrBits, Parameters.DataBits))
 
   axi4_master.io.channels <> io.axi4_channels
+  io.debug(0) := axi4_master.io.bundle.read
+  io.debug(1) := axi4_master.io.bundle.write
+  io.debug(2) := axi4_master.io.bundle.address
+  io.debug(3) := axi4_master.io.bundle.busy
+  io.debug(4) := axi4_master.io.bundle.read_data
+  io.debug(5) := axi4_master.io.bundle.read_valid
+  io.bus_busy := axi4_master.io.bundle.busy
 
   // The MEM module takes precedence over IF (but let the previous fetch finish)
   val mem_granted = RegInit(false.B)

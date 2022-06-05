@@ -139,7 +139,7 @@ class AXI4LiteSlave(addrWidth: Int, dataWidth: Int) extends Module {
   io.channels.read_address_channel.ARREADY := ARREADY
   val RVALID = RegInit(false.B)
   io.channels.read_data_channel.RVALID := RVALID
-  val RRESP = WireInit(0.U(AXI4Lite.respWidth))
+  val RRESP = RegInit(0.U(AXI4Lite.respWidth))
   io.channels.read_data_channel.RRESP := RRESP
 
   io.channels.read_data_channel.RDATA := io.bundle.read_data
@@ -253,6 +253,7 @@ class AXI4LiteMaster(addrWidth: Int, dataWidth: Int) extends Module {
       WVALID := false.B
       AWVALID := false.B
       ARVALID := false.B
+      RREADY := false.B
       read_valid := false.B
       write_valid := false.B
       when(io.bundle.write) {
@@ -270,16 +271,16 @@ class AXI4LiteMaster(addrWidth: Int, dataWidth: Int) extends Module {
       io.channels.read_address_channel.ARADDR := addr
       when(io.channels.read_address_channel.ARREADY && ARVALID) {
         state := AXI4LiteStates.ReadData
+        io.channels.read_address_channel.ARADDR := addr
         ARVALID := false.B
       }
     }
     is(AXI4LiteStates.ReadData) {
-      RREADY := true.B
-      when(io.channels.read_data_channel.RVALID && RREADY) {
+      when(io.channels.read_data_channel.RVALID && io.channels.read_data_channel.RRESP === 0.U) {
         state := AXI4LiteStates.Idle
         read_valid := true.B
+        RREADY := true.B
         read_data := io.channels.read_data_channel.RDATA
-        RREADY := false.B
       }
     }
     is(AXI4LiteStates.WriteAddr) {
@@ -287,12 +288,15 @@ class AXI4LiteMaster(addrWidth: Int, dataWidth: Int) extends Module {
       io.channels.write_address_channel.AWADDR := addr
       when(io.channels.write_address_channel.AWREADY && AWVALID) {
         state := AXI4LiteStates.WriteData
+        io.channels.write_address_channel.AWADDR := addr
         AWVALID := false.B
       }
     }
     is(AXI4LiteStates.WriteData) {
       WVALID := true.B
+      io.channels.write_address_channel.AWADDR := addr
       when(io.channels.write_data_channel.WREADY && WVALID) {
+        io.channels.write_address_channel.AWADDR := addr
         state := AXI4LiteStates.WriteResp
         WVALID := false.B
       }
