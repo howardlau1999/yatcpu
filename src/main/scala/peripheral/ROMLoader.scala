@@ -74,7 +74,6 @@ class ROMLoader(capacity: Int) extends Module {
       }
     }.otherwise {
       address := address
-      loading := true.B
     }
   }
   io.rom_address := address
