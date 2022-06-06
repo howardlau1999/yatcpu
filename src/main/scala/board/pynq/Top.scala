@@ -37,6 +37,10 @@ class Top extends Module {
     val hdmi_hpdn = Output(Bool())
 
     val axi_mem = new AXI4LiteInterface(32, 32)
+    val cpu_araddr = Output(UInt(32.W))
+    val cpu_awaddr = Output(UInt(32.W))
+    val cpu_rdata = Output(UInt(32.W))
+    val cpu_wdata = Output(UInt(32.W))
 
     val tx = Output(Bool())
     val rx = Input(Bool())
@@ -48,7 +52,7 @@ class Top extends Module {
   val boot_state = RegInit(BootStates.Init)
   io.led := boot_state.asUInt
 
-  val uart = Module(new Uart(100000000, 115200))
+  val uart = Module(new Uart(125000000, 115200))
   io.tx := uart.io.txd
   uart.io.rxd := io.rx
 
@@ -77,6 +81,11 @@ class Top extends Module {
   mem.write_response_channel.BVALID <> io.axi_mem.BVALID
   mem.write_response_channel.BRESP <> io.axi_mem.BRESP
   mem.write_response_channel.BREADY <> io.axi_mem.BREADY
+
+  io.cpu_rdata := cpu.io.axi4_channels.read_data_channel.RDATA
+  io.cpu_wdata := cpu.io.axi4_channels.write_data_channel.WDATA
+  io.cpu_araddr := cpu.io.axi4_channels.read_address_channel.ARADDR
+  io.cpu_awaddr := cpu.io.axi4_channels.write_address_channel.AWADDR
 
   val instruction_rom = Module(new InstructionROM(binaryFilename))
   val rom_loader = Module(new ROMLoader(instruction_rom.capacity))
@@ -138,7 +147,8 @@ class Top extends Module {
   bus_switch.io.slaves(2) <> uart.io.channels
   bus_switch.io.slaves(4) <> timer.io.channels
 
-  cpu.io.interrupt_flag := Cat(uart.io.signal_interrupt, timer.io.signal_interrupt)
+  cpu.io.interrupt_flag := uart.io.signal_interrupt ## timer.io.signal_interrupt
+  io.led := uart.io.signal_interrupt ## timer.io.signal_interrupt ## boot_state.asUInt
 
   cpu.io.debug_read_address := 0.U
 

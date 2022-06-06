@@ -245,8 +245,8 @@ class HDMIDisplay extends Module {
     tmds_red.io.control_data := 0.U
 
     tmds_red.io.video_data := rgb(23, 16)
-    tmds_blue.io.video_data := rgb(15, 8)
-    tmds_green.io.video_data := rgb(7, 0)
+    tmds_blue.io.video_data := rgb(7, 0)
+    tmds_green.io.video_data := rgb(15, 8)
 
     tmds_channel0 := tmds_blue.io.TMDS
     tmds_channel1 := tmds_green.io.TMDS

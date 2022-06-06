@@ -455,6 +455,9 @@ int main() {
 	init();
 #else
 	board = (unsigned char *) 16384;
+	for (; board < 32768; board += 4) {
+		*((int*) board) = 0;
+	}
 	clear_screen();
 	init();
 	*((unsigned int *) 4) = 0xDEADBEEF;
