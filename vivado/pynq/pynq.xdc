@@ -188,21 +188,4 @@ set_property -dict {PACKAGE_PIN R19 IOSTANDARD LVCMOS33} [get_ports io_hdmi_hpdn
 
 #set_property -dict { PACKAGE_PIN J15   IOSTANDARD LVCMOS33 } [get_ports { crypto_sda }]; #IO_25_35 Sch=crypto_sda
 
-create_debug_core u_ila_0 ila
-set_property ALL_PROBE_SAME_MU true [get_debug_cores u_ila_0]
-set_property ALL_PROBE_SAME_MU_CNT 1 [get_debug_cores u_ila_0]
-set_property C_ADV_TRIGGER false [get_debug_cores u_ila_0]
-set_property C_DATA_DEPTH 1024 [get_debug_cores u_ila_0]
-set_property C_EN_STRG_QUAL false [get_debug_cores u_ila_0]
-set_property C_INPUT_PIPE_STAGES 0 [get_debug_cores u_ila_0]
-set_property C_TRIGIN_EN false [get_debug_cores u_ila_0]
-set_property C_TRIGOUT_EN false [get_debug_cores u_ila_0]
-set_property port_width 1 [get_debug_ports u_ila_0/clk]
-connect_debug_port u_ila_0/clk [get_nets [list clock_IBUF_BUFG]]
-set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe0]
-set_property port_width 32 [get_debug_ports u_ila_0/probe0]
-connect_debug_port u_ila_0/probe0 [get_nets [list {cpu/cpu/inst_fetch_io_id_instruction_address[0]} {cpu/cpu/inst_fetch_io_id_instruction_address[1]} {cpu/cpu/inst_fetch_io_id_instruction_address[2]} {cpu/cpu/inst_fetch_io_id_instruction_address[3]} {cpu/cpu/inst_fetch_io_id_instruction_address[4]} {cpu/cpu/inst_fetch_io_id_instruction_address[5]} {cpu/cpu/inst_fetch_io_id_instruction_address[6]} {cpu/cpu/inst_fetch_io_id_instruction_address[7]} {cpu/cpu/inst_fetch_io_id_instruction_address[8]} {cpu/cpu/inst_fetch_io_id_instruction_address[9]} {cpu/cpu/inst_fetch_io_id_instruction_address[10]} {cpu/cpu/inst_fetch_io_id_instruction_address[11]} {cpu/cpu/inst_fetch_io_id_instruction_address[12]} {cpu/cpu/inst_fetch_io_id_instruction_address[13]} {cpu/cpu/inst_fetch_io_id_instruction_address[14]} {cpu/cpu/inst_fetch_io_id_instruction_address[15]} {cpu/cpu/inst_fetch_io_id_instruction_address[16]} {cpu/cpu/inst_fetch_io_id_instruction_address[17]} {cpu/cpu/inst_fetch_io_id_instruction_address[18]} {cpu/cpu/inst_fetch_io_id_instruction_address[19]} {cpu/cpu/inst_fetch_io_id_instruction_address[20]} {cpu/cpu/inst_fetch_io_id_instruction_address[21]} {cpu/cpu/inst_fetch_io_id_instruction_address[22]} {cpu/cpu/inst_fetch_io_id_instruction_address[23]} {cpu/cpu/inst_fetch_io_id_instruction_address[24]} {cpu/cpu/inst_fetch_io_id_instruction_address[25]} {cpu/cpu/inst_fetch_io_id_instruction_address[26]} {cpu/cpu/inst_fetch_io_id_instruction_address[27]} {cpu/cpu/inst_fetch_io_id_instruction_address[28]} {cpu/cpu/inst_fetch_io_id_instruction_address[29]} {cpu/cpu/inst_fetch_io_id_instruction_address[30]} {cpu/cpu/inst_fetch_io_id_instruction_address[31]}]]
-set_property C_CLK_INPUT_FREQ_HZ 300000000 [get_debug_cores dbg_hub]
-set_property C_ENABLE_CLK_DIVIDER false [get_debug_cores dbg_hub]
-set_property C_USER_SCAN_CHAIN 1 [get_debug_cores dbg_hub]
-connect_debug_port dbg_hub/clk [get_nets clock_IBUF_BUFG]
+

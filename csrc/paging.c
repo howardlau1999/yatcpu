@@ -12,34 +12,10 @@
 // # See the License for the specific language governing permissions and
 // # limitations under the License.
 
-#include "memlayout.h"
+#include "mm.h"
 #include "mmio.h"
 
-#define PGSIZE 4096 // bytes per page
-#define PGSHIFT 12  // bits of offset within a page
 
-#define PGROUNDUP(sz)  (((sz)+PGSIZE-1) & ~(PGSIZE-1))
-#define PGROUNDDOWN(a) (((a)) & ~(PGSIZE-1))
-
-#define PTE_V (1L << 0) // valid
-#define PTE_R (1L << 1)
-#define PTE_W (1L << 2)
-#define PTE_X (1L << 3)
-#define PTE_U (1L << 4) // 1 -> user can access
-
-// shift a physical address to the right place for a PTE.
-#define PA2PTE(pa) ((((uint32)pa) >> 12) << 10)
-
-#define PTE2PA(pte) (((pte) >> 10) << 12)
-
-#define PTE_FLAGS(pte) ((pte) & 0x3FF)
-
-// extract the two 10-bit page table indices from a virtual address.
-#define PXMASK          0x3FF // 10 bits
-#define PXSHIFT(level)  (PGSHIFT+(10*(level)))
-#define PX(level, va) ((((uint32) (va)) >> PXSHIFT(level)) & PXMASK)
-
-#define MAXVA (1L << (10 + 10 + 12))
 
 #define SCREEN_COLS 80
 #define SCREEN_ROWS 30
@@ -68,6 +44,8 @@ void memoryset(unsigned char *dest,unsigned char num, unsigned int size){
 
 uint32 pm[8]; //板子上有32kb内存，八个页
 uint32 timercount=0;
+void (*putch_at)(int,int,unsigned char);
+
 
 char info[][16] = {
     "page fault      ",
@@ -76,11 +54,11 @@ char info[][16] = {
     "out of mem      ",
 };
 
-void putch_at(int x, int y, unsigned char ch) {
+void __putch_at(int x, int y, unsigned char ch) {
 	VRAM[wk_mul(y,SCREEN_COLS) + x] = ch;
 }
 
-void vputch_at(int x, int y, unsigned char ch) {
+void __vputch_at(int x, int y, unsigned char ch) {
 	VA_VRAM[wk_mul(y,SCREEN_COLS) + x] = ch;
 }
 
@@ -140,39 +118,46 @@ void kvminit(){
     map(pgtbl,VA_TIMER_BASE,TIMER_BASE, PTE_W | PTE_R ); //
 }
 
-void trap_handler(void *epc, unsigned int cause) {
-    char* t = 0;
-	if (cause == 10 || cause == 15 || cause == 13) {
-        t=info[0];
-        for(int i=0;i<16;i++){
-            vputch_at(50+i,timercount,t[i]);
-        }
-        while(1);
-	} else if(cause == 0x80000007){
-        t=info[2];
-        for(int i=0;i<16;i++){
-            vputch_at(i,timercount,t[i]);
-        }
-        timercount += 1;
-    }
-    
-}
-
 void clear_screen() {
 	int *vram = ((int *) VRAM_BASE);
 	for (int i = 0; i < 600; ++i) vram[i] = 0x20202020;
 }
 
+void trap_handler(void *epc, unsigned int cause) {
+    char* t = 0;
+	if (cause == 10 || cause == 15 || cause == 13) {
+        t=info[0];
+        for(int i=0;i<16;i++){
+            putch_at(i,timercount,t[i]);
+        }
+        while(1);
+	} else if(cause == 0x80000007){
+        t=info[2];
+        for(int i=0;i<16;i++){
+            putch_at(i,timercount,t[i]);
+        }
+        timercount += 1;
+    }
+    if(timercount >= SCREEN_ROWS){
+        timercount = 0;
+        clear_screen();
+    }
+}
+
+
+
 int main(){
+    putch_at = __putch_at;
     for(int i=0;i<8;i++){
         pm[i] = 0;
     }
     timercount = 0;
-    // clear_screen();
-    for(int i=0;i<24;i++){
+    clear_screen();
+    for(int i=0;i<22;i++){
         putch_at(20+i,0,"printout before paging"[i]);
     }
     kvminit();
+    putch_at = __vputch_at;
     enable_paging();
     // int *vram = ((int *) VA_VRAM_BASE);
 	// for (int i = 0; i < 600; ++i) vram[i] = 0x31313131;
