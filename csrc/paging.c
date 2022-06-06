@@ -120,9 +120,7 @@ void kvminit(){
     for(int i=0;i<PGSIZE>>2;i++){
         pgtbl[i]=0;
     }
-    for(int i=0;i<8;i++){
-        pm[i] = 0;
-    }
+
     pm[PAGEDIR_BASE >> 12] = 1;
     pm[0]=1;
     pm[1]=1;
@@ -166,6 +164,10 @@ void clear_screen() {
 }
 
 int main(){
+    for(int i=0;i<8;i++){
+        pm[i] = 0;
+    }
+    timercount = 0;
     // clear_screen();
     for(int i=0;i<24;i++){
         putch_at(20+i,0,"printout before paging"[i]);
@@ -176,7 +178,7 @@ int main(){
 	// for (int i = 0; i < 600; ++i) vram[i] = 0x31313131;
     enable_interrupt();
     *VA_TIMER_ENABLED = 1;
-    // *VA_TIMER_LIMIT = INT_TIMER_LIMIT;
-    *VA_TIMER_LIMIT = 0x10000; //缩小时钟中断，方便debug
+    *VA_TIMER_LIMIT = INT_TIMER_LIMIT;
+    // *VA_TIMER_LIMIT = 0x10000; //缩小时钟周期，方便debug
     for(;;);
 }

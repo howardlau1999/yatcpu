@@ -47,8 +47,6 @@ class CPU extends Module {
   val csr_regs = Module(new CSR)
   val axi4_master = Module(new AXI4LiteMaster(Parameters.AddrBits, Parameters.DataBits))
   val mmu = Module(new MMU)
-
-  val dummy = Module(new dummy)
   axi4_master.io.channels <> io.axi4_channels
 
 
@@ -57,6 +55,9 @@ class CPU extends Module {
   val virtual_address = RegInit(UInt(Parameters.AddrWidth),0.U)
   val physical_address = RegInit(UInt(Parameters.AddrWidth),0.U)
   val mmu_restart = RegInit(false.B)
+  val pending = RegInit(false.B) //play the same role as pending_jump in Inst_fetch
+
+
 
 //bus arbitration
   when(mem_access_state === MEMAccessState.idle){
@@ -96,26 +97,34 @@ class CPU extends Module {
     }
   }.elsewhen(mem_access_state === MEMAccessState.if_address_translate){
     //"Interrupt" the IF address translation, turn to mem address translation
-    when(mem.io.bus.request){
+    when(mem.io.bus.request) {
       mmu_restart := true.B
-      when(mmu.io.restart_done){
+      when(mmu.io.restart_done) {
         mmu_restart := false.B
         mem_access_state := MEMAccessState.mem_address_translate
         bus_granted := BUSGranted.mmu_mem_granted
         virtual_address := ex2mem.io.output_alu_result
       }
-    }.elsewhen(id.io.if_jump_flag){
-      mmu_restart := true.B
-      when(mmu.io.restart_done){
-        mmu_restart := false.B
-        bus_granted := BUSGranted.idle
-        mem_access_state := MEMAccessState.idle
-      }
     }.otherwise{
-      when(mmu.io.pa_valid){
-        mem_access_state := MEMAccessState.if_access
-        bus_granted := BUSGranted.if_granted
-        physical_address := mmu.io.pa
+      when(pending){
+        when(mmu.io.restart_done){
+          mmu_restart := false.B
+          pending := false.B
+          mem_access_state := MEMAccessState.if_address_translate
+          bus_granted := BUSGranted.mmu_if_granted
+          virtual_address := inst_fetch.io.id_instruction_address
+        }
+      }.otherwise {
+        when(!id.io.if_jump_flag && mmu.io.pa_valid){
+          mem_access_state := MEMAccessState.if_access
+          bus_granted := BUSGranted.if_granted
+          physical_address := mmu.io.pa
+        }
+      }
+
+      when(id.io.if_jump_flag){
+        mmu_restart := true.B
+        pending := true.B
       }
     }
   }.elsewhen(mem_access_state === MEMAccessState.mem_access){
