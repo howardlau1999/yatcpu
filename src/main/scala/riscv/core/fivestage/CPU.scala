@@ -47,6 +47,8 @@ class CPU extends Module {
   val csr_regs = Module(new CSR)
   val axi4_master = Module(new AXI4LiteMaster(Parameters.AddrBits, Parameters.DataBits))
   val mmu = Module(new MMU)
+
+  val dummy = Module(new dummy)
   axi4_master.io.channels <> io.axi4_channels
 
 
@@ -106,7 +108,8 @@ class CPU extends Module {
       mmu_restart := true.B
       when(mmu.io.restart_done){
         mmu_restart := false.B
-        virtual_address := inst_fetch.io.id_instruction_address
+        bus_granted := BUSGranted.idle
+        mem_access_state := MEMAccessState.idle
       }
     }.otherwise{
       when(mmu.io.pa_valid){

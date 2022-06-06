@@ -5,8 +5,8 @@
 
 ## Clock signal 125 MHz
 
-set_property -dict { PACKAGE_PIN H16   IOSTANDARD LVCMOS33 } [get_ports { clock }]; #IO_L13P_T2_MRCC_35 Sch=sysclk
-create_clock -add -name sys_clk_pin -period 8.00 -waveform {0 4} [get_ports { clock }];
+set_property -dict {PACKAGE_PIN H16 IOSTANDARD LVCMOS33} [get_ports clock]
+create_clock -period 8.000 -name sys_clk_pin -waveform {0.000 4.000} -add [get_ports clock]
 
 ##Switches
 
@@ -24,14 +24,14 @@ set_property -dict { PACKAGE_PIN M20   IOSTANDARD LVCMOS33 } [get_ports { io_deb
 
 ##LEDs
 
-set_property -dict { PACKAGE_PIN R14   IOSTANDARD LVCMOS33 } [get_ports { io_led[0] }]; #IO_L6N_T0_VREF_34 Sch=led[0]
-set_property -dict { PACKAGE_PIN P14   IOSTANDARD LVCMOS33 } [get_ports { io_led[1] }]; #IO_L6P_T0_34 Sch=led[1]
-set_property -dict { PACKAGE_PIN N16   IOSTANDARD LVCMOS33 } [get_ports { io_led[2] }]; #IO_L21N_T3_DQS_AD14N_35 Sch=led[2]
-set_property -dict { PACKAGE_PIN M14   IOSTANDARD LVCMOS33 } [get_ports { io_led[3] }]; #IO_L23P_T3_35 Sch=led[3]
+set_property -dict {PACKAGE_PIN R14 IOSTANDARD LVCMOS33} [get_ports {io_led[0]}]
+set_property -dict {PACKAGE_PIN P14 IOSTANDARD LVCMOS33} [get_ports {io_led[1]}]
+set_property -dict {PACKAGE_PIN N16 IOSTANDARD LVCMOS33} [get_ports {io_led[2]}]
+set_property -dict {PACKAGE_PIN M14 IOSTANDARD LVCMOS33} [get_ports {io_led[3]}]
 
 ##Buttons
 
-set_property -dict { PACKAGE_PIN D19   IOSTANDARD LVCMOS33 } [get_ports { reset }]; #IO_L4P_T0_35 Sch=btn[0]
+set_property -dict {PACKAGE_PIN D19 IOSTANDARD LVCMOS33} [get_ports reset]
 set_property -dict { PACKAGE_PIN D20   IOSTANDARD LVCMOS33 } [get_ports { io_debug_clk }]; #IO_L4N_T0_35 Sch=btn[1]
 #set_property -dict { PACKAGE_PIN L20   IOSTANDARD LVCMOS33 } [get_ports { btn[2] }]; #IO_L9N_T1_DQS_AD3N_35 Sch=btn[2]
 #set_property -dict { PACKAGE_PIN L19   IOSTANDARD LVCMOS33 } [get_ports { btn[3] }]; #IO_L9P_T1_DQS_AD3P_35 Sch=btn[3]
@@ -40,8 +40,8 @@ set_property -dict { PACKAGE_PIN D20   IOSTANDARD LVCMOS33 } [get_ports { io_deb
 
 #set_property -dict { PACKAGE_PIN Y18   IOSTANDARD LVCMOS33 } [get_ports { io_rx }]; #IO_L17P_T2_34 Sch=ja_p[1]
 #set_property -dict { PACKAGE_PIN Y19   IOSTANDARD LVCMOS33 } [get_ports { io_tx }]; #IO_L17N_T2_34 Sch=ja_n[1]
-set_property -dict { PACKAGE_PIN Y16   IOSTANDARD LVCMOS33 } [get_ports { io_rx }]; #IO_L7P_T1_34 Sch=ja_p[2]
-set_property -dict { PACKAGE_PIN Y17   IOSTANDARD LVCMOS33 } [get_ports { io_tx }]; #IO_L7N_T1_34 Sch=ja_n[2]
+set_property -dict {PACKAGE_PIN Y16 IOSTANDARD LVCMOS33} [get_ports io_rx]
+set_property -dict {PACKAGE_PIN Y17 IOSTANDARD LVCMOS33} [get_ports io_tx]
 #set_property -dict { PACKAGE_PIN U18   IOSTANDARD LVCMOS33 } [get_ports { ja[4] }]; #IO_L12P_T1_MRCC_34 Sch=ja_p[3]
 #set_property -dict { PACKAGE_PIN U19   IOSTANDARD LVCMOS33 } [get_ports { ja[5] }]; #IO_L12N_T1_MRCC_34 Sch=ja_n[3]
 #set_property -dict { PACKAGE_PIN W18   IOSTANDARD LVCMOS33 } [get_ports { ja[6] }]; #IO_L22P_T3_34 Sch=ja_p[4]
@@ -69,7 +69,7 @@ set_property -dict { PACKAGE_PIN Y17   IOSTANDARD LVCMOS33 } [get_ports { io_tx 
 #set_property -dict { PACKAGE_PIN G18   IOSTANDARD LVCMOS33 } [get_ports { m_data }]; #IO_L16N_T2_35 Sch=m_data
 
 ##ChipKit Single Ended Analog Inputs
-##NOTE: The ck_an_p pins can be used as single ended analog inputs with voltages from 0-3.3V (Chipkit Analog pins A0-A5). 
+##NOTE: The ck_an_p pins can be used as single ended analog inputs with voltages from 0-3.3V (Chipkit Analog pins A0-A5).
 ##      These signals should only be connected to the XADC core. When using these pins as digital I/O, use pins ck_io[14-19].
 
 #set_property -dict { PACKAGE_PIN D18   IOSTANDARD LVCMOS33 } [get_ports { ck_an_n[0] }]; #IO_L3N_T0_DQS_AD1N_35 Sch=ck_an_n[0]
@@ -172,18 +172,37 @@ set_property -dict { PACKAGE_PIN T19   IOSTANDARD LVCMOS33 } [get_ports { io_deb
 ##HDMI Tx
 
 #set_property -dict { PACKAGE_PIN G15   IOSTANDARD LVCMOS33 } [get_ports { hdmi_tx_cec }]; #IO_L19N_T3_VREF_35 Sch=hdmi_tx_cec
-set_property -dict { PACKAGE_PIN L17   IOSTANDARD TMDS_33  } [get_ports { io_hdmi_clk_n }]; #IO_L11N_T1_SRCC_35 Sch=hdmi_tx_clk_n
-set_property -dict { PACKAGE_PIN L16   IOSTANDARD TMDS_33  } [get_ports { io_hdmi_clk_p }]; #IO_L11P_T1_SRCC_35 Sch=hdmi_tx_clk_p
-set_property -dict { PACKAGE_PIN K18   IOSTANDARD TMDS_33  } [get_ports { io_hdmi_data_n[0] }]; #IO_L12N_T1_MRCC_35 Sch=hdmi_tx_d_n[0]
-set_property -dict { PACKAGE_PIN K17   IOSTANDARD TMDS_33  } [get_ports { io_hdmi_data_p[0] }]; #IO_L12P_T1_MRCC_35 Sch=hdmi_tx_d_p[0]
-set_property -dict { PACKAGE_PIN J19   IOSTANDARD TMDS_33  } [get_ports { io_hdmi_data_n[1] }]; #IO_L10N_T1_AD11N_35 Sch=hdmi_tx_d_n[1]
-set_property -dict { PACKAGE_PIN K19   IOSTANDARD TMDS_33  } [get_ports { io_hdmi_data_p[1] }]; #IO_L10P_T1_AD11P_35 Sch=hdmi_tx_d_p[1]
-set_property -dict { PACKAGE_PIN H18   IOSTANDARD TMDS_33  } [get_ports { io_hdmi_data_n[2] }]; #IO_L14N_T2_AD4N_SRCC_35 Sch=hdmi_tx_d_n[2]
-set_property -dict { PACKAGE_PIN J18   IOSTANDARD TMDS_33  } [get_ports { io_hdmi_data_p[2] }]; #IO_L14P_T2_AD4P_SRCC_35 Sch=hdmi_tx_d_p[2]
-set_property -dict { PACKAGE_PIN R19   IOSTANDARD LVCMOS33 } [get_ports { io_hdmi_hpdn }]; #IO_0_34 Sch=hdmi_tx_hpdn
+set_property -dict {PACKAGE_PIN L17 IOSTANDARD TMDS_33} [get_ports io_hdmi_clk_n]
+set_property -dict {PACKAGE_PIN L16 IOSTANDARD TMDS_33} [get_ports io_hdmi_clk_p]
+set_property -dict {PACKAGE_PIN K18 IOSTANDARD TMDS_33} [get_ports {io_hdmi_data_n[0]}]
+set_property -dict {PACKAGE_PIN K17 IOSTANDARD TMDS_33} [get_ports {io_hdmi_data_p[0]}]
+set_property -dict {PACKAGE_PIN J19 IOSTANDARD TMDS_33} [get_ports {io_hdmi_data_n[1]}]
+set_property -dict {PACKAGE_PIN K19 IOSTANDARD TMDS_33} [get_ports {io_hdmi_data_p[1]}]
+set_property -dict {PACKAGE_PIN H18 IOSTANDARD TMDS_33} [get_ports {io_hdmi_data_n[2]}]
+set_property -dict {PACKAGE_PIN J18 IOSTANDARD TMDS_33} [get_ports {io_hdmi_data_p[2]}]
+set_property -dict {PACKAGE_PIN R19 IOSTANDARD LVCMOS33} [get_ports io_hdmi_hpdn]
 #set_property -dict { PACKAGE_PIN M17   IOSTANDARD LVCMOS33 } [get_ports { hdmi_tx_scl }]; #IO_L8P_T1_AD10P_35 Sch=hdmi_tx_scl
 #set_property -dict { PACKAGE_PIN M18   IOSTANDARD LVCMOS33 } [get_ports { hdmi_tx_sda }]; #IO_L8N_T1_AD10N_35 Sch=hdmi_tx_sda
 
-##Crypto SDA 
+##Crypto SDA
 
 #set_property -dict { PACKAGE_PIN J15   IOSTANDARD LVCMOS33 } [get_ports { crypto_sda }]; #IO_25_35 Sch=crypto_sda
+
+create_debug_core u_ila_0 ila
+set_property ALL_PROBE_SAME_MU true [get_debug_cores u_ila_0]
+set_property ALL_PROBE_SAME_MU_CNT 1 [get_debug_cores u_ila_0]
+set_property C_ADV_TRIGGER false [get_debug_cores u_ila_0]
+set_property C_DATA_DEPTH 1024 [get_debug_cores u_ila_0]
+set_property C_EN_STRG_QUAL false [get_debug_cores u_ila_0]
+set_property C_INPUT_PIPE_STAGES 0 [get_debug_cores u_ila_0]
+set_property C_TRIGIN_EN false [get_debug_cores u_ila_0]
+set_property C_TRIGOUT_EN false [get_debug_cores u_ila_0]
+set_property port_width 1 [get_debug_ports u_ila_0/clk]
+connect_debug_port u_ila_0/clk [get_nets [list clock_IBUF_BUFG]]
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe0]
+set_property port_width 32 [get_debug_ports u_ila_0/probe0]
+connect_debug_port u_ila_0/probe0 [get_nets [list {cpu/cpu/inst_fetch_io_id_instruction_address[0]} {cpu/cpu/inst_fetch_io_id_instruction_address[1]} {cpu/cpu/inst_fetch_io_id_instruction_address[2]} {cpu/cpu/inst_fetch_io_id_instruction_address[3]} {cpu/cpu/inst_fetch_io_id_instruction_address[4]} {cpu/cpu/inst_fetch_io_id_instruction_address[5]} {cpu/cpu/inst_fetch_io_id_instruction_address[6]} {cpu/cpu/inst_fetch_io_id_instruction_address[7]} {cpu/cpu/inst_fetch_io_id_instruction_address[8]} {cpu/cpu/inst_fetch_io_id_instruction_address[9]} {cpu/cpu/inst_fetch_io_id_instruction_address[10]} {cpu/cpu/inst_fetch_io_id_instruction_address[11]} {cpu/cpu/inst_fetch_io_id_instruction_address[12]} {cpu/cpu/inst_fetch_io_id_instruction_address[13]} {cpu/cpu/inst_fetch_io_id_instruction_address[14]} {cpu/cpu/inst_fetch_io_id_instruction_address[15]} {cpu/cpu/inst_fetch_io_id_instruction_address[16]} {cpu/cpu/inst_fetch_io_id_instruction_address[17]} {cpu/cpu/inst_fetch_io_id_instruction_address[18]} {cpu/cpu/inst_fetch_io_id_instruction_address[19]} {cpu/cpu/inst_fetch_io_id_instruction_address[20]} {cpu/cpu/inst_fetch_io_id_instruction_address[21]} {cpu/cpu/inst_fetch_io_id_instruction_address[22]} {cpu/cpu/inst_fetch_io_id_instruction_address[23]} {cpu/cpu/inst_fetch_io_id_instruction_address[24]} {cpu/cpu/inst_fetch_io_id_instruction_address[25]} {cpu/cpu/inst_fetch_io_id_instruction_address[26]} {cpu/cpu/inst_fetch_io_id_instruction_address[27]} {cpu/cpu/inst_fetch_io_id_instruction_address[28]} {cpu/cpu/inst_fetch_io_id_instruction_address[29]} {cpu/cpu/inst_fetch_io_id_instruction_address[30]} {cpu/cpu/inst_fetch_io_id_instruction_address[31]}]]
+set_property C_CLK_INPUT_FREQ_HZ 300000000 [get_debug_cores dbg_hub]
+set_property C_ENABLE_CLK_DIVIDER false [get_debug_cores dbg_hub]
+set_property C_USER_SCAN_CHAIN 1 [get_debug_cores dbg_hub]
+connect_debug_port dbg_hub/clk [get_nets clock_IBUF_BUFG]
