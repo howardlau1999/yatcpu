@@ -51,7 +51,6 @@ class Top extends Module {
   })
   val boot_state = RegInit(BootStates.Init)
   io.led := boot_state.asUInt
-
   val uart = Module(new Uart(125000000, 115200))
   io.tx := uart.io.txd
   uart.io.rxd := io.rx

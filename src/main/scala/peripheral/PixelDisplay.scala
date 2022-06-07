@@ -33,7 +33,7 @@ class PixelDisplay extends Module {
   slave.io.channels <> io.channels
 
   // RGB565
-  val mem = Module(new BlockRAM(256 * 240 * 2 / Parameters.WordSize))
+  val mem = Module(new BlockRAM(320 * 240 * 2 / Parameters.WordSize))
   slave.io.bundle.read_valid := true.B
   mem.io.write_enable := slave.io.bundle.write
   mem.io.write_data := slave.io.bundle.write_data
@@ -47,10 +47,10 @@ class PixelDisplay extends Module {
   val pixel_x = Wire(UInt(8.W))
   pixel_y := io.y >> 1
   pixel_x := io.x >> 1
-  val word_address = pixel_y ## (pixel_x & 0xFF.U)
+  val word_address = (pixel_y * 320.U + pixel_x) >> 1
   mem.io.debug_read_address := word_address
   val two_pixels = mem.io.debug_read_data
-  val pixel = Mux((pixel_x & 1.U).asBool, two_pixels(31, 16), two_pixels(15, 0))
+  val pixel = Mux(pixel_x(0), two_pixels(31, 16), two_pixels(15, 0))
   val r = Wire(UInt(8.W))
   val g = Wire(UInt(8.W))
   val b = Wire(UInt(8.W))
