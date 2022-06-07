@@ -35,6 +35,7 @@ endforeach()
 set(PROGRAMS litenes)
 # NES Emulator
 include_directories(${CMAKE_SOURCE_DIR}/LiteNES/include)
+add_definitions(-DYATCPU)
 add_library(fce
 	${CMAKE_SOURCE_DIR}/LiteNES/src/fce/common.c
 	${CMAKE_SOURCE_DIR}/LiteNES/src/fce/cpu-addressing.c
@@ -48,6 +49,7 @@ add_library(fce
 add_executable(litenes 
 	${CMAKE_SOURCE_DIR}/LiteNES/src/main.c
   ${CMAKE_SOURCE_DIR}/LiteNES/src/hal.c
+  ${CMAKE_SOURCE_DIR}/LiteNES/src/rom.c
 )
 set_target_properties(litenes PROPERTIES LINK_DEPENDS ${LINKER_SCRIPT})
 target_link_libraries(litenes prelude fce ${LINKER_FLAGS})
