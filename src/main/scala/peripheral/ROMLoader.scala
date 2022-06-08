@@ -14,14 +14,14 @@
 
 package peripheral
 
-import bus.{AXI4Channels, AXI4Master}
+import bus.{AXI4LiteChannels, AXI4LiteMaster}
 import chisel3._
 import chisel3.util._
 import riscv.Parameters
 
 class ROMLoader(capacity: Int) extends Module {
   val io = IO(new Bundle {
-    val channels = new AXI4Channels(Parameters.AddrBits, Parameters.InstructionBits)
+    val channels = new AXI4LiteChannels(Parameters.AddrBits, Parameters.InstructionBits)
 
     val rom_address = Output(UInt(Parameters.AddrWidth))
     val rom_data = Input(UInt(Parameters.InstructionWidth))
@@ -30,7 +30,7 @@ class ROMLoader(capacity: Int) extends Module {
     val load_address = Input(UInt(Parameters.AddrWidth))
     val load_finished = Output(Bool())
   })
-  val master = Module(new AXI4Master(Parameters.AddrBits, Parameters.InstructionBits))
+  val master = Module(new AXI4LiteMaster(Parameters.AddrBits, Parameters.InstructionBits))
   master.io.channels <> io.channels
 
   val address = RegInit(0.U(32.W))
@@ -51,6 +51,9 @@ class ROMLoader(capacity: Int) extends Module {
   master.io.bundle.write_strobe := VecInit(Seq.fill(Parameters.WordSize)(false.B))
   master.io.bundle.address := 0.U
 
+  when(!loading && !master.io.bundle.busy && address >= (capacity - 1).U) {
+    io.load_finished := true.B
+  }
   when(loading) {
     valid := true.B
     when(!master.io.bundle.busy && !master.io.bundle.write_valid) {
@@ -64,7 +67,6 @@ class ROMLoader(capacity: Int) extends Module {
     when(master.io.bundle.write_valid) {
       when(address >= (capacity - 1).U) {
         loading := false.B
-        io.load_finished := true.B
       }.otherwise {
         loading := true.B
         address := address + 1.U
@@ -72,7 +74,6 @@ class ROMLoader(capacity: Int) extends Module {
       }
     }.otherwise {
       address := address
-      loading := true.B
     }
   }
   io.rom_address := address

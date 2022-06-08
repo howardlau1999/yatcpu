@@ -409,7 +409,7 @@ void init() {
 		putch_at(0, r, '|');
 		putch_at(COLS << 1 | 1, r, '|');
 	}
-	for (int c = 0; c <= (2 << COLS | 1); ++c) {
+	for (int c = 0; c <= (COLS << 1 | 1); ++c) {
 		putch_at(c, ROWS, '-');
 	}
 	int c = 8;
@@ -455,6 +455,9 @@ int main() {
 	init();
 #else
 	board = (unsigned char *) 16384;
+	for (int i = 0; i < 16384; i += 4) {
+		*((int*) (board + i)) = 0;
+	}
 	clear_screen();
 	init();
 	*((unsigned int *) 4) = 0xDEADBEEF;

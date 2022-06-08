@@ -14,7 +14,7 @@
 
 package peripheral
 
-import bus.{AXI4Channels, AXI4Slave}
+import bus.{AXI4LiteChannels, AXI4LiteSlave}
 import chisel3._
 import chisel3.util._
 import riscv.Parameters
@@ -245,8 +245,8 @@ class HDMIDisplay extends Module {
     tmds_red.io.control_data := 0.U
 
     tmds_red.io.video_data := rgb(23, 16)
-    tmds_blue.io.video_data := rgb(15, 8)
-    tmds_green.io.video_data := rgb(7, 0)
+    tmds_blue.io.video_data := rgb(7, 0)
+    tmds_green.io.video_data := rgb(15, 8)
 
     tmds_channel0 := tmds_blue.io.TMDS
     tmds_channel1 := tmds_green.io.TMDS

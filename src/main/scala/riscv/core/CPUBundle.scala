@@ -14,12 +14,12 @@
 
 package riscv.core
 
-import bus.AXI4Channels
+import bus.{AXI4LiteChannels, AXI4LiteMasterBundle}
 import chisel3._
 import riscv.Parameters
 
 class CPUBundle extends Bundle {
-  val axi4_channels = new AXI4Channels(Parameters.AddrBits, Parameters.DataBits)
+  val axi4_channels = new AXI4LiteChannels(Parameters.AddrBits, Parameters.DataBits)
   val bus_address = Output(UInt(Parameters.AddrWidth))
   val interrupt_flag = Input(UInt(Parameters.InterruptFlagWidth))
   val stall_flag_bus = Input(Bool())
@@ -27,4 +27,6 @@ class CPUBundle extends Bundle {
   val debug_read_data = Output(UInt(Parameters.DataWidth))
 
   val instruction_valid = Input(Bool())
+  val bus_busy = Output(Bool())
+  val debug = Output(Vec(6, UInt(32.W)))
 }

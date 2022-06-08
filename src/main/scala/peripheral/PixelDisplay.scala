@@ -14,14 +14,14 @@
 
 package peripheral
 
-import bus.{AXI4Channels, AXI4Slave}
+import bus.{AXI4LiteChannels, AXI4LiteSlave}
 import chisel3._
 import chisel3.util.log2Up
 import riscv.Parameters
 
 class PixelDisplay extends Module {
   val io = IO(new Bundle() {
-    val channels = Flipped(new AXI4Channels(32, Parameters.DataBits))
+    val channels = Flipped(new AXI4LiteChannels(32, Parameters.DataBits))
 
     val x = Input(UInt(16.W))
     val y = Input(UInt(16.W))
@@ -29,11 +29,11 @@ class PixelDisplay extends Module {
 
     val rgb = Output(UInt(24.W))
   })
-  val slave = Module(new AXI4Slave(log2Up(CharacterBufferInfo.Chars), Parameters.DataBits))
+  val slave = Module(new AXI4LiteSlave(32, Parameters.DataBits))
   slave.io.channels <> io.channels
 
   // RGB565
-  val mem = Module(new BlockRAM(256 * 240 * 2 / Parameters.WordSize))
+  val mem = Module(new BlockRAM(320 * 240 * 2 / Parameters.WordSize))
   slave.io.bundle.read_valid := true.B
   mem.io.write_enable := slave.io.bundle.write
   mem.io.write_data := slave.io.bundle.write_data
@@ -43,19 +43,17 @@ class PixelDisplay extends Module {
   mem.io.read_address := slave.io.bundle.address
   slave.io.bundle.read_data := mem.io.read_data
 
-  val pixel_y = Wire(UInt(8.W))
-  val pixel_x = Wire(UInt(8.W))
+  val pixel_y = Wire(UInt(10.W))
+  val pixel_x = Wire(UInt(10.W))
   pixel_y := io.y >> 1
   pixel_x := io.x >> 1
-  val word_address = pixel_y ## (pixel_x & 0xFF.U)
-  mem.io.debug_read_address := word_address
-  val two_pixels = mem.io.debug_read_data
-  val pixel = Mux((pixel_x & 1.U).asBool, two_pixels(31, 16), two_pixels(15, 0))
-  val r = Wire(UInt(8.W))
-  val g = Wire(UInt(8.W))
-  val b = Wire(UInt(8.W))
-  r := pixel(15, 11) << 3
-  g := pixel(10, 5) << 2
-  b := pixel(4, 0) << 3
+  val pixel_address = (pixel_y * 320.U + pixel_x) << 1
+  mem.io.debug_read_address := pixel_address
+  val two_pixels = RegInit(0x000F000F.U(32.W))
+  two_pixels := mem.io.debug_read_data
+  val pixel = Mux(pixel_x(0), two_pixels(31, 16), two_pixels(15, 0))
+  val r = pixel(15, 11) ## 0.U(3.W)
+  val g = pixel(10, 5) ## 0.U(2.W)
+  val b = pixel(4, 0) ## 0.U(3.W)
   io.rgb := Mux(io.video_on, r ## g ## b, 0.U)
 }

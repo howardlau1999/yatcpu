@@ -14,7 +14,7 @@
 
 package riscv.core.threestage
 
-import bus.{AXI4Channels, AXI4Master}
+import bus.{AXI4LiteChannels, AXI4LiteMaster}
 import chisel3._
 import riscv.Parameters
 import riscv.core.CPUBundle
@@ -31,9 +31,16 @@ class CPU extends Module {
   val ex = Module(new Execute)
   val clint = Module(new CLINT)
   val csr_regs = Module(new CSR)
-  val axi4_master = Module(new AXI4Master(Parameters.AddrBits, Parameters.DataBits))
+  val axi4_master = Module(new AXI4LiteMaster(Parameters.AddrBits, Parameters.DataBits))
 
   axi4_master.io.channels <> io.axi4_channels
+  io.debug(0) := ex.io.reg1_data
+  io.debug(1) := ex.io.reg2_data
+  io.debug(2) := ex.io.instruction_address
+  io.debug(3) := ex.io.instruction
+  io.debug(4) := ex.io.ctrl_jump_flag
+  io.debug(5) := ex.io.ctrl_jump_address
+  io.bus_busy := axi4_master.io.bundle.busy
 
   // The EX module takes precedence over IF (but let the previous fetch finish)
   val ex_granted = RegInit(false.B)
