@@ -195,7 +195,7 @@ class AXI4LiteSlave(addrWidth: Int, dataWidth: Int) extends Module {
       when(io.channels.write_data_channel.WVALID && WREADY) {
         state := AXI4LiteStates.WriteResp
         write_data := io.channels.write_data_channel.WDATA
-        write_strobe := io.channels.write_data_channel.WSTRB.asBools()
+        write_strobe := io.channels.write_data_channel.WSTRB.asBools
         write := true.B
         WREADY := false.B
       }

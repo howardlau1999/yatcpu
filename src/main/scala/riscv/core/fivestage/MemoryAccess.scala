@@ -35,7 +35,7 @@ class MemoryAccess extends Module {
 
     val bus = new BusBundle
   })
-  val mem_address_index = io.alu_result(log2Up(Parameters.WordSize) - 1, 0).asUInt()
+  val mem_address_index = io.alu_result(log2Up(Parameters.WordSize) - 1, 0).asUInt
   val mem_access_state = RegInit(MemoryAccessStates.Idle)
 
   def on_bus_transaction_finished() = {
@@ -45,7 +45,7 @@ class MemoryAccess extends Module {
 
   io.bus.request := false.B
   io.bus.read := false.B
-  io.bus.address := io.alu_result
+  io.bus.address := io.alu_result(Parameters.AddrBits - 1, log2Up(Parameters.WordSize)) ## 0.U(log2Up(Parameters.WordSize).W)
   io.bus.write_data := 0.U
   io.bus.write_strobe := VecInit(Seq.fill(Parameters.WordSize)(false.B))
   io.bus.write := false.B

@@ -28,7 +28,7 @@ object BootStates extends ChiselEnum {
 }
 
 class Top extends Module {
-  val binaryFilename = "tetris.asmbin"
+  val binaryFilename = "litenes.asmbin"
   val io = IO(new Bundle() {
     val hdmi_clk_n = Output(Bool())
     val hdmi_clk_p = Output(Bool())
@@ -141,7 +141,7 @@ class Top extends Module {
   io.debug(6) := cpu.io.debug(5)
   io.debug(7) := cpu.io.interrupt_flag
 
-  val display = Module(new CharacterDisplay)
+  val display = Module(new PixelDisplay)
   bus_switch.io.slaves(1) <> display.io.channels
   bus_switch.io.slaves(2) <> uart.io.channels
   bus_switch.io.slaves(4) <> timer.io.channels
