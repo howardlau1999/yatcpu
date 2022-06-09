@@ -45,6 +45,9 @@ class DebugDisplay extends Module {
   }.elsewhen(224.U <= io.x < 256.U) {
     rgb := 0xFFFFFF.U
   }
+  when(io.y >= 256.U || io.x >= 256.U) {
+    rgb := io.y(7, 0) ## io.x(9, 0)
+  }
 
   io.rgb := Mux(io.video_on, rgb, 0.U)
 }
