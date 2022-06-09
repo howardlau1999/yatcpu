@@ -15,6 +15,7 @@
 # Only tested on Vivado 2020.1 on Windows 10
 set project_dir riscv-pynq
 set project_name riscv-pynq
+set part xc7z020clg400-1
 
 # open the project. will create one if it doesn't exist
 if {[file exist $project_dir]} {

@@ -14,6 +14,7 @@
 
 source open_project.tcl
 set_param general.maxThreads 16
+update_module_reference design_1_Top_0_0
 
 while 1 {
     if { [catch {launch_runs synth_1 -jobs 16 } ] } {
