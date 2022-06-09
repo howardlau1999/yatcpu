@@ -158,6 +158,7 @@ class InstructionDecode extends Module {
     val ex_csr_write_enable = Output(Bool())
     val if_jump_flag = Output(Bool())
     val if_jump_address = Output(UInt(Parameters.AddrWidth))
+    val clint_jump_address = Output(UInt(Parameters.AddrWidth))
   })
   val opcode = io.instruction(6, 0)
   val funct3 = io.instruction(14, 12)
@@ -165,6 +166,8 @@ class InstructionDecode extends Module {
   val rd = io.instruction(11, 7)
   val rs1 = io.instruction(19, 15)
   val rs2 = io.instruction(24, 20)
+
+  val j_type_instruction_target_addess = io.ex_immediate + Mux(opcode === Instructions.jalr, io.reg1_data, io.instruction_address)
 
   io.regs_reg1_read_address := Mux(opcode === Instructions.lui, 0.U(Parameters.PhysicalRegisterAddrWidth), rs1)
   io.regs_reg2_read_address := rs2
@@ -238,7 +241,8 @@ class InstructionDecode extends Module {
     Mux(
       io.interrupt_assert,
       io.interrupt_handler_address,
-      io.ex_immediate + Mux(opcode === Instructions.jalr, io.reg1_data, io.instruction_address)
+      j_type_instruction_target_addess
     )
   )
+  io.clint_jump_address := j_type_instruction_target_addess
 }

@@ -355,7 +355,8 @@ class CPU extends Module {
   clint.io.instruction := if2id.io.output_instruction
   clint.io.instruction_address_if := inst_fetch.io.id_instruction_address
   clint.io.jump_flag := id.io.if_jump_flag
-  clint.io.jump_address := ex2mem.io.output_alu_result
+//  clint.io.jump_address := ex2mem.io.output_alu_result
+  clint.io.jump_address := id.io.clint_jump_address
   clint.io.csr_mepc := csr_regs.io.clint_csr_mepc
   clint.io.csr_mtvec := csr_regs.io.clint_csr_mtvec
   clint.io.csr_mstatus := csr_regs.io.clint_csr_mstatus

@@ -20,6 +20,7 @@
 #define SCREEN_COLS 80
 #define SCREEN_ROWS 30
 #define INT_TIMER_LIMIT 50000000
+#define PAGEDIR_BASE 0x5000
 
 typedef unsigned int uint32;
 typedef uint32 pte_t;
