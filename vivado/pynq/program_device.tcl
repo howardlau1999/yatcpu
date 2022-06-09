@@ -17,6 +17,6 @@ open_hw_manager
 connect_hw_server -allow_non_jtag
 refresh_hw_server [current_hw_server]
 open_hw_target [lindex [get_hw_targets] 0]
-set_property PROGRAM.FILE {riscv-pynq/riscv-pynq.runs/impl_1/Top.bit} [get_hw_devices xc7z020_1]
+set_property PROGRAM.FILE {riscv-pynq/riscv-pynq.runs/impl_1/design_1_wrapper.bit} [get_hw_devices xc7z020_1]
 program_hw_devices [get_hw_devices xc7z020_1]
 close_hw_target
