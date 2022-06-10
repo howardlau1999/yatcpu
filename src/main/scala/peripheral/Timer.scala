@@ -31,7 +31,7 @@ class Timer extends Module {
   slave.io.channels <> io.channels
 
   val count = RegInit(0.U(32.W))
-  val limit = RegInit(10000000.U(32.W))
+  val limit = RegInit(100000000.U(32.W))
   io.debug_limit := limit
   val enabled = RegInit(false.B)
   io.debug_enabled := enabled

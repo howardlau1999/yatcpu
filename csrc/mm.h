@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+typedef unsigned int uint32;
+typedef uint32 pte_t;
+typedef uint32* pagetable_t;
+
 #define PGSIZE 4096 // bytes per page
 #define PGSHIFT 12  // bits of offset within a page
 

@@ -40,8 +40,8 @@ set_property -dict { PACKAGE_PIN D20   IOSTANDARD LVCMOS33 } [get_ports { io_deb
 
 #set_property -dict { PACKAGE_PIN Y18   IOSTANDARD LVCMOS33 } [get_ports { io_rx }]; #IO_L17P_T2_34 Sch=ja_p[1]
 #set_property -dict { PACKAGE_PIN Y19   IOSTANDARD LVCMOS33 } [get_ports { io_tx }]; #IO_L17N_T2_34 Sch=ja_n[1]
-set_property -dict {PACKAGE_PIN Y16 IOSTANDARD LVCMOS33} [get_ports io_rx]
-set_property -dict {PACKAGE_PIN Y17 IOSTANDARD LVCMOS33} [get_ports io_tx]
+# set_property -dict {PACKAGE_PIN Y16 IOSTANDARD LVCMOS33} [get_ports io_rx]
+# set_property -dict {PACKAGE_PIN Y17 IOSTANDARD LVCMOS33} [get_ports io_tx]
 #set_property -dict { PACKAGE_PIN U18   IOSTANDARD LVCMOS33 } [get_ports { ja[4] }]; #IO_L12P_T1_MRCC_34 Sch=ja_p[3]
 #set_property -dict { PACKAGE_PIN U19   IOSTANDARD LVCMOS33 } [get_ports { ja[5] }]; #IO_L12N_T1_MRCC_34 Sch=ja_n[3]
 #set_property -dict { PACKAGE_PIN W18   IOSTANDARD LVCMOS33 } [get_ports { ja[6] }]; #IO_L22P_T3_34 Sch=ja_p[4]
@@ -51,8 +51,8 @@ set_property -dict {PACKAGE_PIN Y17 IOSTANDARD LVCMOS33} [get_ports io_tx]
 
 #set_property -dict { PACKAGE_PIN W14   IOSTANDARD LVCMOS33 } [get_ports { jb[0] }]; #IO_L8P_T1_34 Sch=jb_p[1]
 #set_property -dict { PACKAGE_PIN Y14   IOSTANDARD LVCMOS33 } [get_ports { jb[1] }]; #IO_L8N_T1_34 Sch=jb_n[1]
-#set_property -dict { PACKAGE_PIN T11   IOSTANDARD LVCMOS33 } [get_ports { jb[2] }]; #IO_L1P_T0_34 Sch=jb_p[2]
-#set_property -dict { PACKAGE_PIN T10   IOSTANDARD LVCMOS33 } [get_ports { jb[3] }]; #IO_L1N_T0_34 Sch=jb_n[2]
+set_property -dict {PACKAGE_PIN T11 IOSTANDARD LVCMOS33} [get_ports io_rx]
+set_property -dict {PACKAGE_PIN T10 IOSTANDARD LVCMOS33} [get_ports io_tx]
 #set_property -dict { PACKAGE_PIN V16   IOSTANDARD LVCMOS33 } [get_ports { jb[4] }]; #IO_L18P_T2_34 Sch=jb_p[3]
 #set_property -dict { PACKAGE_PIN W16   IOSTANDARD LVCMOS33 } [get_ports { jb[5] }]; #IO_L18N_T2_34 Sch=jb_n[3]
 #set_property -dict { PACKAGE_PIN V12   IOSTANDARD LVCMOS33 } [get_ports { jb[6] }]; #IO_L4P_T0_34 Sch=jb_p[4]
@@ -189,3 +189,54 @@ set_property -dict {PACKAGE_PIN R19 IOSTANDARD LVCMOS33} [get_ports io_hdmi_hpdn
 #set_property -dict { PACKAGE_PIN J15   IOSTANDARD LVCMOS33 } [get_ports { crypto_sda }]; #IO_25_35 Sch=crypto_sda
 
 
+
+create_debug_core u_ila_0 ila
+set_property ALL_PROBE_SAME_MU true [get_debug_cores u_ila_0]
+set_property ALL_PROBE_SAME_MU_CNT 1 [get_debug_cores u_ila_0]
+set_property C_ADV_TRIGGER false [get_debug_cores u_ila_0]
+set_property C_DATA_DEPTH 1024 [get_debug_cores u_ila_0]
+set_property C_EN_STRG_QUAL false [get_debug_cores u_ila_0]
+set_property C_INPUT_PIPE_STAGES 0 [get_debug_cores u_ila_0]
+set_property C_TRIGIN_EN false [get_debug_cores u_ila_0]
+set_property C_TRIGOUT_EN false [get_debug_cores u_ila_0]
+set_property port_width 1 [get_debug_ports u_ila_0/clk]
+connect_debug_port u_ila_0/clk [get_nets [list clock_IBUF_BUFG]]
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe0]
+set_property port_width 32 [get_debug_ports u_ila_0/probe0]
+connect_debug_port u_ila_0/probe0 [get_nets [list {cpu/cpu/clint/io_id_interrupt_handler_address[0]} {cpu/cpu/clint/io_id_interrupt_handler_address[1]} {cpu/cpu/clint/io_id_interrupt_handler_address[2]} {cpu/cpu/clint/io_id_interrupt_handler_address[3]} {cpu/cpu/clint/io_id_interrupt_handler_address[4]} {cpu/cpu/clint/io_id_interrupt_handler_address[5]} {cpu/cpu/clint/io_id_interrupt_handler_address[6]} {cpu/cpu/clint/io_id_interrupt_handler_address[7]} {cpu/cpu/clint/io_id_interrupt_handler_address[8]} {cpu/cpu/clint/io_id_interrupt_handler_address[9]} {cpu/cpu/clint/io_id_interrupt_handler_address[10]} {cpu/cpu/clint/io_id_interrupt_handler_address[11]} {cpu/cpu/clint/io_id_interrupt_handler_address[12]} {cpu/cpu/clint/io_id_interrupt_handler_address[13]} {cpu/cpu/clint/io_id_interrupt_handler_address[14]} {cpu/cpu/clint/io_id_interrupt_handler_address[15]} {cpu/cpu/clint/io_id_interrupt_handler_address[16]} {cpu/cpu/clint/io_id_interrupt_handler_address[17]} {cpu/cpu/clint/io_id_interrupt_handler_address[18]} {cpu/cpu/clint/io_id_interrupt_handler_address[19]} {cpu/cpu/clint/io_id_interrupt_handler_address[20]} {cpu/cpu/clint/io_id_interrupt_handler_address[21]} {cpu/cpu/clint/io_id_interrupt_handler_address[22]} {cpu/cpu/clint/io_id_interrupt_handler_address[23]} {cpu/cpu/clint/io_id_interrupt_handler_address[24]} {cpu/cpu/clint/io_id_interrupt_handler_address[25]} {cpu/cpu/clint/io_id_interrupt_handler_address[26]} {cpu/cpu/clint/io_id_interrupt_handler_address[27]} {cpu/cpu/clint/io_id_interrupt_handler_address[28]} {cpu/cpu/clint/io_id_interrupt_handler_address[29]} {cpu/cpu/clint/io_id_interrupt_handler_address[30]} {cpu/cpu/clint/io_id_interrupt_handler_address[31]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe1]
+set_property port_width 32 [get_debug_ports u_ila_0/probe1]
+connect_debug_port u_ila_0/probe1 [get_nets [list {cpu/cpu/csr_regs/io_clint_csr_mepc[0]} {cpu/cpu/csr_regs/io_clint_csr_mepc[1]} {cpu/cpu/csr_regs/io_clint_csr_mepc[2]} {cpu/cpu/csr_regs/io_clint_csr_mepc[3]} {cpu/cpu/csr_regs/io_clint_csr_mepc[4]} {cpu/cpu/csr_regs/io_clint_csr_mepc[5]} {cpu/cpu/csr_regs/io_clint_csr_mepc[6]} {cpu/cpu/csr_regs/io_clint_csr_mepc[7]} {cpu/cpu/csr_regs/io_clint_csr_mepc[8]} {cpu/cpu/csr_regs/io_clint_csr_mepc[9]} {cpu/cpu/csr_regs/io_clint_csr_mepc[10]} {cpu/cpu/csr_regs/io_clint_csr_mepc[11]} {cpu/cpu/csr_regs/io_clint_csr_mepc[12]} {cpu/cpu/csr_regs/io_clint_csr_mepc[13]} {cpu/cpu/csr_regs/io_clint_csr_mepc[14]} {cpu/cpu/csr_regs/io_clint_csr_mepc[15]} {cpu/cpu/csr_regs/io_clint_csr_mepc[16]} {cpu/cpu/csr_regs/io_clint_csr_mepc[17]} {cpu/cpu/csr_regs/io_clint_csr_mepc[18]} {cpu/cpu/csr_regs/io_clint_csr_mepc[19]} {cpu/cpu/csr_regs/io_clint_csr_mepc[20]} {cpu/cpu/csr_regs/io_clint_csr_mepc[21]} {cpu/cpu/csr_regs/io_clint_csr_mepc[22]} {cpu/cpu/csr_regs/io_clint_csr_mepc[23]} {cpu/cpu/csr_regs/io_clint_csr_mepc[24]} {cpu/cpu/csr_regs/io_clint_csr_mepc[25]} {cpu/cpu/csr_regs/io_clint_csr_mepc[26]} {cpu/cpu/csr_regs/io_clint_csr_mepc[27]} {cpu/cpu/csr_regs/io_clint_csr_mepc[28]} {cpu/cpu/csr_regs/io_clint_csr_mepc[29]} {cpu/cpu/csr_regs/io_clint_csr_mepc[30]} {cpu/cpu/csr_regs/io_clint_csr_mepc[31]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe2]
+set_property port_width 32 [get_debug_ports u_ila_0/probe2]
+connect_debug_port u_ila_0/probe2 [get_nets [list {cpu/cpu/csr_regs/io_clint_csr_mstatus[0]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[1]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[2]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[3]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[4]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[5]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[6]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[7]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[8]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[9]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[10]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[11]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[12]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[13]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[14]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[15]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[16]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[17]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[18]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[19]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[20]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[21]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[22]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[23]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[24]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[25]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[26]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[27]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[28]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[29]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[30]} {cpu/cpu/csr_regs/io_clint_csr_mstatus[31]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe3]
+set_property port_width 32 [get_debug_ports u_ila_0/probe3]
+connect_debug_port u_ila_0/probe3 [get_nets [list {cpu/cpu/csr_regs/io_clint_csr_mtvec[0]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[1]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[2]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[3]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[4]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[5]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[6]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[7]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[8]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[9]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[10]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[11]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[12]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[13]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[14]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[15]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[16]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[17]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[18]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[19]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[20]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[21]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[22]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[23]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[24]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[25]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[26]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[27]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[28]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[29]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[30]} {cpu/cpu/csr_regs/io_clint_csr_mtvec[31]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe4]
+set_property port_width 32 [get_debug_ports u_ila_0/probe4]
+connect_debug_port u_ila_0/probe4 [get_nets [list {cpu/cpu/inst_fetch/io_id_instruction_address[0]} {cpu/cpu/inst_fetch/io_id_instruction_address[1]} {cpu/cpu/inst_fetch/io_id_instruction_address[2]} {cpu/cpu/inst_fetch/io_id_instruction_address[3]} {cpu/cpu/inst_fetch/io_id_instruction_address[4]} {cpu/cpu/inst_fetch/io_id_instruction_address[5]} {cpu/cpu/inst_fetch/io_id_instruction_address[6]} {cpu/cpu/inst_fetch/io_id_instruction_address[7]} {cpu/cpu/inst_fetch/io_id_instruction_address[8]} {cpu/cpu/inst_fetch/io_id_instruction_address[9]} {cpu/cpu/inst_fetch/io_id_instruction_address[10]} {cpu/cpu/inst_fetch/io_id_instruction_address[11]} {cpu/cpu/inst_fetch/io_id_instruction_address[12]} {cpu/cpu/inst_fetch/io_id_instruction_address[13]} {cpu/cpu/inst_fetch/io_id_instruction_address[14]} {cpu/cpu/inst_fetch/io_id_instruction_address[15]} {cpu/cpu/inst_fetch/io_id_instruction_address[16]} {cpu/cpu/inst_fetch/io_id_instruction_address[17]} {cpu/cpu/inst_fetch/io_id_instruction_address[18]} {cpu/cpu/inst_fetch/io_id_instruction_address[19]} {cpu/cpu/inst_fetch/io_id_instruction_address[20]} {cpu/cpu/inst_fetch/io_id_instruction_address[21]} {cpu/cpu/inst_fetch/io_id_instruction_address[22]} {cpu/cpu/inst_fetch/io_id_instruction_address[23]} {cpu/cpu/inst_fetch/io_id_instruction_address[24]} {cpu/cpu/inst_fetch/io_id_instruction_address[25]} {cpu/cpu/inst_fetch/io_id_instruction_address[26]} {cpu/cpu/inst_fetch/io_id_instruction_address[27]} {cpu/cpu/inst_fetch/io_id_instruction_address[28]} {cpu/cpu/inst_fetch/io_id_instruction_address[29]} {cpu/cpu/inst_fetch/io_id_instruction_address[30]} {cpu/cpu/inst_fetch/io_id_instruction_address[31]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe5]
+set_property port_width 32 [get_debug_ports u_ila_0/probe5]
+connect_debug_port u_ila_0/probe5 [get_nets [list {cpu_io_interrupt_flag[0]} {cpu_io_interrupt_flag[1]} {cpu_io_interrupt_flag[2]} {cpu_io_interrupt_flag[3]} {cpu_io_interrupt_flag[4]} {cpu_io_interrupt_flag[5]} {cpu_io_interrupt_flag[6]} {cpu_io_interrupt_flag[7]} {cpu_io_interrupt_flag[8]} {cpu_io_interrupt_flag[9]} {cpu_io_interrupt_flag[10]} {cpu_io_interrupt_flag[11]} {cpu_io_interrupt_flag[12]} {cpu_io_interrupt_flag[13]} {cpu_io_interrupt_flag[14]} {cpu_io_interrupt_flag[15]} {cpu_io_interrupt_flag[16]} {cpu_io_interrupt_flag[17]} {cpu_io_interrupt_flag[18]} {cpu_io_interrupt_flag[19]} {cpu_io_interrupt_flag[20]} {cpu_io_interrupt_flag[21]} {cpu_io_interrupt_flag[22]} {cpu_io_interrupt_flag[23]} {cpu_io_interrupt_flag[24]} {cpu_io_interrupt_flag[25]} {cpu_io_interrupt_flag[26]} {cpu_io_interrupt_flag[27]} {cpu_io_interrupt_flag[28]} {cpu_io_interrupt_flag[29]} {cpu_io_interrupt_flag[30]} {cpu_io_interrupt_flag[31]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe6]
+set_property port_width 1 [get_debug_ports u_ila_0/probe6]
+connect_debug_port u_ila_0/probe6 [get_nets [list cpu/cpu/clint/io_exception_signal]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe7]
+set_property port_width 1 [get_debug_ports u_ila_0/probe7]
+connect_debug_port u_ila_0/probe7 [get_nets [list cpu/cpu/clint/io_id_interrupt_assert]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe8]
+set_property port_width 1 [get_debug_ports u_ila_0/probe8]
+connect_debug_port u_ila_0/probe8 [get_nets [list uart_io_signal_interrupt]]
+set_property C_CLK_INPUT_FREQ_HZ 300000000 [get_debug_cores dbg_hub]
+set_property C_ENABLE_CLK_DIVIDER false [get_debug_cores dbg_hub]
+set_property C_USER_SCAN_CHAIN 1 [get_debug_cores dbg_hub]
+connect_debug_port dbg_hub/clk [get_nets clock_IBUF_BUFG]
