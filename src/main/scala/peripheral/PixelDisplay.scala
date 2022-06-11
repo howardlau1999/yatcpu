@@ -33,7 +33,7 @@ class PixelDisplay extends Module {
   slave.io.channels <> io.channels
 
   // RGB565
-  val mem = Module(new BlockRAM(320 * 240 * 2 / Parameters.WordSize))
+  val mem = Module(new BlockRAM(320 * 240))
   slave.io.bundle.read_valid := true.B
   mem.io.write_enable := slave.io.bundle.write
   mem.io.write_data := slave.io.bundle.write_data
@@ -43,17 +43,13 @@ class PixelDisplay extends Module {
   mem.io.read_address := slave.io.bundle.address
   slave.io.bundle.read_data := mem.io.read_data
 
-  val pixel_y = Wire(UInt(10.W))
-  val pixel_x = Wire(UInt(10.W))
-  pixel_y := io.y >> 1
-  pixel_x := io.x >> 1
-  val pixel_address = (pixel_y * 320.U + pixel_x) << 1
-  mem.io.debug_read_address := pixel_address
-  val two_pixels = RegInit(0x000F000F.U(32.W))
-  two_pixels := mem.io.debug_read_data
-  val pixel = Mux(pixel_x(0), two_pixels(31, 16), two_pixels(15, 0))
-  val r = pixel(15, 11) ## 0.U(3.W)
-  val g = pixel(10, 5) ## 0.U(2.W)
-  val b = pixel(4, 0) ## 0.U(3.W)
+  val pixel_x = (io.x)(15, 1).asUInt
+  val pixel_y = (io.y)(15, 1).asUInt
+  mem.io.debug_read_address := (pixel_y * 320.U + pixel_x) << 2
+
+  val pixel = mem.io.debug_read_data
+  val r = pixel(23, 16)
+  val g = pixel(15, 8)
+  val b = pixel(7, 0)
   io.rgb := Mux(io.video_on, r ## g ## b, 0.U)
 }
