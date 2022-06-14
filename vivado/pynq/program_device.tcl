@@ -13,8 +13,8 @@
 # limitations under the License.
 
 # Only tested on Vivado 2020.1 on Windows 10
-open_hw_manager
-connect_hw_server -allow_non_jtag
+open_hw
+connect_hw_server
 refresh_hw_server [current_hw_server]
 open_hw_target [lindex [get_hw_targets] 0]
 set_property PROGRAM.FILE {riscv-pynq/riscv-pynq.runs/impl_1/Top.bit} [get_hw_devices xc7z020_1]

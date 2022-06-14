@@ -28,6 +28,7 @@ typedef uint32* pagetable_t;
 
 extern void enable_paging();
 extern void enable_interrupt();
+extern int get_mtval();
 
 int wk_mul(int a, int b) {
   int r = 0;
@@ -46,14 +47,6 @@ void memoryset(unsigned char *dest,unsigned char num, unsigned int size){
 uint32 pm[8]; //板子上有32kb内存，八个页
 uint32 timercount=0;
 void (*putch_at)(int,int,unsigned char);
-
-
-char info[][16] = {
-    "page fault      ",
-    "start paging    ",
-    "timer interrupt ",
-    "out of mem      ",
-};
 
 void __putch_at(int x, int y, unsigned char ch) {
 	VRAM[wk_mul(y,SCREEN_COLS) + x] = ch;
@@ -81,10 +74,15 @@ void map(pagetable_t pgtbl,uint32 va,uint32 pa,int perm){
     if((pgtbl[PX(1,va)] & PTE_V )!= PTE_V){ //前缀不存在
         t=alloc(); //申请一个页给前缀页表
         if(t>=0){
+            int* taddr = (int*)(t<<12);
+            for(int i=0;i<PGSIZE>>2;i++){
+                taddr[i]=0;
+            }
             pgtbl[PX(1,va)] = PA2PTE(t<<12) | PTE_V;
         }else{
-            for(int i=0;i<16;i++){
-                putch_at(50+i,0,info[3][i]);
+            while(1);
+            for(int i=0;i<14;i++){
+                putch_at(i,22,"out of memory!"[i]);
             }
             while(1);
         }
@@ -92,6 +90,7 @@ void map(pagetable_t pgtbl,uint32 va,uint32 pa,int perm){
     pagetable_t n = (void*)PTE2PA(pgtbl[PX(1,va)]);
     n[PX(0,va)] = PA2PTE(pa) | perm | PTE_V;
 }
+
 
 void kvminit(){
     pagetable_t pgtbl = (void*)PAGEDIR_BASE;
@@ -107,6 +106,7 @@ void kvminit(){
     pm[3]=1;
     pm[4]=1;
     //create pte mmap for text
+    pgtbl[1023] =  PA2PTE(PAGEDIR_BASE) | PTE_R | PTE_W;
     map(pgtbl,PAGEDIR_BASE,PAGEDIR_BASE,PTE_R | PTE_W);
     map(pgtbl,0x0,0x0, PTE_W | PTE_R ); //kernel stack
     map(pgtbl,0x1000,0x1000, PTE_W | PTE_R | PTE_X ); //
@@ -125,27 +125,42 @@ void clear_screen() {
 }
 
 void trap_handler(void *epc, unsigned int cause) {
-    char* t = 0;
 	if (cause == 10 || cause == 15 || cause == 13) {
-        t=info[0];
-        for(int i=0;i<16;i++){
-            putch_at(i,timercount,t[i]);
+        for(int i=0;i<39;i++){
+            putch_at(i,4,"A not handled page fault caused by : 0x"[i]);
         }
-        while(1);
+        int mtval = get_mtval();
+        char ch;
+        for (int i = 0; i < 8; ++i) {
+            unsigned int mask = 0xF << (i * 4);
+            unsigned int num = (mtval & mask) >> (i * 4);
+            if(num >= 10){
+                ch = num - 10 + 'A';
+            }else{
+                ch = num + '0';
+            }
+		    putch_at(39+7-i,4,ch);
+	    }
+        while(1); //目前还没有处理page-fault，因为还没有建立完整的映射。
 	} else if(cause == 0x80000007){
-        t=info[2];
         for(int i=0;i<16;i++){
-            putch_at(i,timercount,t[i]);
+            putch_at(i,3,"timer count : 0x"[i]);
         }
+        char ch;
+        for (int i = 0; i < 8; ++i) {
+            unsigned int mask = 0xF << (i * 4);
+            unsigned int num = (timercount & mask) >> (i * 4);
+            if(num >= 10){
+                ch = num - 10 + 'A';
+            }else{
+                ch = num + '0';
+            }
+		    putch_at(16+7-i,3,ch);
+	    }
         timercount += 1;
-    }
-    if(timercount >= SCREEN_ROWS){
-        timercount = 0;
-        clear_screen();
+
     }
 }
-
-
 
 int main(){
     putch_at = __putch_at;
@@ -154,17 +169,23 @@ int main(){
     }
     timercount = 0;
     clear_screen();
-    for(int i=0;i<22;i++){
-        putch_at(20+i,0,"printout before paging"[i]);
+    for(int i=0;i<19;i++){
+        putch_at(i,0,"print before paging"[i]);
     }
     kvminit();
     putch_at = __vputch_at;
     enable_paging();
-    // int *vram = ((int *) VA_VRAM_BASE);
-	// for (int i = 0; i < 600; ++i) vram[i] = 0x31313131;
+    for(int i=0;i<18;i++){
+        putch_at(i,1,"print after paging"[i]);
+    }
     enable_interrupt();
     *VA_TIMER_ENABLED = 1;
     *VA_TIMER_LIMIT = INT_TIMER_LIMIT;
-    // *VA_TIMER_LIMIT = 0x10000; //缩小时钟周期，方便debug
+
+    while(1){
+        if(timercount == 0x20){
+            *(int*)0x11415 = 1130;
+        }
+    }
     for(;;);
 }

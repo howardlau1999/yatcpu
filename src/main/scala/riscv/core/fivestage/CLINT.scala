@@ -95,7 +95,7 @@ class CLINT extends Module {
   val csr_reg_write_data = RegInit(UInt(Parameters.DataWidth), 0.U)
   val exception_token = RegInit(false.B)
   val exception_signal = RegInit(false.B)
-  io.ctrl_stall_flag := interrupt_state =/= InterruptState.Idle || csr_state =/= CSRState.Idle
+  io.ctrl_stall_flag := (interrupt_state =/= InterruptState.Idle || csr_state =/= CSRState.Idle ) && !exception_token
   io.exception_token := exception_token
 
   when(exception_signal && csr_state === CSRState.MCAUSE) {
