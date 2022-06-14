@@ -32,8 +32,8 @@ class PixelDisplay extends Module {
   val slave = Module(new AXI4LiteSlave(32, Parameters.DataBits))
   slave.io.channels <> io.channels
 
-  // RGB565
-  val mem = Module(new BlockRAM(320 * 240))
+  // 320x240, RGB 565
+  val mem = Module(new BlockRAM(320 * 240 / 2))
   slave.io.bundle.read_valid := true.B
   mem.io.write_enable := slave.io.bundle.write
   mem.io.write_data := slave.io.bundle.write_data
@@ -43,13 +43,14 @@ class PixelDisplay extends Module {
   mem.io.read_address := slave.io.bundle.address
   slave.io.bundle.read_data := mem.io.read_data
 
-  val pixel_x = (io.x)(15, 1).asUInt
-  val pixel_y = (io.y)(15, 1).asUInt
-  mem.io.debug_read_address := (pixel_y * 320.U + pixel_x) << 2
 
-  val pixel = mem.io.debug_read_data
-  val r = pixel(23, 16)
-  val g = pixel(15, 8)
-  val b = pixel(7, 0)
+  val pixel_x = io.x(15, 1).asUInt
+  val pixel_y = io.y(15, 1).asUInt
+  mem.io.debug_read_address := (pixel_y * 320.U + pixel_x) << 1
+
+  val pixel = Mux(pixel_x(0), mem.io.debug_read_data(31, 16), mem.io.debug_read_data(15, 0))
+  val r = pixel(15, 11) ## 0.U(3.W)
+  val g = pixel(10, 5) ## 0.U(2.W)
+  val b = pixel(4, 0) ## 0.U(3.W)
   io.rgb := Mux(io.video_on, r ## g ## b, 0.U)
 }

@@ -37,17 +37,11 @@ class Top extends Module {
     val hdmi_hpdn = Output(Bool())
 
     val axi_mem = new AXI4LiteInterface(32, 32)
-    val cpu_araddr = Output(UInt(32.W))
-    val cpu_awaddr = Output(UInt(32.W))
-    val cpu_rdata = Output(UInt(32.W))
-    val cpu_wdata = Output(UInt(32.W))
 
     val tx = Output(Bool())
     val rx = Input(Bool())
 
     val led = Output(UInt(4.W))
-
-    val debug = Output(Vec(8, UInt(32.W)))
   })
   val boot_state = RegInit(BootStates.Init)
   io.led := boot_state.asUInt
@@ -80,11 +74,6 @@ class Top extends Module {
   mem.write_response_channel.BVALID <> io.axi_mem.BVALID
   mem.write_response_channel.BRESP <> io.axi_mem.BRESP
   mem.write_response_channel.BREADY <> io.axi_mem.BREADY
-
-  io.cpu_rdata := cpu.io.axi4_channels.read_data_channel.RDATA
-  io.cpu_wdata := cpu.io.axi4_channels.write_data_channel.WDATA
-  io.cpu_araddr := cpu.io.axi4_channels.read_address_channel.ARADDR
-  io.cpu_awaddr := cpu.io.axi4_channels.write_address_channel.AWADDR
 
   val instruction_rom = Module(new InstructionROM(binaryFilename))
   val rom_loader = Module(new ROMLoader(instruction_rom.capacity))
@@ -132,14 +121,6 @@ class Top extends Module {
       bus_switch.io.slaves(0) <> mem
     }
   }
-  io.debug(0) := cpu.io.instruction_valid
-  io.debug(1) := cpu.io.debug(0)
-  io.debug(2) := cpu.io.debug(1)
-  io.debug(3) := cpu.io.debug(2)
-  io.debug(4) := cpu.io.debug(3)
-  io.debug(5) := cpu.io.debug(4)
-  io.debug(6) := cpu.io.debug(5)
-  io.debug(7) := cpu.io.interrupt_flag
 
   val display = Module(new PixelDisplay)
   bus_switch.io.slaves(1) <> display.io.channels
@@ -151,8 +132,8 @@ class Top extends Module {
 
   cpu.io.debug_read_address := 0.U
 
-  display.io.x := hdmi_display.io.x
-  display.io.y := hdmi_display.io.y
+  display.io.x := hdmi_display.io.x_next
+  display.io.y := hdmi_display.io.y_next
   display.io.video_on := hdmi_display.io.video_on
   hdmi_display.io.rgb := display.io.rgb
 
