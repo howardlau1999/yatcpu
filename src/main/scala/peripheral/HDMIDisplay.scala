@@ -28,6 +28,8 @@ class HDMISync extends Module {
     val f_tick = Output(Bool())
     val x = Output(UInt(10.W))
     val y = Output(UInt(10.W))
+    val x_next = Output(UInt(10.W))
+    val y_next = Output(UInt(10.W))
   })
 
   val DisplayHorizontal = ScreenInfo.DisplayHorizontal
@@ -95,6 +97,8 @@ class HDMISync extends Module {
   io.vsync := vsync_reg
   io.x := h_count_reg
   io.y := v_count_reg
+  io.x_next := h_count_next
+  io.y_next := v_count_next
   io.p_tick := pixel_tick
   io.f_tick := io.x === 0.U && io.y === 0.U
 }
@@ -193,6 +197,9 @@ class HDMIDisplay extends Module {
     val rgb = Input(UInt(24.W))
     val x = Output(UInt(16.W))
     val y = Output(UInt(16.W))
+    val p_tick = Output(Bool())
+    val x_next = Output(UInt(16.W))
+    val y_next = Output(UInt(16.W))
     val video_on = Output(Bool())
 
     val TMDSclk_p = Output(Bool())
@@ -208,6 +215,9 @@ class HDMIDisplay extends Module {
 
   io.x := sync.io.x
   io.y := sync.io.y
+  io.x_next := sync.io.x_next
+  io.y_next := sync.io.y_next
+  io.p_tick := sync.io.p_tick
   io.video_on := sync.io.video_on
 
   hsync := sync.io.hsync

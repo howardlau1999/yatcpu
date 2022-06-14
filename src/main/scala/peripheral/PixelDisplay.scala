@@ -25,6 +25,9 @@ class PixelDisplay extends Module {
 
     val x = Input(UInt(16.W))
     val y = Input(UInt(16.W))
+    val x_next = Input(UInt(16.W))
+    val y_next = Input(UInt(16.W))
+    val p_tick = Input(Bool())
     val video_on = Input(Bool())
 
     val rgb = Output(UInt(24.W))
