@@ -33,13 +33,13 @@ class HDMISync extends Module {
   val DisplayHorizontal = ScreenInfo.DisplayHorizontal
   val DisplayVertical = ScreenInfo.DisplayVertical
 
-  val BorderLeft = 48
-  val BorderRight = 16
-  val BorderTop = 10
-  val BorderBottom = 33
+  val BorderLeft = 40
+  val BorderRight = 8
+  val BorderTop = 4
+  val BorderBottom = 14
 
   val RetraceHorizontal = 96
-  val RetraceVertical = 2
+  val RetraceVertical = 4
 
   val MaxHorizontal = DisplayHorizontal + BorderLeft + BorderRight + RetraceHorizontal - 1
   val MaxVertical = DisplayVertical + BorderTop + BorderBottom + RetraceVertical - 1
