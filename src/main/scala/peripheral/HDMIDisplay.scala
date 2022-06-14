@@ -28,6 +28,8 @@ class HDMISync extends Module {
     val f_tick = Output(Bool())
     val x = Output(UInt(10.W))
     val y = Output(UInt(10.W))
+    val x_next = Output(UInt(10.W))
+    val y_next = Output(UInt(10.W))
   })
 
   val DisplayHorizontal = ScreenInfo.DisplayHorizontal
@@ -95,6 +97,8 @@ class HDMISync extends Module {
   io.vsync := vsync_reg
   io.x := h_count_reg
   io.y := v_count_reg
+  io.x_next := h_count_next
+  io.y_next := v_count_next
   io.p_tick := pixel_tick
   io.f_tick := io.x === 0.U && io.y === 0.U
 }
@@ -107,38 +111,44 @@ class TMDS_encoder extends Module {
     val TMDS = Output(UInt(10.W))
   })
   val Nb1s = PopCount(io.video_data)
-  val XNOR = Wire(Bool())
-  XNOR := (Nb1s > 4.U(4.W)) || (Nb1s === 4.U(4.W) && io.video_data(0) === 0.U)
 
-  // using recursion to compute
-  def xorfunc(value: UInt): UInt = {
-    value.getWidth match {
-      case 1 => value(0)
-      case s => val res = xorfunc(VecInit(value.asBools.drop(1)).asUInt)
-        value.asBools.head ^ res.asBools.head ## res
+  def xorfct(value: UInt): UInt = {
+    val vin = VecInit(value.asBools)
+    val res = VecInit(511.U.asBools)
+    res(0) := vin(0)
+    for(i <- 1 to 7){
+      res(i) := res(i-1) ^ vin(i)
     }
+    res(8) := 1.U
+    res.asUInt
   }
 
-  val xored = 1.U(1.W) ## xorfunc(io.video_data)
+  val xored = xorfct(io.video_data)
 
-  def xnorfunc(value: UInt): UInt = {
-    value.getWidth match {
-      case 1 => value(0)
-      case s => val res = xnorfunc(VecInit(value.asBools.drop(1)).asUInt)
-        !(value.asBools.head ^ res.asBools.head) ## res
+  def xnorfct(value: UInt): UInt = {
+    val vin = VecInit(value.asBools)
+    val res = VecInit(511.U.asBools)
+    res(0) := vin(0)
+    for(i <- 1 to 7){
+      res(i) := !(res(i-1) ^ vin(i))
     }
+    res(8) := 0.U
+    res.asUInt
   }
 
-  val xnored = 0.U(1.W) ## xnorfunc(io.video_data)
+  val xnored = xnorfct(io.video_data)
 
-  val q_m = Mux(
+  val XNOR = (Nb1s > 4.U(4.W)) || (Nb1s === 4.U(4.W) && io.video_data(0) === 0.U)
+  val q_m = RegInit(0.U(9.W))
+  q_m := Mux(
     XNOR,
     xnored,
     xored
   )
 
-  val diff = PopCount(q_m).asSInt - 4.S
-  val diffSize = diff.getWidth
+  val diffSize = 4
+  val diff = RegInit(0.S(diffSize.W))
+  diff := PopCount(q_m).asSInt - 4.S
 
   val disparitySize = 4
   val disparityReg = RegInit(0.S(disparitySize.W))
@@ -161,7 +171,7 @@ class TMDS_encoder extends Module {
   }.otherwise {
     when(disparityReg === 0.S || diff === 0.S) {
       when(q_m(8) === false.B) {
-        doutReg := "b10".U(2.W) ## q_m(7, 0)
+        doutReg := "b10".U(2.W) ## ~q_m(7, 0)
         disparityReg := disparityReg - diff
       }.otherwise {
         doutReg := "b01".U(2.W) ## q_m(7, 0)
@@ -193,6 +203,8 @@ class HDMIDisplay extends Module {
     val rgb = Input(UInt(24.W))
     val x = Output(UInt(16.W))
     val y = Output(UInt(16.W))
+    val x_next = Output(UInt(16.W))
+    val y_next = Output(UInt(16.W))
     val video_on = Output(Bool())
 
     val TMDSclk_p = Output(Bool())
@@ -208,6 +220,8 @@ class HDMIDisplay extends Module {
 
   io.x := sync.io.x
   io.y := sync.io.y
+  io.x_next := sync.io.x_next
+  io.y_next := sync.io.y_next
   io.video_on := sync.io.video_on
 
   hsync := sync.io.hsync

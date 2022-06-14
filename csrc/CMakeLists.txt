@@ -46,6 +46,7 @@ add_library(fce
 	${CMAKE_SOURCE_DIR}/LiteNES/src/fce/ppu.c
 	${CMAKE_SOURCE_DIR}/LiteNES/src/fce/psg.c
 )
+target_compile_options(fce PRIVATE "-O3")
 add_executable(litenes 
 	${CMAKE_SOURCE_DIR}/LiteNES/src/main.c
   ${CMAKE_SOURCE_DIR}/LiteNES/src/hal.c
