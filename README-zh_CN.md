@@ -8,6 +8,10 @@ YatCPU(**Y**et **a**nother **t**oy CPU) 是一个使用 Chisel 3 硬件设计语
 
 ![tetris-demo](https://liuhaohua.com/service-computing-blog/assets/images/tetris.gif)
 
+你还可以在自己开发的 CPU 上运行红白机模拟器！
+
+![litenes-demo](https://liuhaohua.com/service-computing-blog/assets/images/litenes.jpg)
+
 本项目深受 [tinyriscv](https://gitee.com/liangkangnan/tinyriscv) 项目的启发, 目前还处于非常初期的阶段。我们正在努力改进，并且希望得到您的反馈和贡献！
 
 ## 开发计划

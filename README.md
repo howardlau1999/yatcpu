@@ -8,6 +8,10 @@ You can play Tetris on your own CPU!
 
 ![tetris-demo](https://liuhaohua.com/service-computing-blog/assets/images/tetris.gif)
 
+You can also run an NES emulator!
+
+![litenes-demo](https://liuhaohua.com/service-computing-blog/assets/images/litenes.jpg)
+
 Heavily inspired by [tinyriscv](https://gitee.com/liangkangnan/tinyriscv), this project is still in its very early stage and under active development. We are looking forward to your
 feedback and contributions!
 
