@@ -41,7 +41,6 @@ class MemoryAccess extends Module {
   val mem_address_index = io.physical_address(log2Up(Parameters.WordSize) - 1, 0)
   val mem_access_state = RegInit(MemoryAccessStates.Idle)
 
-
   def on_bus_transaction_finished() = {
     mem_access_state := MemoryAccessStates.Idle
     io.ctrl_stall_flag := false.B
@@ -63,6 +62,7 @@ class MemoryAccess extends Module {
     when(mem_access_state === MemoryAccessStates.Idle) {
       // Start the read transaction when the bus is available
       io.ctrl_stall_flag := true.B
+      io.bus.read := true.B
       io.bus.request := true.B
       when(io.bus.granted) {
         io.bus.address := io.physical_address

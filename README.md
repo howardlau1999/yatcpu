@@ -6,7 +6,11 @@ YatCPU(**Y**et **a**nother **t**oy CPU) is a simple three-stage pipeline RISC-V 
 
 You can play Tetris on your own CPU!
 
-![tetris-demo](https://liuhaohua.com/service-computing-blog/assets/images/tetris.gif)
+![tetris-demo](https://howardlau.me/wp-content/uploads/2022/06/tetris.gif)
+
+You can also run an NES emulator!
+
+![litenes-demo](https://howardlau.me/wp-content/uploads/2022/06/litenes-scaled.jpg)
 
 Heavily inspired by [tinyriscv](https://gitee.com/liangkangnan/tinyriscv), this project is still in its very early stage and under active development. We are looking forward to your
 feedback and contributions!

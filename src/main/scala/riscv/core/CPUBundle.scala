@@ -14,7 +14,7 @@
 
 package riscv.core
 
-import bus.AXI4LiteChannels
+import bus.{AXI4LiteChannels, AXI4LiteMasterBundle}
 import chisel3._
 import riscv.Parameters
 
@@ -27,4 +27,6 @@ class CPUBundle extends Bundle {
   val debug_read_data = Output(UInt(Parameters.DataWidth))
 
   val instruction_valid = Input(Bool())
+  val bus_busy = Output(Bool())
+  val debug = Output(Vec(6, UInt(32.W)))
 }

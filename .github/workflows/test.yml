@@ -9,6 +9,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          submodules: recursive
       - name: Setup Verilator
         run: C:\msys64\usr\bin\bash.exe -l -c "pacman -Sy --noconfirm --needed base-devel mingw-w64-x86_64-toolchain git flex mingw-w64-x86_64-cmake mingw-w64-x86_64-verilator"
       - run: echo 'C:\msys64\usr\bin' | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
@@ -25,6 +27,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          submodules: recursive
       - name: Setup Clang
         run: brew install llvm && echo "$(brew --prefix llvm)/bin" >> $GITHUB_PATH
       - name: Setup Verilator
@@ -43,6 +47,8 @@ jobs:
         run: curl -LO https://gist.githubusercontent.com/howardlau1999/7ea2cffedc0491c46fa14e1f2355a9a8/raw/7886c0344e8f010a9d515a3de20983e604ae5a0a/update-alternatives-clang.sh && sudo bash update-alternatives-clang.sh 14 100
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          submodules: recursive
       - name: Setup Verilator
         run: sudo apt install -y verilator
       - name: Setup Scala
@@ -63,6 +69,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          submodules: recursive
       - name: Cache Scala
         uses: coursier/cache-action@v6
       - name: Compile executables for testing
