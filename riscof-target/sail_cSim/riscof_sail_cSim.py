@@ -51,6 +51,7 @@ class sail_cSim(pluginTemplate):
     def build(self, isa_yaml, platform_yaml):
         ispec = utils.load_yaml(isa_yaml)['hart0']
         self.xlen = ('64' if 64 in ispec['supported_xlen'] else '32')
+        #  self.xlen = "64"
         self.isa = 'rv' + self.xlen
         self.compile_cmd = self.compile_cmd+' -mabi='+('lp64 ' if 64 in ispec['supported_xlen'] else 'ilp32 ')
         if "I" in ispec["ISA"]:
@@ -63,11 +64,11 @@ class sail_cSim(pluginTemplate):
             self.isa += 'f'
         if "D" in ispec["ISA"]:
             self.isa += 'd'
-        objdump = "riscv{0}-unknown-elf-objdump".format(self.xlen)
+        objdump = "riscv{0}-unknown-elf-objdump".format('64')
         if shutil.which(objdump) is None:
             logger.error(objdump+": executable not found. Please check environment setup.")
             raise SystemExit(1)
-        compiler = "riscv{0}-unknown-elf-gcc".format(self.xlen)
+        compiler = "riscv{0}-unknown-elf-gcc".format('64')
         if shutil.which(compiler) is None:
             logger.error(compiler+": executable not found. Please check environment setup.")
             raise SystemExit(1)
