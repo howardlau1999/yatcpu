@@ -123,7 +123,7 @@ jobs:
         with:
           path: yatcpu
       - name: Setup ToolChain
-        run: sudo apt install -y verilator binutils-riscv32-unknown-elf gcc-riscv32-unknown-elf
+        run: sudo apt install -y verilator binutils-riscv64-unknown-elf gcc-riscv64-unknown-elf
       - name: Setup RISCOF
         run: | 
           pip3 install git+https://github.com/riscv/riscof.git
