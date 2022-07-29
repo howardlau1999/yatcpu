@@ -124,9 +124,7 @@ jobs:
           path: yatcpu
       - name: Setup RISCOF
         run: | 
-          python --version
           pip3 install git+https://github.com/riscv/riscof.git
-          riscof --help
       - name: Setup sail
         run: docker pull registry.gitlab.com/incoresemi/docker-images/compliance
       - name: Setup test suite
