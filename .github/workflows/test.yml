@@ -114,3 +114,25 @@ jobs:
           TARGET_SIM: ${{ github.workspace }}/yatcpu/verilog/verilator/obj_dir/VTop
           RISCV_TARGET: yatcpu
           TARGETDIR: ${{ github.workspace }}/yatcpu/riscv-target
+  new-test-framework-riscof-compliance-test:
+    name: Run RISCOF compliance test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: yatcpu
+      - name: Setup ToolChain
+        run: sudo apt install -y verilator binutils-riscv32-unknown-elf gcc-riscv32-unknown-elf
+      - name: Setup RISCOF
+        run: | 
+          pip3 install git+https://github.com/riscv/riscof.git
+      - name: Setup sail
+        run: docker pull registry.gitlab.com/incoresemi/docker-images/compliance
+      - name: Setup test suite
+        run: riscof --verbose info arch-test --clone
+      - name: Run RISCOF compliance test
+        run: |
+          cd ${{ github.workspace }}/yatcpu/riscof-target
+          riscof run --config=config.ini --suite=${{ github.workspace }}/riscv-arch-test/riscv-test-suite/ --env=${{ github.workspace }}/riscv-arch-test/riscv-test-suite/env
+
