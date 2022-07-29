@@ -162,7 +162,8 @@ class yatcpu(pluginTemplate):
           # function
           self.compile_cmd = self.compile + ';' + self.objdump + ';' + self.objcopy
 
-          cmd = self.compile_cmd.format(testentry['isa'].lower(), self.xlen, test, elf, compile_macros)
+          # riscv64-toolchain can work with 32bit
+          cmd = self.compile_cmd.format(testentry['isa'].lower(), 64, test, elf, compile_macros) 
           #  logger.info('cmd: '+ cmd)
 	  # if the user wants to disable running the tests and only compile the tests, then
 	  # the "else" clause is executed below assigning the sim command to simple no action
