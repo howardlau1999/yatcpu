@@ -95,11 +95,11 @@ class sail_cSim(pluginTemplate):
 
             execute = "@cd "+testentry['work_dir']+";"
 
-            cmd = self.compile_cmd.format(testentry['isa'].lower(), self.xlen) + ' ' + test + ' -o ' + elf
+            cmd = self.compile_cmd.format(testentry['isa'].lower(), '64') + ' ' + test + ' -o ' + elf
             compile_cmd = cmd + ' -D' + " -D".join(testentry['macros'])
             execute+=compile_cmd+";"
 
-            execute += self.objdump_cmd.format(elf, self.xlen, 'ref.disass')
+            execute += self.objdump_cmd.format(elf, '64', 'ref.disass')
             sig_file = os.path.join(test_dir, self.name[:-1] + ".signature")
 
             execute += self.sail_exe[self.xlen] + ' --test-signature={0} {1} > {2}.log 2>&1;'.format(sig_file, elf, test_name)
