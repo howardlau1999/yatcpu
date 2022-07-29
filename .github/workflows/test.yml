@@ -130,7 +130,7 @@ jobs:
       - name: Setup sail
         run: docker pull registry.gitlab.com/incoresemi/docker-images/compliance
       - name: Setup test suite
-        run: riscof --verbose info arch-tests --clone
+        run: riscof --verbose info arch-test --clone
       - name: Run RISCOF compliance test
         run: |
           cd ${{ github.workspace }}/yatcpu/riscof-target
