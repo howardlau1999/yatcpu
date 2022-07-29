@@ -125,7 +125,7 @@ jobs:
       - name: Setup RISCOF
         run: pip3 install git+https://github.com/riscv/riscof.git
       - name: Setup Toolchain
-        run: sudo apt install -y verilator binutils-riscv-unknown-elf gcc-riscv64-unknown-elf
+        run: sudo apt install -y binutils-riscv32-unknown-elf gcc-riscv32-unknown-elf
       - name: Setup sail
         run: | 
           sudo apt-get install opam  build-essential libgmp-dev z3 pkg-config zlib1g-dev 
