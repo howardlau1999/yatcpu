@@ -123,13 +123,15 @@ jobs:
         with:
           path: yatcpu
       - name: Setup RISCOF
-        run: pip3 install git+https://github.com/riscv/riscof.git
-      - name: Setup sail
-        run: docker pull registry.gitlab.com/incoresemi/docker-images/compliance
-      - name: Setup test suite
-        run: riscof --verbose info arch-tests --clone
-      - name: Run RISCOF compliance test
-        run: |
-          cd ${{ github.workspace }}/yatcpu/riscof-target
-          riscof run --config=config.ini --suite=${{ github.workspace }}/riscv-arch-test/riscv-test-suite/ --env=${{ github.workspace }}/riscv-arch-test/riscv-test-suite/env
+        run: | 
+          python --version
+#         pip3 install git+https://github.com/riscv/riscof.git
+#      - name: Setup sail
+#        run: docker pull registry.gitlab.com/incoresemi/docker-images/compliance
+#      - name: Setup test suite
+#        run: riscof --verbose info arch-tests --clone
+#      - name: Run RISCOF compliance test
+#        run: |
+#          cd ${{ github.workspace }}/yatcpu/riscof-target
+#          riscof run --config=config.ini --suite=${{ github.workspace }}/riscv-arch-test/riscv-test-suite/ --env=${{ github.workspace }}/riscv-arch-test/riscv-test-suite/env
 
