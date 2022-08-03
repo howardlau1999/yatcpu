@@ -15,8 +15,8 @@ from riscof.pluginTemplate import pluginTemplate
 
 logger = logging.getLogger()
 
-class yatcpu(pluginTemplate):
-    __model__ = "yatcpu"
+class spike(pluginTemplate):
+    __model__ = "spike"
 
     #TODO: please update the below to indicate family, version, etc of your DUT.
     __version__ = "XXX"
@@ -36,7 +36,7 @@ class yatcpu(pluginTemplate):
         # test-bench produced by a simulator (like verilator, vcs, incisive, etc). In case of an iss or
         # emulator, this variable could point to where the iss binary is located. If 'PATH variable
         # is missing in the config.ini we can hardcode the alternate here.
-        self.dut_exe = os.path.join(config['yatcpubin'] if 'yatcpubin' in config else "","VTop")
+        self.dut_exe = os.path.join(config['PATH'] if 'PATH' in config else "","spike")
 
         # Number of parallel jobs that can be spawned off by RISCOF
         # for various actions performed in later functions, specifically to run the tests in
@@ -75,26 +75,16 @@ class yatcpu(pluginTemplate):
        # Note the march is not hardwired here, because it will change for each
        # test. Similarly the output elf name and compile macros will be assigned later in the
        # runTests function
-       # using old arch_test.h before complement yamlspec
-       self.compile = 'riscv{1}-unknown-elf-gcc -march={0} \
-         -static -mcmodel=medany -fvisibility=hidden -nostdlib -nostartfiles -g \
-         -T '+ self.pluginpath + '/env/link.ld \
-         -I '+ archtest_env + ' \
-         -I ' + self.pluginpath + '/env/ {2} -o {3} {4} '
-       # -I ' + archtest_env + ' {2} -o {3} {4} '
-       # -march={0}(rv32i)  {1}=64 {2}=test.S {3}=test.elf -macros={4}
-        
+       self.compile_cmd = 'riscv{1}-unknown-elf-gcc -march={0} \
+         -static -mcmodel=medany -fvisibility=hidden -nostdlib -nostartfiles -g\
+         -T '+self.pluginpath+'/env/link.ld\
+         -I '+self.pluginpath+'/env/\
+         -I ' + archtest_env + ' {2} -o {3} {4}'
+
        # add more utility snippets here
-       self.objdump = 'riscv{1}-unknown-elf-objdump {3} -D > {3}.objdump; \
-               riscv{1}-unknown-elf-objdump {3} --source > {3}.debug; \
-               riscv{1}-unknown-elf-objdump -t {3} | grep " begin_signature$$" | awk \'{{ print $$1 }}\' > {3}.begin_signature; \
-               riscv{1}-unknown-elf-objdump -t {3} | grep " end_signature$$" | awk \'{{ print $$1 }}\' > {3}.end_signature; \
-               riscv{1}-unknown-elf-objdump -t {3} | grep " tohost$$" | awk \'{{ print $$1 }}\' > {3}.halt ' 
-                
-       self.objcopy = "riscv{1}-unknown-elf-objcopy {3} -O binary -j .text -j .data -j .tohost {3}.asmbin "
-       
 
     def build(self, isa_yaml, platform_yaml):
+
       # load the isa yaml as a dictionary in python.
       ispec = utils.load_yaml(isa_yaml)['hart0']
 
@@ -102,7 +92,7 @@ class yatcpu(pluginTemplate):
       # will be useful in setting integer value in the compiler string (if not already hardcoded);
       self.xlen = ('64' if 64 in ispec['supported_xlen'] else '32')
 
-      # for yatcpu start building the '--isa' argument. the self.isa is dutnmae specific and may not be
+      # for spike start building the '--isa' argument. the self.isa is dutnmae specific and may not be
       # useful for all DUTs
       self.isa = 'rv' + self.xlen
       if "I" in ispec["ISA"]:
@@ -118,9 +108,10 @@ class yatcpu(pluginTemplate):
 
       #TODO: The following assumes you are using the riscv-gcc toolchain. If
       #      not please change appropriately
-      self.compile = self.compile +' -mabi='+('lp64 ' if 64 in ispec['supported_xlen'] else 'ilp32 ')
+      self.compile_cmd = self.compile_cmd+' -mabi='+('lp64 ' if 64 in ispec['supported_xlen'] else 'ilp32 ')
 
     def runTests(self, testList):
+
       # Delete Makefile if it already exists.
       if os.path.exists(self.work_dir+ "/Makefile." + self.name[:-1]):
             os.remove(self.work_dir+ "/Makefile." + self.name[:-1])
@@ -152,7 +143,7 @@ class yatcpu(pluginTemplate):
           # be named as DUT-<dut-name>.signature. The below variable creates an absolute path of
           # signature file.
           sig_file = os.path.join(test_dir, self.name[:-1] + ".signature")
-            
+
           # for each test there are specific compile macros that need to be enabled. The macros in
           # the testList node only contain the macros/values. For the gcc toolchain we need to
           # prefix with "-D". The following does precisely that.
@@ -160,24 +151,15 @@ class yatcpu(pluginTemplate):
 
           # substitute all variables in the compile command that we created in the initialize
           # function
-          self.compile_cmd = self.compile + ';' + self.objdump + ';' + self.objcopy
+          # cmd = self.compile_cmd.format(testentry['isa'].lower(), self.xlen, test, elf, compile_macros)
+          cmd = self.compile_cmd.format(testentry['isa'].lower(), '64', test, elf, compile_macros)
 
-          cmd = self.compile_cmd.format(testentry['isa'].lower(), self.xlen, test, elf, compile_macros)
-          #  logger.info('cmd: '+ cmd)
 	  # if the user wants to disable running the tests and only compile the tests, then
 	  # the "else" clause is executed below assigning the sim command to simple no action
-	  # echo statement
+	  # echo statement.
           if self.target_run:
             # set up the simulation command. Template is for spike. Please change.
-            #simcmd = self.dut_exe + ' --isa={0} +signature={1} +signature-granularity=4 {2}'.format(self.isa, sig_file, elf)
-            simcmd_ = self.dut_exe + \
-                    ' -signature 0x$$(shell cat {0}.begin_signature) \
-                    0x$$(shell cat {0}.end_signature) ' + sig_file + \
-                    ' -halt 0x$$(shell cat {0}.halt)' + \
-                    ' -time 1000000' + \
-                    ' -instruction {0}.asmbin'
-            simcmd = simcmd_.format(elf)
-            # logger.info('simcmd: ' + simcmd)
+            simcmd = self.dut_exe + ' --isa={0} +signature={1} +signature-granularity=4 {2}'.format(self.isa, sig_file, elf)
           else:
             simcmd = 'echo "NO RUN"'
 
