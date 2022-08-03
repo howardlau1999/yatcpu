@@ -78,7 +78,7 @@ jobs:
       - name: SBT Test
         run: sbt test
   riscv-compliance-test:
-    name: Run RISC-V compliance test
+    name: Run old RISC-V compliance test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -114,25 +114,24 @@ jobs:
           TARGET_SIM: ${{ github.workspace }}/yatcpu/verilog/verilator/obj_dir/VTop
           RISCV_TARGET: yatcpu
           TARGETDIR: ${{ github.workspace }}/yatcpu/riscv-target
-  new-test-framework-riscof-compliance-test:
-    name: Run RISCOF compliance test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          path: yatcpu
-      - name: Setup ToolChain
-        run: sudo apt install -y verilator binutils-riscv64-unknown-elf gcc-riscv64-unknown-elf
+      # new-test-framework-riscof-compliance-test:
       - name: Setup RISCOF
         run: | 
           pip3 install git+https://github.com/riscv/riscof.git
-      - name: Setup sail
-        run: docker pull registry.gitlab.com/incoresemi/docker-images/compliance
+      - name: Setup spike
+        run: | 
+          sudo apt-get install device-tree-compiler
+          git clone https://github.com/riscv-software-src/riscv-isa-sim.git
+          cd riscv-isa-sim
+          mkdir build
+          cd build
+          ../configure --prefix=/usr/bin
+          make -j4
+          sudo make install
+          sudo cp spike /usr/bin
       - name: Setup test suite
         run: riscof --verbose info arch-test --clone
       - name: Run RISCOF compliance test
         run: |
           cd ${{ github.workspace }}/yatcpu/riscof-target
           riscof run --config=config.ini --suite=${{ github.workspace }}/riscv-arch-test/riscv-test-suite/ --env=${{ github.workspace }}/riscv-arch-test/riscv-test-suite/env
-
