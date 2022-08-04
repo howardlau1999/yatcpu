@@ -1,5 +1,7 @@
 ### Project Specific stuff
 test_run_dir/*
+*/__pycache_
+*/riscof_work_
 ### XilinxISE template
 # intermediate build files
 *.bgn

@@ -1,0 +1,523 @@
+
+my.elf:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+00001000 <rvtest_entry_point>:
+
+.section .text.init
+.globl rvtest_entry_point
+rvtest_entry_point:
+RVMODEL_BOOT
+RVTEST_CODE_BEGIN
+    1000:	feedc0b7          	lui	ra,0xfeedc
+    1004:	ead08093          	addi	ra,ra,-339 # feedbead <_end+0xfeed8ea9>
+    1008:	ff76e137          	lui	sp,0xff76e
+    100c:	f5610113          	addi	sp,sp,-170 # ff76df56 <_end+0xff76af52>
+    1010:	7fbb71b7          	lui	gp,0x7fbb7
+    1014:	fab18193          	addi	gp,gp,-85 # 7fbb6fab <_end+0x7fbb3fa7>
+    1018:	bfddb237          	lui	tp,0xbfddb
+    101c:	7d520213          	addi	tp,tp,2005 # bfddb7d5 <_end+0xbfdd87d1>
+    1020:	00000297          	auipc	t0,0x0
+    1024:	0d828293          	addi	t0,t0,216 # 10f8 <rvtest_code_begin>
+    1028:	00001317          	auipc	t1,0x1
+    102c:	fd830313          	addi	t1,t1,-40 # 2000 <rvtest_data_begin>
+    1030:	b7fbb3b7          	lui	t2,0xb7fbb
+    1034:	6fa38393          	addi	t2,t2,1786 # b7fbb6fa <_end+0xb7fb86f6>
+    1038:	5bfde437          	lui	s0,0x5bfde
+    103c:	b7d40413          	addi	s0,s0,-1155 # 5bfddb7d <_end+0x5bfdab79>
+    1040:	adfef4b7          	lui	s1,0xadfef
+    1044:	dbe48493          	addi	s1,s1,-578 # adfeedbe <_end+0xadfebdba>
+    1048:	56ff7537          	lui	a0,0x56ff7
+    104c:	6df50513          	addi	a0,a0,1759 # 56ff76df <_end+0x56ff46db>
+    1050:	ab7fc5b7          	lui	a1,0xab7fc
+    1054:	b6f58593          	addi	a1,a1,-1169 # ab7fbb6f <_end+0xab7f8b6b>
+    1058:	d5bfe637          	lui	a2,0xd5bfe
+    105c:	db760613          	addi	a2,a2,-585 # d5bfddb7 <_end+0xd5bfadb3>
+    1060:	eadff6b7          	lui	a3,0xeadff
+    1064:	edb68693          	addi	a3,a3,-293 # eadfeedb <_end+0xeadfbed7>
+    1068:	f56ff737          	lui	a4,0xf56ff
+    106c:	76d70713          	addi	a4,a4,1901 # f56ff76d <_end+0xf56fc769>
+    1070:	fab807b7          	lui	a5,0xfab80
+    1074:	bb678793          	addi	a5,a5,-1098 # fab7fbb6 <_end+0xfab7cbb2>
+    1078:	7d5c0837          	lui	a6,0x7d5c0
+    107c:	ddb80813          	addi	a6,a6,-549 # 7d5bfddb <_end+0x7d5bcdd7>
+    1080:	beae08b7          	lui	a7,0xbeae0
+    1084:	eed88893          	addi	a7,a7,-275 # beadfeed <_end+0xbeadcee9>
+    1088:	df570937          	lui	s2,0xdf570
+    108c:	f7690913          	addi	s2,s2,-138 # df56ff76 <_end+0xdf56cf72>
+    1090:	6fab89b7          	lui	s3,0x6fab8
+    1094:	fbb98993          	addi	s3,s3,-69 # 6fab7fbb <_end+0x6fab4fb7>
+    1098:	b7d5ca37          	lui	s4,0xb7d5c
+    109c:	fdda0a13          	addi	s4,s4,-35 # b7d5bfdd <_end+0xb7d58fd9>
+    10a0:	dbeaeab7          	lui	s5,0xdbeae
+    10a4:	feea8a93          	addi	s5,s5,-18 # dbeadfee <_end+0xdbeaafea>
+    10a8:	6df57b37          	lui	s6,0x6df57
+    10ac:	ff7b0b13          	addi	s6,s6,-9 # 6df56ff7 <_end+0x6df53ff3>
+    10b0:	b6fabbb7          	lui	s7,0xb6fab
+    10b4:	7fbb8b93          	addi	s7,s7,2043 # b6fab7fb <_end+0xb6fa87f7>
+    10b8:	db7d6c37          	lui	s8,0xdb7d6
+    10bc:	bfdc0c13          	addi	s8,s8,-1027 # db7d5bfd <_end+0xdb7d2bf9>
+    10c0:	edbebcb7          	lui	s9,0xedbeb
+    10c4:	dfec8c93          	addi	s9,s9,-514 # edbeadfe <_end+0xedbe7dfa>
+    10c8:	76df5d37          	lui	s10,0x76df5
+    10cc:	6ffd0d13          	addi	s10,s10,1791 # 76df56ff <_end+0x76df26fb>
+    10d0:	bb6fbdb7          	lui	s11,0xbb6fb
+    10d4:	b7fd8d93          	addi	s11,s11,-1153 # bb6fab7f <_end+0xbb6f7b7b>
+    10d8:	ddb7de37          	lui	t3,0xddb7d
+    10dc:	5bfe0e13          	addi	t3,t3,1471 # ddb7d5bf <_end+0xddb7a5bb>
+    10e0:	eedbfeb7          	lui	t4,0xeedbf
+    10e4:	adfe8e93          	addi	t4,t4,-1313 # eedbeadf <_end+0xeedbbadb>
+    10e8:	f76dff37          	lui	t5,0xf76df
+    10ec:	56ff0f13          	addi	t5,t5,1391 # f76df56f <_end+0xf76dc56b>
+    10f0:	fbb70fb7          	lui	t6,0xfbb70
+    10f4:	ab7f8f93          	addi	t6,t6,-1353 # fbb6fab7 <_end+0xfbb6cab3>
+
+000010f8 <rvtest_code_begin>:
+
+#ifdef TEST_CASE_1
+
+RVTEST_CASE(0,"//check ISA:=regex(.*32.*);check ISA:=regex(.*I.*);def TEST_CASE_1=True;",lh-align)
+
+RVTEST_SIGBASE( x3,signature_x3_1)
+    10f8:	00001197          	auipc	gp,0x1
+    10fc:	f1818193          	addi	gp,gp,-232 # 2010 <begin_signature>
+
+00001100 <inst_0>:
+
+inst_0:
+// rs1 != rd, rs1==x21, rd==x11, ea_align == 0 and (imm_val % 4) == 0, imm_val > 0
+// opcode:lh op1:x21; dest:x11; immval:0x100; align:0
+TEST_LOAD(x3,x10,0,x21,x11,0x100,0,lh,0)
+    1100:	00001a97          	auipc	s5,0x1
+    1104:	e00a8a93          	addi	s5,s5,-512 # 1f00 <loop+0xae0>
+    1108:	100a9583          	lh	a1,256(s5)
+    110c:	00000013          	nop
+    1110:	00000013          	nop
+    1114:	00b1a023          	sw	a1,0(gp)
+
+00001118 <inst_1>:
+
+inst_1:
+// rs1 == rd, rs1==x31, rd==x31, ea_align == 0 and (imm_val % 4) == 1, 
+// opcode:lh op1:x31; dest:x31; immval:0x5; align:0
+TEST_LOAD(x3,x10,0,x31,x31,0x5,4,lh,0)
+    1118:	00001f97          	auipc	t6,0x1
+    111c:	ee3f8f93          	addi	t6,t6,-285 # 1ffb <loop+0xbdb>
+    1120:	005f9f83          	lh	t6,5(t6)
+    1124:	00000013          	nop
+    1128:	00000013          	nop
+    112c:	01f1a223          	sw	t6,4(gp)
+
+00001130 <inst_2>:
+
+inst_2:
+// rs1==x14, rd==x1, ea_align == 0 and (imm_val % 4) == 2, imm_val < 0
+// opcode:lh op1:x14; dest:x1; immval:-0x556; align:0
+TEST_LOAD(x3,x10,0,x14,x1,-0x556,8,lh,0)
+    1130:	00001717          	auipc	a4,0x1
+    1134:	42670713          	addi	a4,a4,1062 # 2556 <end_signature+0x4c6>
+    1138:	aaa71083          	lh	ra,-1366(a4)
+    113c:	00000013          	nop
+    1140:	00000013          	nop
+    1144:	0011a423          	sw	ra,8(gp)
+
+00001148 <inst_3>:
+
+inst_3:
+// rs1==x6, rd==x30, ea_align == 0 and (imm_val % 4) == 3, 
+// opcode:lh op1:x6; dest:x30; immval:0x3ff; align:0
+TEST_LOAD(x3,x10,0,x6,x30,0x3ff,12,lh,0)
+    1148:	00001317          	auipc	t1,0x1
+    114c:	ab930313          	addi	t1,t1,-1351 # 1c01 <loop+0x7e1>
+    1150:	3ff31f03          	lh	t5,1023(t1)
+    1154:	00000013          	nop
+    1158:	00000013          	nop
+    115c:	01e1a623          	sw	t5,12(gp)
+
+00001160 <inst_4>:
+
+inst_4:
+// rs1==x20, rd==x13, ea_align == 2 and (imm_val % 4) == 0, 
+// opcode:lh op1:x20; dest:x13; immval:0x20; align:2
+TEST_LOAD(x3,x10,0,x20,x13,0x20,16,lh,2)
+    1160:	00001a17          	auipc	s4,0x1
+    1164:	e82a0a13          	addi	s4,s4,-382 # 1fe2 <loop+0xbc2>
+    1168:	020a1683          	lh	a3,32(s4)
+    116c:	00000013          	nop
+    1170:	00000013          	nop
+    1174:	00d1a823          	sw	a3,16(gp)
+
+00001178 <inst_5>:
+
+inst_5:
+// rs1==x9, rd==x17, imm_val == 0, 
+// opcode:lh op1:x9; dest:x17; immval:0x0; align:0
+TEST_LOAD(x3,x10,0,x9,x17,0x0,20,lh,0)
+    1178:	00001497          	auipc	s1,0x1
+    117c:	e8848493          	addi	s1,s1,-376 # 2000 <rvtest_data_begin>
+    1180:	00049883          	lh	a7,0(s1)
+    1184:	00000013          	nop
+    1188:	00000013          	nop
+    118c:	0111aa23          	sw	a7,20(gp)
+
+00001190 <inst_6>:
+
+inst_6:
+// rs1==x22, rd==x19, ea_align == 2 and (imm_val % 4) == 1, 
+// opcode:lh op1:x22; dest:x19; immval:0x1; align:2
+TEST_LOAD(x3,x10,0,x22,x19,0x1,24,lh,2)
+    1190:	00001b17          	auipc	s6,0x1
+    1194:	e71b0b13          	addi	s6,s6,-399 # 2001 <rvtest_data_begin+0x1>
+    1198:	001b1983          	lh	s3,1(s6)
+    119c:	00000013          	nop
+    11a0:	00000013          	nop
+    11a4:	0131ac23          	sw	s3,24(gp)
+
+000011a8 <inst_7>:
+
+inst_7:
+// rs1==x18, rd==x23, ea_align == 2 and (imm_val % 4) == 2, 
+// opcode:lh op1:x18; dest:x23; immval:-0x2; align:2
+TEST_LOAD(x3,x10,0,x18,x23,-0x2,28,lh,2)
+    11a8:	00001917          	auipc	s2,0x1
+    11ac:	e5c90913          	addi	s2,s2,-420 # 2004 <rvtest_data_end>
+    11b0:	ffe91b83          	lh	s7,-2(s2)
+    11b4:	00000013          	nop
+    11b8:	00000013          	nop
+    11bc:	0171ae23          	sw	s7,28(gp)
+
+000011c0 <inst_8>:
+
+inst_8:
+// rs1==x27, rd==x29, ea_align == 2 and (imm_val % 4) == 3, 
+// opcode:lh op1:x27; dest:x29; immval:-0x1; align:2
+TEST_LOAD(x3,x10,0,x27,x29,-0x1,32,lh,2)
+    11c0:	00001d97          	auipc	s11,0x1
+    11c4:	e43d8d93          	addi	s11,s11,-445 # 2003 <rvtest_data_begin+0x3>
+    11c8:	fffd9e83          	lh	t4,-1(s11)
+    11cc:	00000013          	nop
+    11d0:	00000013          	nop
+    11d4:	03d1a023          	sw	t4,32(gp)
+
+000011d8 <inst_9>:
+
+inst_9:
+// rs1==x7, rd==x16, 
+// opcode:lh op1:x7; dest:x16; immval:-0x800; align:0
+TEST_LOAD(x3,x10,0,x7,x16,-0x800,36,lh,0)
+    11d8:	00001397          	auipc	t2,0x1
+    11dc:	62838393          	addi	t2,t2,1576 # 2800 <end_signature+0x770>
+    11e0:	80039803          	lh	a6,-2048(t2)
+    11e4:	00000013          	nop
+    11e8:	00000013          	nop
+    11ec:	0301a223          	sw	a6,36(gp)
+
+000011f0 <inst_10>:
+
+inst_10:
+// rs1==x12, rd==x4, 
+// opcode:lh op1:x12; dest:x4; immval:-0x800; align:0
+TEST_LOAD(x3,x10,0,x12,x4,-0x800,40,lh,0)
+    11f0:	00001617          	auipc	a2,0x1
+    11f4:	61060613          	addi	a2,a2,1552 # 2800 <end_signature+0x770>
+    11f8:	80061203          	lh	tp,-2048(a2)
+    11fc:	00000013          	nop
+    1200:	00000013          	nop
+    1204:	0241a423          	sw	tp,40(gp)
+
+00001208 <inst_11>:
+
+inst_11:
+// rs1==x24, rd==x8, 
+// opcode:lh op1:x24; dest:x8; immval:-0x800; align:0
+TEST_LOAD(x3,x10,0,x24,x8,-0x800,44,lh,0)
+    1208:	00001c17          	auipc	s8,0x1
+    120c:	5f8c0c13          	addi	s8,s8,1528 # 2800 <end_signature+0x770>
+    1210:	800c1403          	lh	s0,-2048(s8)
+    1214:	00000013          	nop
+    1218:	00000013          	nop
+    121c:	0281a623          	sw	s0,44(gp)
+
+00001220 <inst_12>:
+
+inst_12:
+// rs1==x29, rd==x7, 
+// opcode:lh op1:x29; dest:x7; immval:-0x800; align:0
+TEST_LOAD(x3,x10,0,x29,x7,-0x800,48,lh,0)
+    1220:	00001e97          	auipc	t4,0x1
+    1224:	5e0e8e93          	addi	t4,t4,1504 # 2800 <end_signature+0x770>
+    1228:	800e9383          	lh	t2,-2048(t4)
+    122c:	00000013          	nop
+    1230:	00000013          	nop
+    1234:	0271a823          	sw	t2,48(gp)
+
+00001238 <inst_13>:
+
+inst_13:
+// rs1==x5, rd==x14, 
+// opcode:lh op1:x5; dest:x14; immval:-0x800; align:0
+TEST_LOAD(x3,x10,0,x5,x14,-0x800,52,lh,0)
+    1238:	00001297          	auipc	t0,0x1
+    123c:	5c828293          	addi	t0,t0,1480 # 2800 <end_signature+0x770>
+    1240:	80029703          	lh	a4,-2048(t0)
+    1244:	00000013          	nop
+    1248:	00000013          	nop
+    124c:	02e1aa23          	sw	a4,52(gp)
+
+00001250 <inst_14>:
+
+inst_14:
+// rs1==x8, rd==x20, 
+// opcode:lh op1:x8; dest:x20; immval:-0x800; align:0
+TEST_LOAD(x3,x10,0,x8,x20,-0x800,56,lh,0)
+    1250:	00001417          	auipc	s0,0x1
+    1254:	5b040413          	addi	s0,s0,1456 # 2800 <end_signature+0x770>
+    1258:	80041a03          	lh	s4,-2048(s0)
+    125c:	00000013          	nop
+    1260:	00000013          	nop
+    1264:	0341ac23          	sw	s4,56(gp)
+
+00001268 <inst_15>:
+
+inst_15:
+// rs1==x1, rd==x27, 
+// opcode:lh op1:x1; dest:x27; immval:-0x800; align:0
+TEST_LOAD(x3,x10,0,x1,x27,-0x800,60,lh,0)
+    1268:	00001097          	auipc	ra,0x1
+    126c:	59808093          	addi	ra,ra,1432 # 2800 <end_signature+0x770>
+    1270:	80009d83          	lh	s11,-2048(ra)
+    1274:	00000013          	nop
+    1278:	00000013          	nop
+    127c:	03b1ae23          	sw	s11,60(gp)
+
+00001280 <inst_16>:
+
+inst_16:
+// rs1==x13, rd==x28, 
+// opcode:lh op1:x13; dest:x28; immval:-0x800; align:0
+TEST_LOAD(x3,x10,0,x13,x28,-0x800,64,lh,0)
+    1280:	00001697          	auipc	a3,0x1
+    1284:	58068693          	addi	a3,a3,1408 # 2800 <end_signature+0x770>
+    1288:	80069e03          	lh	t3,-2048(a3)
+    128c:	00000013          	nop
+    1290:	00000013          	nop
+    1294:	05c1a023          	sw	t3,64(gp)
+
+00001298 <inst_17>:
+
+inst_17:
+// rs1==x26, rd==x6, 
+// opcode:lh op1:x26; dest:x6; immval:-0x800; align:0
+TEST_LOAD(x3,x10,0,x26,x6,-0x800,68,lh,0)
+    1298:	00001d17          	auipc	s10,0x1
+    129c:	568d0d13          	addi	s10,s10,1384 # 2800 <end_signature+0x770>
+    12a0:	800d1303          	lh	t1,-2048(s10)
+    12a4:	00000013          	nop
+    12a8:	00000013          	nop
+    12ac:	0461a223          	sw	t1,68(gp)
+
+000012b0 <inst_18>:
+
+inst_18:
+// rs1==x4, rd==x2, 
+// opcode:lh op1:x4; dest:x2; immval:-0x800; align:0
+TEST_LOAD(x3,x10,0,x4,x2,-0x800,72,lh,0)
+    12b0:	00001217          	auipc	tp,0x1
+    12b4:	55020213          	addi	tp,tp,1360 # 2800 <end_signature+0x770>
+    12b8:	80021103          	lh	sp,-2048(tp) # fffff800 <_end+0xffffc7fc>
+    12bc:	00000013          	nop
+    12c0:	00000013          	nop
+    12c4:	0421a423          	sw	sp,72(gp)
+
+000012c8 <inst_19>:
+
+inst_19:
+// rs1==x23, rd==x21, 
+// opcode:lh op1:x23; dest:x21; immval:-0x800; align:0
+TEST_LOAD(x3,x4,0,x23,x21,-0x800,76,lh,0)
+    12c8:	00001b97          	auipc	s7,0x1
+    12cc:	538b8b93          	addi	s7,s7,1336 # 2800 <end_signature+0x770>
+    12d0:	800b9a83          	lh	s5,-2048(s7)
+    12d4:	00000013          	nop
+    12d8:	00000013          	nop
+    12dc:	0551a623          	sw	s5,76(gp)
+
+000012e0 <inst_20>:
+
+inst_20:
+// rs1==x2, rd==x26, 
+// opcode:lh op1:x2; dest:x26; immval:-0x800; align:0
+TEST_LOAD(x3,x4,0,x2,x26,-0x800,80,lh,0)
+    12e0:	00001117          	auipc	sp,0x1
+    12e4:	52010113          	addi	sp,sp,1312 # 2800 <end_signature+0x770>
+    12e8:	80011d03          	lh	s10,-2048(sp)
+    12ec:	00000013          	nop
+    12f0:	00000013          	nop
+    12f4:	05a1a823          	sw	s10,80(gp)
+
+000012f8 <inst_21>:
+
+inst_21:
+// rs1==x25, rd==x9, 
+// opcode:lh op1:x25; dest:x9; immval:-0x800; align:0
+TEST_LOAD(x3,x4,0,x25,x9,-0x800,84,lh,0)
+    12f8:	00001c97          	auipc	s9,0x1
+    12fc:	508c8c93          	addi	s9,s9,1288 # 2800 <end_signature+0x770>
+    1300:	800c9483          	lh	s1,-2048(s9)
+    1304:	00000013          	nop
+    1308:	00000013          	nop
+    130c:	0491aa23          	sw	s1,84(gp)
+RVTEST_SIGBASE( x1,signature_x1_0)
+    1310:	00001097          	auipc	ra,0x1
+    1314:	d5808093          	addi	ra,ra,-680 # 2068 <signature_x1_0>
+
+00001318 <inst_22>:
+
+inst_22:
+// rs1==x30, rd==x18, 
+// opcode:lh op1:x30; dest:x18; immval:-0x800; align:0
+TEST_LOAD(x1,x4,0,x30,x18,-0x800,0,lh,0)
+    1318:	00001f17          	auipc	t5,0x1
+    131c:	4e8f0f13          	addi	t5,t5,1256 # 2800 <end_signature+0x770>
+    1320:	800f1903          	lh	s2,-2048(t5)
+    1324:	00000013          	nop
+    1328:	00000013          	nop
+    132c:	0120a023          	sw	s2,0(ra)
+
+00001330 <inst_23>:
+
+inst_23:
+// rs1==x10, rd==x22, 
+// opcode:lh op1:x10; dest:x22; immval:-0x800; align:0
+TEST_LOAD(x1,x4,0,x10,x22,-0x800,4,lh,0)
+    1330:	00001517          	auipc	a0,0x1
+    1334:	4d050513          	addi	a0,a0,1232 # 2800 <end_signature+0x770>
+    1338:	80051b03          	lh	s6,-2048(a0)
+    133c:	00000013          	nop
+    1340:	00000013          	nop
+    1344:	0160a223          	sw	s6,4(ra)
+
+00001348 <inst_24>:
+
+inst_24:
+// rs1==x17, rd==x15, 
+// opcode:lh op1:x17; dest:x15; immval:-0x800; align:0
+TEST_LOAD(x1,x4,0,x17,x15,-0x800,8,lh,0)
+    1348:	00001897          	auipc	a7,0x1
+    134c:	4b888893          	addi	a7,a7,1208 # 2800 <end_signature+0x770>
+    1350:	80089783          	lh	a5,-2048(a7)
+    1354:	00000013          	nop
+    1358:	00000013          	nop
+    135c:	00f0a423          	sw	a5,8(ra)
+
+00001360 <inst_25>:
+
+inst_25:
+// rs1==x15, rd==x24, 
+// opcode:lh op1:x15; dest:x24; immval:-0x800; align:0
+TEST_LOAD(x1,x4,0,x15,x24,-0x800,12,lh,0)
+    1360:	00001797          	auipc	a5,0x1
+    1364:	4a078793          	addi	a5,a5,1184 # 2800 <end_signature+0x770>
+    1368:	80079c03          	lh	s8,-2048(a5)
+    136c:	00000013          	nop
+    1370:	00000013          	nop
+    1374:	0180a623          	sw	s8,12(ra)
+
+00001378 <inst_26>:
+
+inst_26:
+// rs1==x19, rd==x12, 
+// opcode:lh op1:x19; dest:x12; immval:-0x800; align:0
+TEST_LOAD(x1,x4,0,x19,x12,-0x800,16,lh,0)
+    1378:	00001997          	auipc	s3,0x1
+    137c:	48898993          	addi	s3,s3,1160 # 2800 <end_signature+0x770>
+    1380:	80099603          	lh	a2,-2048(s3)
+    1384:	00000013          	nop
+    1388:	00000013          	nop
+    138c:	00c0a823          	sw	a2,16(ra)
+
+00001390 <inst_27>:
+
+inst_27:
+// rs1==x28, rd==x10, 
+// opcode:lh op1:x28; dest:x10; immval:-0x800; align:0
+TEST_LOAD(x1,x4,0,x28,x10,-0x800,20,lh,0)
+    1390:	00001e17          	auipc	t3,0x1
+    1394:	470e0e13          	addi	t3,t3,1136 # 2800 <end_signature+0x770>
+    1398:	800e1503          	lh	a0,-2048(t3)
+    139c:	00000013          	nop
+    13a0:	00000013          	nop
+    13a4:	00a0aa23          	sw	a0,20(ra)
+
+000013a8 <inst_28>:
+
+inst_28:
+// rs1==x11, rd==x3, 
+// opcode:lh op1:x11; dest:x3; immval:-0x800; align:0
+TEST_LOAD(x1,x4,0,x11,x3,-0x800,24,lh,0)
+    13a8:	00001597          	auipc	a1,0x1
+    13ac:	45858593          	addi	a1,a1,1112 # 2800 <end_signature+0x770>
+    13b0:	80059183          	lh	gp,-2048(a1)
+    13b4:	00000013          	nop
+    13b8:	00000013          	nop
+    13bc:	0030ac23          	sw	gp,24(ra)
+
+000013c0 <inst_29>:
+
+inst_29:
+// rs1==x16, rd==x25, 
+// opcode:lh op1:x16; dest:x25; immval:-0x800; align:0
+TEST_LOAD(x1,x4,0,x16,x25,-0x800,28,lh,0)
+    13c0:	00001817          	auipc	a6,0x1
+    13c4:	44080813          	addi	a6,a6,1088 # 2800 <end_signature+0x770>
+    13c8:	80081c83          	lh	s9,-2048(a6)
+    13cc:	00000013          	nop
+    13d0:	00000013          	nop
+    13d4:	0190ae23          	sw	s9,28(ra)
+
+000013d8 <inst_30>:
+
+inst_30:
+// rs1==x3, rd==x5, 
+// opcode:lh op1:x3; dest:x5; immval:-0x800; align:0
+TEST_LOAD(x1,x4,0,x3,x5,-0x800,32,lh,0)
+    13d8:	00001197          	auipc	gp,0x1
+    13dc:	42818193          	addi	gp,gp,1064 # 2800 <end_signature+0x770>
+    13e0:	80019283          	lh	t0,-2048(gp)
+    13e4:	00000013          	nop
+    13e8:	00000013          	nop
+    13ec:	0250a023          	sw	t0,32(ra)
+
+000013f0 <inst_31>:
+
+inst_31:
+// rd==x0, 
+// opcode:lh op1:x17; dest:x0; immval:-0x800; align:0
+TEST_LOAD(x1,x4,0,x17,x0,-0x800,36,lh,0)
+    13f0:	00001897          	auipc	a7,0x1
+    13f4:	41088893          	addi	a7,a7,1040 # 2800 <end_signature+0x770>
+    13f8:	80089003          	lh	zero,-2048(a7)
+    13fc:	00000013          	nop
+    1400:	00000013          	nop
+    1404:	0200a223          	sw	zero,36(ra)
+    1408:	00000013          	nop
+    140c:	00000013          	nop
+
+00001410 <rvtest_code_end>:
+#endif
+
+
+RVTEST_CODE_END
+RVMODEL_HALT
+    1410:	babed0b7          	lui	ra,0xbabed
+    1414:	afe08093          	addi	ra,ra,-1282 # babecafe <_end+0xbabe9afa>
+
+00001418 <write_tohost>:
+    1418:	00002017          	auipc	zero,0x2
+    141c:	be102423          	sw	ra,-1048(zero) # fffffbe8 <_end+0xffffcbe4>
+
+00001420 <loop>:
+    1420:	0000006f          	j	1420 <loop>
+	...
