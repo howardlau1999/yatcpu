@@ -77,7 +77,7 @@ jobs:
         run: cd csrc && ./build.sh
       - name: SBT Test
         run: sbt test
-  riscv-compliance-test:
+  riscv-compliance-test-both-old-and-new:
     name: Run old RISC-V compliance test
     runs-on: ubuntu-latest
     steps:
@@ -125,13 +125,14 @@ jobs:
           cd riscv-isa-sim
           mkdir build
           cd build
-          ../configure --prefix=/usr/bin
+          ../configure --prefix=/usr
           make -j4
           sudo make install
-          sudo cp spike /usr/bin
       - name: Setup test suite
-        run: riscof --verbose info arch-test --clone
+        run: |
+          cd 
+          riscof --verbose info arch-test --clone
       - name: Run RISCOF compliance test
         run: |
           cd ${{ github.workspace }}/yatcpu/riscof-target
-          riscof run --config=config.ini --suite=${{ github.workspace }}/riscv-arch-test/riscv-test-suite/ --env=${{ github.workspace }}/riscv-arch-test/riscv-test-suite/env
+          riscof run --config=config.ini --no-browser --suite=${{ github.workspace }}/riscv-arch-test/riscv-test-suite/ --env=${{ github.workspace }}/riscv-arch-test/riscv-test-suite/env
