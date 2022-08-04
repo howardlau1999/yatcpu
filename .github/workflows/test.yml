@@ -162,7 +162,7 @@ jobs:
       - name: debug
         run: |
           cd ${{ github.workspace }}/yatcpu/riscof-target/riscof_work/rv32i_m/I/src/add-01.S/dut
-          ../../../../../../../verilog/verilator/obj_dir/VTop -signature 0x$(shell cat my.elf.begin_signature)    0x$(shell cat my.elf.end_signature) ${{ github.workspace }}/yatcpu/riscof-target/riscof_work/rv32i_m/I/src/add-01.S/dut/DUT-yatcpu.signature -halt 0x$(shell cat my.elf.halt)  -time 1000000 -instruction my.elf.asmbin
+          ../../../../../../../verilog/verilator/obj_dir/VTop -signature 0x$(cat my.elf.begin_signature)    0x$(cat my.elf.end_signature) ${{ github.workspace }}/yatcpu/riscof-target/riscof_work/rv32i_m/I/src/add-01.S/dut/DUT-yatcpu.signature -halt 0x$(cat my.elf.halt)  -time 1000000 -instruction my.elf.asmbin
           cat my.elf.begin_signature 
           cat my.elf.halt
           cat DUT-yatcpu.signature
