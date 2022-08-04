@@ -162,7 +162,9 @@ jobs:
       - name: debug
         run: |
           cd ${{ github.workspace }}/yatcpu/riscof-target/riscof_work/rv32i_m/I/src/add-01.S
+          echo dut
           cat dut/DUT-yatcpu.signature
+          echo ref
           cat ref/Reference-spike.signature
     
     
