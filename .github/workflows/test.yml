@@ -165,5 +165,5 @@ jobs:
           ls
           cat my.elf.begin_signature
           ../../../../../../../verilog/verilator/obj_dir/VTop -signature 0x$(shell cat my.elf.begin_signature)                     0x$(shell cat my.elf.end_signature) /home/tiger9tu/proj/yatcpu/riscof-target/riscof_work/rv32i_m/I/src/add-01.S/dut/DUT-yatcpu.signature -halt 0x$(shell cat my.elf.halt) -time 1000000 -instruction my.elf.asmbin;
-      
+          cat DUT-yatcpu.signature
     
