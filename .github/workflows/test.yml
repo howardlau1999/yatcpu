@@ -77,7 +77,7 @@ jobs:
         run: cd csrc && ./build.sh
       - name: SBT Test
         run: sbt test
-  riscv-compliance-test:
+  riscv-compliance-test-both-old-and-new:
     name: Run old RISC-V compliance test
     runs-on: ubuntu-latest
     steps:
@@ -113,25 +113,56 @@ jobs:
           RISCV_TARGET_FLAGS: "-memory 1048576"
           TARGET_SIM: ${{ github.workspace }}/yatcpu/verilog/verilator/obj_dir/VTop
           RISCV_TARGET: yatcpu
-          TARGETDIR: ${{ github.workspace }}/yatcpu/riscv-target
-      # new-test-framework-riscof-compliance-test:
+          TARGETDIR: ${{ github.workspace }}/yatcpu/riscv-target 
+  riscof:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: yatcpu
+      - name: Setup Toolchain
+        run: sudo apt install -y verilator binutils-riscv64-unknown-elf gcc-riscv64-unknown-elf
+      - name: Setup Scala
+        uses: olafurpg/setup-scala@v10
+        with:
+          java-version: adopt@1.8
+      - name: Set up GCC
+        uses: egor-tensin/setup-gcc@v1
+        with:
+          version: 11
+      - name: Cache Scala
+        uses: coursier/cache-action@v6
+      - name: Generate Verilog
+        run: cd yatcpu && sbt "runMain board.verilator.VerilogGenerator"
+      - name: Compile Verilated model
+        run: cd yatcpu/verilog/verilator && verilator --exe --cc --trace Top.v sim_main.cpp && make -C obj_dir -f VTop.mk
       - name: Setup RISCOF
         run: | 
           pip3 install git+https://github.com/riscv/riscof.git
       - name: Setup spike
         run: | 
           sudo apt-get install device-tree-compiler
+          cd ${{ github.workspace }}
           git clone https://github.com/riscv-software-src/riscv-isa-sim.git
           cd riscv-isa-sim
           mkdir build
           cd build
-          ../configure --prefix=/usr/bin
+          ../configure --prefix=/usr
           make -j4
           sudo make install
-          sudo cp spike /usr/bin
       - name: Setup test suite
-        run: riscof --verbose info arch-test --clone
+        run: |
+          cd ${{ github.workspace }}
+          riscof --verbose info arch-test --clone
       - name: Run RISCOF compliance test
         run: |
           cd ${{ github.workspace }}/yatcpu/riscof-target
-          riscof run --config=config.ini --suite=${{ github.workspace }}/riscv-arch-test/riscv-test-suite/ --env=${{ github.workspace }}/riscv-arch-test/riscv-test-suite/env
+          riscof run --config=config.ini --no-browser --no-clean --suite=${{ github.workspace }}/riscv-arch-test/riscv-test-suite/ --env=${{ github.workspace }}/riscv-arch-test/riscv-test-suite/env
+      - name: debug
+        run: |
+          cd ${{ github.workspace }}/yatcpu/riscof-target/riscof_work/rv32i_m/I/src/add-01.S/dut
+          ../../../../../../../verilog/verilator/obj_dir/VTop -signature 0x$(cat my.elf.begin_signature)    0x$(cat my.elf.end_signature) ${{ github.workspace }}/yatcpu/riscof-target/riscof_work/rv32i_m/I/src/add-01.S/dut/DUT-yatcpu.signature -halt 0x$(cat my.elf.halt)  -time 1000000 -instruction my.elf.asmbin
+          cat my.elf.begin_signature 
+          cat my.elf.halt
+          cat DUT-yatcpu.signature
