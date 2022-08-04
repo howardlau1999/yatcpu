@@ -77,7 +77,7 @@ jobs:
         run: cd csrc && ./build.sh
       - name: SBT Test
         run: sbt test
-  riscv-compliance-test-both-old-and-new:
+  old-riscv-compliance-test:
     name: Run old RISC-V compliance test
     runs-on: ubuntu-latest
     steps:
@@ -114,7 +114,8 @@ jobs:
           TARGET_SIM: ${{ github.workspace }}/yatcpu/verilog/verilator/obj_dir/VTop
           RISCV_TARGET: yatcpu
           TARGETDIR: ${{ github.workspace }}/yatcpu/riscv-target 
-  riscof:
+  new-riscv-compilance-test-riscof:
+    name: Run new RISC-V compliance test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -159,10 +160,4 @@ jobs:
         run: |
           cd ${{ github.workspace }}/yatcpu/riscof-target
           riscof run --config=config.ini --no-browser --no-clean --suite=${{ github.workspace }}/riscv-arch-test/riscv-test-suite/ --env=${{ github.workspace }}/riscv-arch-test/riscv-test-suite/env
-      - name: debug
-        run: |
-          cd ${{ github.workspace }}/yatcpu/riscof-target/riscof_work/rv32i_m/I/src/add-01.S/dut
-          ../../../../../../../verilog/verilator/obj_dir/VTop -signature 0x$(cat my.elf.begin_signature)    0x$(cat my.elf.end_signature) ${{ github.workspace }}/yatcpu/riscof-target/riscof_work/rv32i_m/I/src/add-01.S/dut/DUT-yatcpu.signature -halt 0x$(cat my.elf.halt)  -time 1000000 -instruction my.elf.asmbin
-          cat my.elf.begin_signature 
-          cat my.elf.halt
-          cat DUT-yatcpu.signature
+
