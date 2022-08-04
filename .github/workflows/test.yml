@@ -115,6 +115,7 @@ jobs:
           RISCV_TARGET: yatcpu
           TARGETDIR: ${{ github.workspace }}/yatcpu/riscv-target 
   new-riscv-compilance-test-riscof:
+    name: Run new RISC-V compliance test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
