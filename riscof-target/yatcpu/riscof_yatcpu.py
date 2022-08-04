@@ -172,9 +172,9 @@ class yatcpu(pluginTemplate):
             # set up the simulation command. Template is for spike. Please change.
             #simcmd = self.dut_exe + ' --isa={0} +signature={1} +signature-granularity=4 {2}'.format(self.isa, sig_file, elf)
             simcmd_ = self.dut_exe + \
-                    ' -signature 0x$$(shell cat {0}.begin_signature) \
-                    0x$$(shell cat {0}.end_signature) ' + sig_file + \
-                    ' -halt 0x$$(shell cat {0}.halt)' + \
+                    ' -signature 0x$$(cat {0}.begin_signature) \
+                    0x$$(cat {0}.end_signature) ' + sig_file + \
+                    ' -halt 0x$$(cat {0}.halt)' + \
                     ' -time 1000000' + \
                     ' -instruction {0}.asmbin'
             simcmd = simcmd_.format(elf)
