@@ -143,7 +143,7 @@ jobs:
       - name: Setup spike
         run: | 
           sudo apt-get install device-tree-compiler
-          cd
+          cd ${{ github.workspace }}
           git clone https://github.com/riscv-software-src/riscv-isa-sim.git
           cd riscv-isa-sim
           mkdir build
@@ -159,8 +159,14 @@ jobs:
         run: |
           cd ${{ github.workspace }}/yatcpu/riscof-target
           riscof run --config=config.ini --no-browser --suite=${{ github.workspace }}/riscv-arch-test/riscv-test-suite/ --env=${{ github.workspace }}/riscv-arch-test/riscv-test-suite/env
-      - name: debug check
-        run: |
-          cd ${{ github.workspace }}/riscv-arch-test/riscv-test-suite/rv32i_m/I/src/add-01.S
-          ls ref
-          cmp ref/Reference-spike.signature dut/DUT-yatcpu.signature
+  test-debug:
+    name: debug
+    runs-on: ubuntu-latest
+    steps:
+      - name: check python
+        run: python3 -V
+    
+    
+    
+    
+    
