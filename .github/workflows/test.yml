@@ -113,28 +113,37 @@ jobs:
           RISCV_TARGET_FLAGS: "-memory 1048576"
           TARGET_SIM: ${{ github.workspace }}/yatcpu/verilog/verilator/obj_dir/VTop
           RISCV_TARGET: yatcpu
-          TARGETDIR: ${{ github.workspace }}/yatcpu/riscv-target
-      # new-test-framework-riscof-compliance-test:
-      - name: Setup python
-        run: |
-           git clone https://github.com/pyenv/pyenv.git ~/.pyenv
-           echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
-           echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
-           echo 'eval "$(pyenv init -)"' >> ~/.bashrc
-           echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.profile
-           echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.profile
-           echo 'eval "$(pyenv init -)"' >> ~/.profile
-           source ~/.profile ~/.bashrc
-           pyenv install 3.6.0
-           pip3 install --upgrade pip
-           pyenv shell 3.6.0
-           python3 -V
+          TARGETDIR: ${{ github.workspace }}/yatcpu/riscv-target 
+  riscof:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: yatcpu
+      - name: Setup Toolchain
+        run: sudo apt install -y verilator binutils-riscv64-unknown-elf gcc-riscv64-unknown-elf
+      - name: Setup Scala
+        uses: olafurpg/setup-scala@v10
+        with:
+          java-version: adopt@1.8
+      - name: Set up GCC
+        uses: egor-tensin/setup-gcc@v1
+        with:
+          version: 11
+      - name: Cache Scala
+        uses: coursier/cache-action@v6
+      - name: Generate Verilog
+        run: cd yatcpu && sbt "runMain board.verilator.VerilogGenerator"
+      - name: Compile Verilated model
+        run: cd yatcpu/verilog/verilator && verilator --exe --cc --trace Top.v sim_main.cpp && make -C obj_dir -f VTop.mk
       - name: Setup RISCOF
         run: | 
           pip3 install git+https://github.com/riscv/riscof.git
       - name: Setup spike
         run: | 
           sudo apt-get install device-tree-compiler
+          cd
           git clone https://github.com/riscv-software-src/riscv-isa-sim.git
           cd riscv-isa-sim
           mkdir build
@@ -144,7 +153,7 @@ jobs:
           sudo make install
       - name: Setup test suite
         run: |
-          cd 
+          cd ${{ github.workspace }}
           riscof --verbose info arch-test --clone
       - name: Run RISCOF compliance test
         run: |
