@@ -158,15 +158,11 @@ jobs:
       - name: Run RISCOF compliance test
         run: |
           cd ${{ github.workspace }}/yatcpu/riscof-target
-          riscof run --config=config.ini --no-browser --suite=${{ github.workspace }}/riscv-arch-test/riscv-test-suite/ --env=${{ github.workspace }}/riscv-arch-test/riscv-test-suite/env
-  test-debug:
-    name: debug
-    runs-on: ubuntu-latest
-    steps:
-      - name: check python
-        run: python3 -V
-    
-    
-    
+          riscof run --config=config.ini --no-browser --no-clean --suite=${{ github.workspace }}/riscv-arch-test/riscv-test-suite/ --env=${{ github.workspace }}/riscv-arch-test/riscv-test-suite/env
+      - name: debug
+        run: |
+          cd ${{ github.workspace }}/yatcpu/riscof-target/riscof_work/rv32i_m/I/src/add-01.S
+          cat dut/DUT-yatcpu.signature
+          cat ref/Reference-spike.signature
     
     
