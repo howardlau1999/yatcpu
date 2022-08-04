@@ -159,3 +159,8 @@ jobs:
         run: |
           cd ${{ github.workspace }}/yatcpu/riscof-target
           riscof run --config=config.ini --no-browser --suite=${{ github.workspace }}/riscv-arch-test/riscv-test-suite/ --env=${{ github.workspace }}/riscv-arch-test/riscv-test-suite/env
+      - name: debug check
+        run: |
+          cd ${{ github.workspace }}/riscv-arch-test/riscv-test-suite/rv32i_m/I/src/add-01.S
+          ls ref
+          cmp ref/Reference-spike.signature dut/DUT-yatcpu.signature
