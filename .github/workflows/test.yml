@@ -61,6 +61,16 @@ jobs:
         run: cd csrc && ./build.sh
       - name: SBT Test
         run: sbt test
+  build-docker:
+    name: Build Docker image
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Build Docker image
+        run: docker build -t howardlau1999/yatcpu .
   test-docker:
     name: Test in Docker
     runs-on: ubuntu-latest
