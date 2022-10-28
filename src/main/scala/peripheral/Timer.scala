@@ -33,7 +33,7 @@ class Timer extends Module {
   val count = RegInit(0.U(32.W))
   val limit = RegInit(100000000.U(32.W))
   io.debug_limit := limit
-  val enabled = RegInit(false.B)
+  val enabled = RegInit(true.B)
   io.debug_enabled := enabled
 
   slave.io.bundle.read_data := 0.U

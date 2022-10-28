@@ -17,11 +17,9 @@ package board.verilator
 import bus.{AXI4LiteSlave, AXI4LiteSlaveBundle, BusArbiter, BusSwitch}
 import chisel3._
 import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
-import peripheral.{DummySlave, Timer, VGADisplay}
+import peripheral.DummySlave
 import riscv.Parameters
 import riscv.core.CPU
-
-
 
 class Top extends Module {
 
@@ -47,8 +45,6 @@ class Top extends Module {
   val dummy = Module(new DummySlave)
   val bus_arbiter = Module(new BusArbiter)
   val bus_switch = Module(new BusSwitch)
-  val timer = Module(new Timer)
-  val vga_display = Module(new VGADisplay)
 
   bus_arbiter.io.bus_request(0) := true.B
 
@@ -61,11 +57,9 @@ class Top extends Module {
   cpu.io.stall_flag_bus := false.B
   cpu.io.instruction_valid := true.B
   bus_switch.io.slaves(0) <> mem_slave.io.channels
-  bus_switch.io.slaves(1) <> vga_display.io.channels
   bus_switch.io.slaves(2) <> uart_slave.io.channels
-  bus_switch.io.slaves(4) <> timer.io.channels
 
-  cpu.io.interrupt_flag := timer.io.signal_interrupt
+  cpu.io.interrupt_flag := io.signal_interrupt
 
   cpu.io.debug_read_address := io.cpu_debug_read_address
   io.cpu_debug_read_data := cpu.io.debug_read_data
