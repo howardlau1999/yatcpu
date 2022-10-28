@@ -15,11 +15,17 @@
 package riscv.core.fivestage
 
 import chisel3._
+import chisel3.experimental.ChiselEnum
 import chisel3.util.MuxCase
 import riscv.Parameters
+import riscv.core.BusBundle
 
 object ProgramCounter {
   val EntryAddress = Parameters.EntryAddress
+}
+
+object IFAccessStates extends ChiselEnum{
+  val idle,read = Value
 }
 
 class InstructionFetch extends Module {
@@ -27,21 +33,32 @@ class InstructionFetch extends Module {
     val stall_flag_ctrl = Input(Bool())
     val jump_flag_id = Input(Bool())
     val jump_address_id = Input(UInt(Parameters.AddrWidth))
-    val instruction_valid = Input(Bool())
 
-    val bus_request = Output(Bool())
-    val bus_address = Output(UInt(Parameters.AddrWidth))
-    val bus_data = Input(UInt(Parameters.InstructionWidth))
-    val bus_read = Output(Bool())
+    val physical_address = Input(UInt(Parameters.AddrWidth))
 
     val ctrl_stall_flag = Output(Bool())
     val id_instruction_address = Output(UInt(Parameters.AddrWidth))
     val id_instruction = Output(UInt(Parameters.InstructionWidth))
+    val pc_valid = Output(Bool())
+
+    val bus = new BusBundle
   })
   val pending_jump = RegInit(false.B)
   val pc = RegInit(ProgramCounter.EntryAddress)
-  io.bus_read := true.B
-  io.bus_request := true.B
+  val state = RegInit(IFAccessStates.idle)
+  val pc_valid = RegInit(false.B) //because the romloader of verilator(sim_main.cpp) need no time cycle
+                                  //it prevent fetching instruction from 0x0, when pc haven't been initailized
+
+  io.bus.read := false.B
+  io.bus.request := true.B
+  io.bus.write := false.B
+  io.bus.write_data := 0.U
+  io.bus.write_strobe := VecInit(Seq.fill(Parameters.WordSize)(false.B))
+  io.pc_valid := pc_valid
+
+  when(!pc_valid && pc===ProgramCounter.EntryAddress){
+    pc_valid := true.B
+  }
 
   pc := MuxCase(
     pc + 4.U,
@@ -50,19 +67,39 @@ class InstructionFetch extends Module {
       io.stall_flag_ctrl -> pc
     )
   )
-  when(!io.instruction_valid) {
+
+  when(!io.bus.read_valid) {
     when(io.jump_flag_id) {
       pending_jump := true.B
     }
   }
-  when(io.instruction_valid) {
+
+  when(io.bus.read_valid) {
     when(pending_jump) {
       pending_jump := false.B
     }
   }
-  io.id_instruction := Mux(io.instruction_valid && !io.jump_flag_id && !pending_jump, io.bus_data,
-    InstructionsNop.nop)
-  io.ctrl_stall_flag := !io.instruction_valid || pending_jump
+
+  when(io.bus.granted){
+    when(state === IFAccessStates.idle){
+      io.bus.request := true.B
+      io.bus.read := true.B
+      state := IFAccessStates.read
+    }.elsewhen(state === IFAccessStates.read){
+      io.bus.read := false.B
+      io.bus.request := true.B
+      when(io.bus.read_valid){
+        state := IFAccessStates.idle
+      }
+    }
+  }
+
+  io.id_instruction := Mux(
+    io.bus.read_valid && !pending_jump && !io.jump_flag_id,
+    io.bus.read_data,
+    InstructionsNop.nop
+  )
+  io.ctrl_stall_flag := !io.bus.read_valid || pending_jump
   io.id_instruction_address := pc
-  io.bus_address := pc
+  io.bus.address := io.physical_address
 }

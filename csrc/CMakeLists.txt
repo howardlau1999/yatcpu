@@ -5,7 +5,7 @@ project(yatcpu-programs C CXX ASM)
 # Setting variables
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 --target=riscv32-unknown-elf -march=rv32i -mabi=ilp32")
 set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} -O0 --target=riscv32-unknown-elf -march=rv32i -mabi=ilp32")
-set(C_PROGRAMS tetris hello fibonacci quicksort)
+set(C_PROGRAMS tetris hello fibonacci quicksort paging tetris_mmu)
 set(ASM_PROGRAMS mmio sb)
 set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/link.lds)
 set(LINKER_FLAGS -T ${LINKER_SCRIPT}) 
@@ -47,7 +47,7 @@ add_library(fce
 	${CMAKE_SOURCE_DIR}/LiteNES/src/fce/psg.c
 )
 target_compile_options(fce PRIVATE "-O3")
-add_executable(litenes 
+add_executable(litenes
 	${CMAKE_SOURCE_DIR}/LiteNES/src/main.c
   ${CMAKE_SOURCE_DIR}/LiteNES/src/hal.c
   ${CMAKE_SOURCE_DIR}/LiteNES/src/rom.c

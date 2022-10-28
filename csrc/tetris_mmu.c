@@ -17,6 +17,7 @@
 #endif
 
 #include "mmio.h"
+#include "mm.h"
 
 #define FALL_TIMER_LIMIT 50000000
 #define ROWS 22
@@ -25,6 +26,7 @@
 #define OFFSET_Y 3
 #define SCREEN_COLS 80
 #define SCREEN_ROWS 30
+
 
 struct block {
 	unsigned int shape[3];
@@ -36,6 +38,13 @@ struct block current;
 unsigned int score;
 
 unsigned char *board;
+
+
+
+int pm[8]; //板子上有32kb内存，八个页
+int timercount=0;
+// void (*putch_at)(int,int,unsigned char);
+#define PAGEDIR_BASE 0x5000
 
 #ifdef DEBUG
 unsigned char screen[SCREEN_COLS * SCREEN_ROWS];
@@ -137,9 +146,10 @@ void putch_at(int x, int y, unsigned char ch) {
 #ifdef DEBUG
 	screen[wk_mul(OFFSET_Y + y, SCREEN_COLS) + x + OFFSET_X] = ch;
 #else
-	VRAM[wk_mul(OFFSET_Y + y, SCREEN_COLS) + x + OFFSET_X] = ch;
+	VA_VRAM[wk_mul(OFFSET_Y + y, SCREEN_COLS) + x + OFFSET_X] = ch;
 #endif
 }
+
 
 void block_move(struct block *block, int dir) {
 	unsigned int xywh = block->xywh;
@@ -396,8 +406,8 @@ void trap_handler(void *epc, unsigned int cause) {
 	if (cause == 0x80000007) {
 		on_timer();
 	} else if (cause == 0x8000000B){
-		unsigned int ch = *UART_RECV;
-		*UART_SEND = ch;
+		unsigned int ch = *VA_UART_RECV;
+		*VA_UART_SEND = ch;
 		on_input(ch);
 	}
 }
@@ -409,43 +419,104 @@ void init() {
 		putch_at(0, r, '|');
 		putch_at(COLS << 1 | 1, r, '|');
 	}
-	for (int c = 0; c <= (COLS << 1 | 1); ++c) {
+	for (int c = 0; c <= (2 << COLS | 1); ++c) {
 		putch_at(c, ROWS, '-');
 	}
-	int c = 8;
-	putch_at(c++, ROWS + 1, 'T');
-	putch_at(c++, ROWS + 1, 'E');
-	putch_at(c++, ROWS + 1, 'T');
-	putch_at(c++, ROWS + 1, 'R');
-	putch_at(c++, ROWS + 1, 'I');
-	putch_at(c++, ROWS + 1, 'S');
+	int c = 8; 
+	putch_at(c++, ROWS + 1, 'B');
+	putch_at(c++, ROWS + 1, 'e');
+	putch_at(c++, ROWS + 1, 'g');
+	putch_at(c++, ROWS + 1, 'i');
+	putch_at(c++, ROWS + 1, 'n');
+	putch_at(c++, ROWS + 1, ' ');
 	c = 6;
-	putch_at(c++, ROWS + 3, 'H');
-	putch_at(c++, ROWS + 3, 'o');
-	putch_at(c++, ROWS + 3, 'w');
+	putch_at(c++, ROWS + 3, 'P');
 	putch_at(c++, ROWS + 3, 'a');
-	putch_at(c++, ROWS + 3, 'r');
-	putch_at(c++, ROWS + 3, 'd');
+	putch_at(c++, ROWS + 3, 'g');
+	putch_at(c++, ROWS + 3, 'i');
+	putch_at(c++, ROWS + 3, 'n');
+	putch_at(c++, ROWS + 3, 'g');
 	c++;
-	putch_at(c++, ROWS + 3, 'L');
-	putch_at(c++, ROWS + 3, 'a');
-	putch_at(c++, ROWS + 3, 'u');
+	putch_at(c++, ROWS + 3, 'h');
+	putch_at(c++, ROWS + 3, 'r');
+	putch_at(c++, ROWS + 3, 'p');
 	c = 9;
 	putch_at(c++, ROWS + 4, '2');
 	putch_at(c++, ROWS + 4, '0');
 	putch_at(c++, ROWS + 4, '2');
-	putch_at(c++, ROWS + 4, '1');
+	putch_at(c++, ROWS + 4, '2');
 	init_block(&current, rand_type(), 4, 0);
 	score = 0;
 	draw_board();
 }
 
+int alloc(){
+    int index = 0;
+    int max = 8;
+    while(index < max){
+        if(pm[index] == 0){
+            pm[index] = 1;
+            break;
+        }
+        index++;
+    }
+    return index == max ? -1 : index;
+}
+
+int map(pagetable_t pgtbl,uint32 va,uint32 pa,int perm){
+    int t;
+    if((pgtbl[PX(1,va)] & PTE_V )!= PTE_V){ //前缀不存在
+        t=alloc(); //申请一个页给前缀页表
+        if(t>=0){
+            pgtbl[PX(1,va)] = PA2PTE(t<<12) | PTE_V;
+        }else{
+			return -1;
+		}
+    }
+    int* n = (void*)PTE2PA(pgtbl[PX(1,va)]);
+    n[PX(0,va)] = PA2PTE(pa) | perm | PTE_V;
+	return 0;
+}
+
+void kvminit(){
+	//init global valuable
+	for(int i=0;i<8;i++){
+        pm[i] = 0;
+    }
+    timercount = 0;
+
+    pagetable_t pgtbl = (void*)PAGEDIR_BASE;
+    // memoryset(pgtbl,0,PGSIZE); //后面需要读这个内存，所以先初始化
+    for(int i=0;i<PGSIZE>>2;i++){
+        pgtbl[i]=0;
+    }
+
+    pm[PAGEDIR_BASE >> 12] = 1;
+    pm[0]=1;
+    pm[1]=1;
+    pm[2]=1;
+    pm[3]=1;
+    pm[4]=1;
+    //create pte mmap for text
+    map(pgtbl,PAGEDIR_BASE,PAGEDIR_BASE,PTE_R | PTE_W);
+    map(pgtbl,0x0,0x0, PTE_W | PTE_R ); //kernel stack
+    map(pgtbl,0x1000,0x1000, PTE_W | PTE_R | PTE_X ); //
+    map(pgtbl,0x2000,0x2000, PTE_W | PTE_R | PTE_X ); //
+    map(pgtbl,0x3000,0x3000, PTE_W | PTE_R | PTE_X ); //
+    map(pgtbl,0x4000,0x4000, PTE_W | PTE_R | PTE_X ); //
+    map(pgtbl,VA_VRAM_BASE,VRAM_BASE, PTE_W | PTE_R ); //
+    map(pgtbl,VA_VRAM_BASE + PGSIZE,VRAM_BASE + PGSIZE, PTE_W | PTE_R);
+    map(pgtbl,VA_UART_BASE,UART_BASE, PTE_W | PTE_R ); //
+    map(pgtbl,VA_TIMER_BASE,TIMER_BASE, PTE_W | PTE_R ); //
+}
+
 void clear_screen() {
-	int *vram = ((int *) VRAM_BASE);
+	int *vram = ((int *) VA_VRAM_BASE);
 	for (int i = 0; i < 600; ++i) vram[i] = 0x20202020;
 }
 
 extern void enable_interrupt();
+extern void enable_paging();
 
 int main() {
 #ifdef DEBUG
@@ -454,16 +525,15 @@ int main() {
 	for (int i = 0; i < SCREEN_ROWS * SCREEN_COLS; ++i) screen[i] = '%';
 	init();
 #else
-	board = (unsigned char *) 16384;
-	for (int i = 0; i < 16384; i += 4) {
-		*((int*) (board + i)) = 0;
-	}
+	kvminit();
+	enable_paging();
+	board = (unsigned char *) 16640; //0x4100
 	clear_screen();
 	init();
 	*((unsigned int *) 4) = 0xDEADBEEF;
 	enable_interrupt();
-	*TIMER_ENABLED = 1;
-	*TIMER_LIMIT = FALL_TIMER_LIMIT;
+	*VA_TIMER_ENABLED = 1;
+	*VA_TIMER_LIMIT = FALL_TIMER_LIMIT;
 	for (;;);
 #endif
 #ifdef DEBUG

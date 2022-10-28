@@ -41,6 +41,7 @@ object CSRState {
   val MEPC = 0x2.U
   val MRET = 0x3.U
   val MCAUSE = 0x4.U
+  val MTVAL = 0x5.U
 }
 
 // Core Local Interrupt Controller
@@ -52,6 +53,15 @@ class CLINT extends Module {
     // Current instruction from instruction decode
     val instruction = Input(UInt(Parameters.InstructionWidth))
     val instruction_address_if = Input(UInt(Parameters.AddrWidth))
+
+    //exception signals from MMU etc.
+    val exception_signal = Input(Bool())
+
+    val instruction_address_cause_exception = Input(UInt(Parameters.AddrWidth))
+    val exception_cause = Input(UInt(Parameters.DataWidth))
+    val exception_val = Input(UInt(Parameters.AddrWidth))
+    //trick for page-fault ,synchronous with mmu
+    val exception_token = Output(Bool())
 
     val jump_flag = Input(Bool())
     val jump_address = Input(UInt(Parameters.AddrWidth))
@@ -77,16 +87,32 @@ class CLINT extends Module {
   val csr_state = RegInit(CSRState.Idle)
   val instruction_address = RegInit(UInt(Parameters.AddrWidth), 0.U)
   val cause = RegInit(UInt(Parameters.DataWidth), 0.U)
+  val trap_val = RegInit(UInt(Parameters.AddrWidth), 0.U)
   val interrupt_assert = RegInit(Bool(), false.B)
   val interrupt_handler_address = RegInit(UInt(Parameters.AddrWidth), 0.U)
   val csr_reg_write_enable = RegInit(Bool(), false.B)
   val csr_reg_write_address = RegInit(UInt(Parameters.CSRRegisterAddrWidth), 0.U)
   val csr_reg_write_data = RegInit(UInt(Parameters.DataWidth), 0.U)
+  val exception_token = RegInit(false.B)
+  val exception_signal = RegInit(false.B)
+  io.ctrl_stall_flag := (interrupt_state =/= InterruptState.Idle || csr_state =/= CSRState.Idle ) && !exception_token
+  io.exception_token := exception_token
 
-  io.ctrl_stall_flag := interrupt_state =/= InterruptState.Idle || csr_state =/= CSRState.Idle
+  when(exception_signal && csr_state === CSRState.MCAUSE) {
+    exception_token := true.B
+  }.otherwise{
+    exception_token := false.B
+  }
+
+  when(exception_token){
+    exception_signal := false.B
+  }.elsewhen(exception_signal === false.B && io.exception_signal){
+    exception_signal := true.B
+  }
 
   // Interrupt FSM
-  when(io.instruction === InstructionsEnv.ecall || io.instruction === InstructionsEnv.ebreak) {
+  //exception cause SyncAssert
+  when(exception_signal || io.instruction === InstructionsEnv.ecall || io.instruction === InstructionsEnv.ebreak) {
     interrupt_state := InterruptState.SyncAssert
   }.elsewhen(io.interrupt_flag =/= InterruptStatus.None && io.interrupt_enable) {
     interrupt_state := InterruptState.AsyncAssert
@@ -101,26 +127,44 @@ class CLINT extends Module {
     when(interrupt_state === InterruptState.SyncAssert) {
       // Synchronous Interrupt
       csr_state := CSRState.MEPC
+      //exception handling first then ecall and ebreak
       instruction_address := Mux(
-        io.jump_flag,
-        io.jump_address - 4.U,
-        io.instruction_address_if
-      )
-
-      cause := MuxLookup(
-        io.instruction,
-        10.U,
-        IndexedSeq(
-          InstructionsEnv.ecall -> 11.U,
-          InstructionsEnv.ebreak -> 3.U,
+        exception_signal,
+        io.instruction_address_cause_exception,
+        Mux(
+          io.jump_flag,
+          io.jump_address - 4.U,
+          io.instruction_address_if
         )
       )
-    }.elsewhen(interrupt_state === InterruptState.AsyncAssert) {
+
+      cause := Mux(
+        exception_signal,
+        io.exception_cause,
+        MuxLookup(
+          io.instruction,
+          10.U,
+          IndexedSeq(
+            InstructionsEnv.ecall -> 11.U,
+            InstructionsEnv.ebreak -> 3.U,
+          )
+        )
+      )
+      // some trap will write mtval, otherwise set mtval to 0
+      // todo: redesign CLINT to fully handle exception, like trap priority handling
+      // hint: currently we have only page_fault to write mtval
+      trap_val := Mux(
+        exception_signal,
+        io.exception_val,
+        0.U
+      )
+    }.elsewhen(interrupt_state === InterruptState.AsyncAssert) { //
       // Asynchronous Interrupt
-      cause := 0x8000000BL.U
+      cause := 0x8000000BL.U // Interrupt from peripherals : Uart
       when(io.interrupt_flag(0)) {
-        cause := 0x80000007L.U
+        cause := 0x80000007L.U  // Interrupt from timer
       }
+      trap_val := 0.U
       csr_state := CSRState.MEPC
       instruction_address := Mux(
         io.jump_flag,
@@ -134,6 +178,8 @@ class CLINT extends Module {
   }.elsewhen(csr_state === CSRState.MEPC) {
     csr_state := CSRState.MSTATUS
   }.elsewhen(csr_state === CSRState.MSTATUS) {
+    csr_state := CSRState.MTVAL
+  }.elsewhen(csr_state === CSRState.MTVAL) {
     csr_state := CSRState.MCAUSE
   }.elsewhen(csr_state === CSRState.MCAUSE) {
     csr_state := CSRState.Idle
@@ -152,8 +198,10 @@ class CLINT extends Module {
       CSRState.MCAUSE -> CSRRegister.MCAUSE,
       CSRState.MSTATUS -> CSRRegister.MSTATUS,
       CSRState.MRET -> CSRRegister.MSTATUS,
+      CSRState.MTVAL -> CSRRegister.MTVAL
     )
   ))
+
   csr_reg_write_data := MuxLookup(
     csr_state,
     0.U(Parameters.DataWidth),
@@ -162,8 +210,10 @@ class CLINT extends Module {
       CSRState.MCAUSE -> cause,
       CSRState.MSTATUS -> Cat(io.csr_mstatus(31, 4), 0.U(1.W), io.csr_mstatus(2, 0)),
       CSRState.MRET -> Cat(io.csr_mstatus(31, 4), io.csr_mstatus(7), io.csr_mstatus(2, 0)),
+      CSRState.MTVAL -> trap_val,
     )
   )
+
   io.csr_reg_write_enable := csr_reg_write_enable
   io.csr_reg_write_address := csr_reg_write_address
   io.csr_reg_write_data := csr_reg_write_data

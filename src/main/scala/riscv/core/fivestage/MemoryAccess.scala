@@ -28,14 +28,17 @@ class MemoryAccess extends Module {
     val funct3 = Input(UInt(3.W))
     val regs_write_source = Input(UInt(2.W))
     val csr_read_data = Input(UInt(Parameters.DataWidth))
+    val clint_exception_token = Input(Bool())
 
     val wb_memory_read_data = Output(UInt(Parameters.DataWidth))
     val ctrl_stall_flag = Output(Bool())
     val forward_to_ex = Output(UInt(Parameters.DataWidth))
 
+    val physical_address = Input(UInt(Parameters.AddrWidth))
+
     val bus = new BusBundle
   })
-  val mem_address_index = io.alu_result(log2Up(Parameters.WordSize) - 1, 0).asUInt
+  val mem_address_index = io.physical_address(log2Up(Parameters.WordSize) - 1, 0)
   val mem_access_state = RegInit(MemoryAccessStates.Idle)
 
   def on_bus_transaction_finished() = {
@@ -45,20 +48,25 @@ class MemoryAccess extends Module {
 
   io.bus.request := false.B
   io.bus.read := false.B
-  io.bus.address := io.alu_result(Parameters.AddrBits - 1, log2Up(Parameters.WordSize)) ## 0.U(log2Up(Parameters.WordSize).W)
+  io.bus.address := io.physical_address
   io.bus.write_data := 0.U
   io.bus.write_strobe := VecInit(Seq.fill(Parameters.WordSize)(false.B))
   io.bus.write := false.B
   io.wb_memory_read_data := 0.U
   io.ctrl_stall_flag := false.B
 
-  when(io.memory_read_enable) {
+  when(io.clint_exception_token){
+    io.bus.request := false.B
+    io.ctrl_stall_flag := false.B
+  }.elsewhen(io.memory_read_enable) {
     when(mem_access_state === MemoryAccessStates.Idle) {
       // Start the read transaction when the bus is available
       io.ctrl_stall_flag := true.B
       io.bus.read := true.B
       io.bus.request := true.B
       when(io.bus.granted) {
+        io.bus.address := io.physical_address
+        io.bus.read := true.B
         mem_access_state := MemoryAccessStates.Read
       }
     }.elsewhen(mem_access_state === MemoryAccessStates.Read) {
@@ -110,7 +118,6 @@ class MemoryAccess extends Module {
       // Start the write transaction when there the bus is available
       io.ctrl_stall_flag := true.B
       io.bus.write_data := io.reg2_data
-      io.bus.write := true.B
       io.bus.write_strobe := VecInit(Seq.fill(Parameters.WordSize)(false.B))
       when(io.funct3 === InstructionsTypeS.sb) {
         io.bus.write_strobe(mem_address_index) := true.B
@@ -135,6 +142,7 @@ class MemoryAccess extends Module {
       }
       io.bus.request := true.B
       when(io.bus.granted) {
+        io.bus.write := true.B
         mem_access_state := MemoryAccessStates.Write
       }
     }.elsewhen(mem_access_state === MemoryAccessStates.Write) {

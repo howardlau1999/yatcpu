@@ -26,6 +26,16 @@ enable_interrupt:
   li t0, 0x1888
   csrrw t1, mstatus, t0 # enable interrupt
   ret
+.globl enable_paging
+enable_paging:
+  li t0, 0x80000005 # ppn << 12 = 0x005000
+  csrw satp, t0
+  ret
+.globl get_mtval
+get_mtval:
+  csrr a0, mtval
+  ret
+
 .globl get_epc
 get_epc:
   csrr a0, mepc

@@ -28,6 +28,7 @@ class Control extends Module {
     val rs2_id = Input(UInt(Parameters.PhysicalRegisterAddrWidth))
     val memory_read_enable_ex = Input(Bool())
     val rd_ex = Input(UInt(Parameters.PhysicalRegisterAddrWidth))
+    val csr_start_paging = Input(Bool())
 
     val if_flush = Output(Bool())
     val id_flush = Output(Bool())
@@ -38,8 +39,8 @@ class Control extends Module {
   })
 
   val id_hazard = io.memory_read_enable_ex && (io.rd_ex === io.rs1_id || io.rd_ex === io.rs2_id)
-  io.if_flush := io.jump_flag
-  io.id_flush := id_hazard
+  io.if_flush := io.jump_flag || io.csr_start_paging
+  io.id_flush := id_hazard || io.csr_start_paging
 
   io.pc_stall := io.stall_flag_mem || io.stall_flag_clint || id_hazard || io.stall_flag_bus || io.stall_flag_if
   io.if_stall := io.stall_flag_mem || io.stall_flag_clint || id_hazard
