@@ -38,7 +38,7 @@ feedback and contributions!
     - We have tested on Windows 10 and WSL Debian 11
     - macOS is able to run the software simulation, but unable to write FPGA boards
 - Java 8 or higher
-- Scala 2.12 (not 3)
+- Scala 2.13.8 (not 3)
 - sbt
 - (Optional) [Latest Verilator](https://veripool.org/guide/latest/install.html)
 - (Optional) Vivado 2020.1 or higher

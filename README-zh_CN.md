@@ -37,7 +37,7 @@ YatCPU(**Y**et **a**nother **t**oy CPU) 是一个使用 Chisel 3 硬件设计语
     - 我们已经在 Windows 10 和 WSL Debian 11 上测试过
     - macOS 可以运行软件仿真，但无法烧写 FPGA 开发板
 - Java 8 及以上
-- Scala 2.12 (不是 3)
+- Scala 2.13.8 (不是 3)
 - sbt
 - （可选） [最新版 Verilator](https://veripool.org/guide/latest/install.html)
 - （可选） Vivado 2020.1 及以上
