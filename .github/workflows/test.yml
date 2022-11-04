@@ -54,7 +54,7 @@ jobs:
       - name: Setup Scala
         uses: olafurpg/setup-scala@v11
         with:
-          java-version: openjdk@1.17
+          java-version: openjdk@1.19
       - name: Cache Scala
         uses: coursier/cache-action@v6
       - name: Compile executables for testing
@@ -106,7 +106,7 @@ jobs:
       - name: Setup Scala
         uses: olafurpg/setup-scala@v11
         with:
-          java-version: openjdk@1.17
+          java-version: openjdk@1.19
       - name: Set up GCC
         uses: egor-tensin/setup-gcc@v1
         with:
@@ -137,7 +137,7 @@ jobs:
       - name: Setup Scala
         uses: olafurpg/setup-scala@v11
         with:
-          java-version: openjdk@1.17
+          java-version: openjdk@1.19
       - name: Set up GCC
         uses: egor-tensin/setup-gcc@v1
         with:
