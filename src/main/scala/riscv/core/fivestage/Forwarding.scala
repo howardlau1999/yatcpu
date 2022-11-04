@@ -25,6 +25,8 @@ object ForwardingType {
 
 class Forwarding extends Module {
   val io = IO(new Bundle() {
+    val rs1_id = Input(UInt(Parameters.PhysicalRegisterAddrWidth))
+    val rs2_id = Input(UInt(Parameters.PhysicalRegisterAddrWidth))
     val rs1_ex = Input(UInt(Parameters.PhysicalRegisterAddrWidth))
     val rs2_ex = Input(UInt(Parameters.PhysicalRegisterAddrWidth))
     val rd_mem = Input(UInt(Parameters.PhysicalRegisterAddrWidth))
@@ -32,22 +34,41 @@ class Forwarding extends Module {
     val rd_wb = Input(UInt(Parameters.PhysicalRegisterAddrWidth))
     val reg_write_enable_wb = Input(Bool())
 
-    val aluop1_forward_ex = Output(UInt(2.W))
-    val aluop2_forward_ex = Output(UInt(2.W))
+    val reg1_forward_id = Output(UInt(2.W))
+    val reg2_forward_id = Output(UInt(2.W))
+    val reg1_forward_ex = Output(UInt(2.W))
+    val reg2_forward_ex = Output(UInt(2.W))
   })
-  when(io.reg_write_enable_mem && io.rd_mem =/= 0.U && io.rd_mem === io.rs1_ex) {
-    io.aluop1_forward_ex := ForwardingType.ForwardFromMEM
-  }.elsewhen(io.reg_write_enable_wb && io.rd_wb =/= 0.U && io.rd_wb === io.rs1_ex) {
-    io.aluop1_forward_ex := ForwardingType.ForwardFromWB
+
+  when(io.reg_write_enable_mem && io.rd_mem =/= 0.U && io.rd_mem === io.rs1_id) {
+    io.reg1_forward_id := ForwardingType.ForwardFromMEM
+  }.elsewhen(io.reg_write_enable_wb && io.rd_wb =/= 0.U && io.rd_wb === io.rs1_id) {
+    io.reg1_forward_id := ForwardingType.ForwardFromWB
   }.otherwise {
-    io.aluop1_forward_ex := ForwardingType.NoForward
+    io.reg1_forward_id := ForwardingType.NoForward
+  }
+
+  when(io.reg_write_enable_mem && io.rd_mem =/= 0.U && io.rd_mem === io.rs2_id) {
+    io.reg2_forward_id := ForwardingType.ForwardFromMEM
+  }.elsewhen(io.reg_write_enable_wb && io.rd_wb =/= 0.U && io.rd_wb === io.rs2_id) {
+    io.reg2_forward_id := ForwardingType.ForwardFromWB
+  }.otherwise {
+    io.reg2_forward_id := ForwardingType.NoForward
+  }
+
+  when(io.reg_write_enable_mem && io.rd_mem =/= 0.U && io.rd_mem === io.rs1_ex) {
+    io.reg1_forward_ex := ForwardingType.ForwardFromMEM
+  }.elsewhen(io.reg_write_enable_wb && io.rd_wb =/= 0.U && io.rd_wb === io.rs1_ex) {
+    io.reg1_forward_ex := ForwardingType.ForwardFromWB
+  }.otherwise {
+    io.reg1_forward_ex := ForwardingType.NoForward
   }
 
   when(io.reg_write_enable_mem && io.rd_mem =/= 0.U && io.rd_mem === io.rs2_ex) {
-    io.aluop2_forward_ex := ForwardingType.ForwardFromMEM
+    io.reg2_forward_ex := ForwardingType.ForwardFromMEM
   }.elsewhen(io.reg_write_enable_wb && io.rd_wb =/= 0.U && io.rd_wb === io.rs2_ex) {
-    io.aluop2_forward_ex := ForwardingType.ForwardFromWB
+    io.reg2_forward_ex := ForwardingType.ForwardFromWB
   }.otherwise {
-    io.aluop2_forward_ex := ForwardingType.NoForward
+    io.reg2_forward_ex := ForwardingType.NoForward
   }
 }
