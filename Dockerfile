@@ -1,4 +1,4 @@
-FROM sbtscala/scala-sbt:17.0.2_1.7.1_2.12.16
+FROM sbtscala/scala-sbt:eclipse-temurin-18.0.1_1.6.2_2.13.8
 ARG CLANG_VERSION=15
 RUN apt-get update && apt-get install -y curl lsb-release wget software-properties-common gnupg
 RUN curl -fsSL https://apt.llvm.org/llvm.sh | bash -s -- $CLANG_VERSION all
