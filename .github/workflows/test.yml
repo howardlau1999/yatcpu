@@ -52,9 +52,9 @@ jobs:
       - name: Setup Verilator
         run: sudo apt install -y verilator
       - name: Setup Scala
-        uses: olafurpg/setup-scala@v10
+        uses: olafurpg/setup-scala@v11
         with:
-          java-version: adopt@1.8
+          java-version: openjdk@1.17
       - name: Cache Scala
         uses: coursier/cache-action@v6
       - name: Compile executables for testing
@@ -104,9 +104,9 @@ jobs:
       - name: Setup Toolchain
         run: sudo apt install -y verilator binutils-riscv64-unknown-elf gcc-riscv64-unknown-elf
       - name: Setup Scala
-        uses: olafurpg/setup-scala@v10
+        uses: olafurpg/setup-scala@v11
         with:
-          java-version: adopt@1.8
+          java-version: openjdk@1.17
       - name: Set up GCC
         uses: egor-tensin/setup-gcc@v1
         with:
@@ -135,9 +135,9 @@ jobs:
       - name: Setup Toolchain
         run: sudo apt install -y verilator binutils-riscv64-unknown-elf gcc-riscv64-unknown-elf
       - name: Setup Scala
-        uses: olafurpg/setup-scala@v10
+        uses: olafurpg/setup-scala@v11
         with:
-          java-version: adopt@1.8
+          java-version: openjdk@1.17
       - name: Set up GCC
         uses: egor-tensin/setup-gcc@v1
         with:
