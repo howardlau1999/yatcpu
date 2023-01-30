@@ -35,8 +35,8 @@ class Execute extends Module {
     val csr_read_data = Input(UInt(Parameters.DataWidth))
     val forward_from_mem = Input(UInt(Parameters.DataWidth))
     val forward_from_wb = Input(UInt(Parameters.DataWidth))
-    val aluop1_forward = Input(UInt(2.W))
-    val aluop2_forward = Input(UInt(2.W))
+    val reg1_forward = Input(UInt(2.W))
+    val reg2_forward = Input(UInt(2.W))
 
     val mem_alu_result = Output(UInt(Parameters.DataWidth))
     val csr_write_data = Output(UInt(Parameters.DataWidth))
@@ -59,7 +59,7 @@ class Execute extends Module {
     io.aluop1_source === ALUOp1Source.InstructionAddress,
     io.instruction_address,
     MuxLookup(
-      io.aluop1_forward,
+      io.reg1_forward,
       io.reg1_data,
       IndexedSeq(
         ForwardingType.ForwardFromMEM -> io.forward_from_mem,
@@ -71,7 +71,7 @@ class Execute extends Module {
     io.aluop2_source === ALUOp2Source.Immediate,
     io.immediate,
     MuxLookup(
-      io.aluop2_forward,
+      io.reg2_forward,
       io.reg2_data,
       IndexedSeq(
         ForwardingType.ForwardFromMEM -> io.forward_from_mem,

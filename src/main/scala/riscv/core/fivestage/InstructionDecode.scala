@@ -138,9 +138,12 @@ class InstructionDecode extends Module {
     val instruction_address = Input(UInt(Parameters.AddrWidth))
     val reg1_data = Input(UInt(Parameters.DataWidth))
     val reg2_data = Input(UInt(Parameters.DataWidth))
+    val forward_from_mem = Input(UInt(Parameters.DataWidth))
+    val forward_from_wb = Input(UInt(Parameters.DataWidth))
+    val reg1_forward = Input(UInt(2.W))
+    val reg2_forward = Input(UInt(2.W))
     val interrupt_assert = Input(Bool())
     val interrupt_handler_address = Input(UInt(Parameters.AddrWidth))
-    val csr_start_paging = Input(Bool())
 
     val regs_reg1_read_address = Output(UInt(Parameters.PhysicalRegisterAddrWidth))
     val regs_reg2_read_address = Output(UInt(Parameters.PhysicalRegisterAddrWidth))
@@ -156,9 +159,11 @@ class InstructionDecode extends Module {
     val ex_reg_write_address = Output(UInt(Parameters.PhysicalRegisterAddrWidth))
     val ex_csr_address = Output(UInt(Parameters.CSRRegisterAddrWidth))
     val ex_csr_write_enable = Output(Bool())
+    val ctrl_jump_instruction = Output(Bool())
+    val clint_jump_flag = Output(Bool())
+    val clint_jump_address = Output(UInt(Parameters.AddrWidth))
     val if_jump_flag = Output(Bool())
     val if_jump_address = Output(UInt(Parameters.AddrWidth))
-    val clint_jump_address = Output(UInt(Parameters.AddrWidth))
   })
   val opcode = io.instruction(6, 0)
   val funct3 = io.instruction(14, 12)
@@ -167,13 +172,11 @@ class InstructionDecode extends Module {
   val rs1 = io.instruction(19, 15)
   val rs2 = io.instruction(24, 20)
 
-  val j_type_instruction_target_addess = io.ex_immediate + Mux(opcode === Instructions.jalr, io.reg1_data, io.instruction_address)
-
   io.regs_reg1_read_address := Mux(opcode === Instructions.lui, 0.U(Parameters.PhysicalRegisterAddrWidth), rs1)
   io.regs_reg2_read_address := rs2
   io.ex_reg1_data := io.reg1_data
   io.ex_reg2_data := io.reg2_data
-  val immediate = MuxLookup(
+  io.ex_immediate := MuxLookup(
     opcode,
     Cat(Fill(20, io.instruction(31)), io.instruction(31, 20)),
     IndexedSeq(
@@ -187,7 +190,6 @@ class InstructionDecode extends Module {
       Instructions.jal -> Cat(Fill(12, io.instruction(31)), io.instruction(19, 12), io.instruction(20), io.instruction(30, 21), 0.U(1.W))
     )
   )
-  io.ex_immediate := immediate
   io.ex_aluop1_source := Mux(
     opcode === Instructions.auipc || opcode === InstructionTypes.B || opcode === Instructions.jal,
     ALUOp1Source.InstructionAddress,
@@ -220,29 +222,45 @@ class InstructionDecode extends Module {
       funct3 === InstructionsTypeCSR.csrrs || funct3 === InstructionsTypeCSR.csrrsi ||
       funct3 === InstructionsTypeCSR.csrrc || funct3 === InstructionsTypeCSR.csrrci
     )
-  io.if_jump_flag := io.csr_start_paging || io.interrupt_assert ||
-    (opcode === Instructions.jal) ||
+
+  val reg1_data = MuxLookup(
+    io.reg1_forward,
+    io.reg1_data,
+    IndexedSeq(
+      ForwardingType.ForwardFromMEM -> io.forward_from_mem,
+      ForwardingType.ForwardFromWB -> io.forward_from_wb
+    )
+  )
+  val reg2_data = MuxLookup(
+    io.reg2_forward,
+    io.reg2_data,
+    IndexedSeq(
+      ForwardingType.ForwardFromMEM -> io.forward_from_mem,
+      ForwardingType.ForwardFromWB -> io.forward_from_wb
+    )
+  )
+  io.ctrl_jump_instruction := (opcode === Instructions.jal) ||
+    (opcode === Instructions.jalr) || (opcode === InstructionTypes.B)
+  val instruction_jump_flag = (opcode === Instructions.jal) ||
     (opcode === Instructions.jalr) ||
     (opcode === InstructionTypes.B) && MuxLookup(
       funct3,
       false.B,
       IndexedSeq(
-        InstructionsTypeB.beq -> (io.reg1_data === io.reg2_data),
-        InstructionsTypeB.bne -> (io.reg1_data =/= io.reg2_data),
-        InstructionsTypeB.blt -> (io.reg1_data.asSInt < io.reg2_data.asSInt),
-        InstructionsTypeB.bge -> (io.reg1_data.asSInt >= io.reg2_data.asSInt),
-        InstructionsTypeB.bltu -> (io.reg1_data.asUInt < io.reg2_data.asUInt),
-        InstructionsTypeB.bgeu -> (io.reg1_data.asUInt >= io.reg2_data.asUInt)
+        InstructionsTypeB.beq -> (reg1_data === reg2_data),
+        InstructionsTypeB.bne -> (reg1_data =/= reg2_data),
+        InstructionsTypeB.blt -> (reg1_data.asSInt < reg2_data.asSInt),
+        InstructionsTypeB.bge -> (reg1_data.asSInt >= reg2_data.asSInt),
+        InstructionsTypeB.bltu -> (reg1_data.asUInt < reg2_data.asUInt),
+        InstructionsTypeB.bgeu -> (reg1_data.asUInt >= reg2_data.asUInt)
       )
     )
-  io.if_jump_address := Mux(
-    io.csr_start_paging,
-    io.instruction_address, //restart from instruction in if2id
-    Mux(
-      io.interrupt_assert,
-      io.interrupt_handler_address,
-      j_type_instruction_target_addess
-    )
+  val instruction_jump_address = io.ex_immediate + Mux(opcode === Instructions.jalr, reg1_data, io.instruction_address)
+  io.clint_jump_flag := instruction_jump_flag
+  io.clint_jump_address := instruction_jump_address
+  io.if_jump_flag := io.interrupt_assert || instruction_jump_flag
+  io.if_jump_address := Mux(io.interrupt_assert,
+    io.interrupt_handler_address,
+    instruction_jump_address
   )
-  io.clint_jump_address := j_type_instruction_target_addess
 }
