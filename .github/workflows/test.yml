@@ -8,7 +8,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           submodules: recursive
       - name: Setup Verilator
@@ -26,7 +26,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           submodules: recursive
       - name: Setup Clang
@@ -42,19 +42,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup Clang
-        run: curl -LO https://apt.llvm.org/llvm.sh && sudo bash llvm.sh 14 all
+        run: curl -LO https://apt.llvm.org/llvm.sh && sudo bash llvm.sh 15 all
       - name: Update Clang Version
         run: curl -LO https://gist.githubusercontent.com/howardlau1999/7ea2cffedc0491c46fa14e1f2355a9a8/raw/7886c0344e8f010a9d515a3de20983e604ae5a0a/update-alternatives-clang.sh && sudo bash update-alternatives-clang.sh 14 100
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           submodules: recursive
       - name: Setup Verilator
         run: sudo apt install -y verilator
-      - name: Setup Scala
-        uses: olafurpg/setup-scala@v11
+      - name: Setup Java
+        uses: actions/setup-java@v3
         with:
-          java-version: openjdk@1.19
+          distribution: 'temurin'
+          java-version: '19'
       - name: Cache Scala
         uses: coursier/cache-action@v6
       - name: Compile executables for testing
@@ -66,7 +67,7 @@ jobs:
     runs-on: ubuntu-latest
     steps: 
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           submodules: recursive
       - name: Build Docker image
@@ -78,7 +79,7 @@ jobs:
       image: howardlau1999/yatcpu
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           submodules: recursive
       - name: Cache Scala
@@ -92,21 +93,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: yatcpu
       - name: Checkout RISC-V compliance test
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: "riscv-non-isa/riscv-arch-test"
           path: riscv-arch-test
           ref: 2.6.1
       - name: Setup Toolchain
         run: sudo apt install -y verilator binutils-riscv64-unknown-elf gcc-riscv64-unknown-elf
-      - name: Setup Scala
-        uses: olafurpg/setup-scala@v11
+      - name: Setup Java
+        uses: actions/setup-java@v3
         with:
-          java-version: openjdk@1.19
+          distribution: 'temurin'
+          java-version: '19'
       - name: Set up GCC
         uses: egor-tensin/setup-gcc@v1
         with:
@@ -129,15 +131,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: yatcpu
       - name: Setup Toolchain
         run: sudo apt install -y verilator binutils-riscv64-unknown-elf gcc-riscv64-unknown-elf
-      - name: Setup Scala
-        uses: olafurpg/setup-scala@v11
+      - name: Setup Java
+        uses: actions/setup-java@v3
         with:
-          java-version: openjdk@1.19
+          distribution: 'temurin'
+          java-version: '19'
       - name: Set up GCC
         uses: egor-tensin/setup-gcc@v1
         with:
