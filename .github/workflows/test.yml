@@ -1,6 +1,6 @@
 name: Test
 
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 
 jobs:
   test-windows:
@@ -11,10 +11,14 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: recursive
-      - name: Update msys2
-        run: C:\msys64\usr\bin\bash.exe -l -c "pacman -Syuu --noconfirm"
+      - name: Cache Msys2
+        id: cache-msys2
+        uses: actions/cache@v3
+        with:
+          path: 'C:\msys64'
+          key: msys64-verilator-cache
       - name: Setup Verilator
-        run: C:\msys64\usr\bin\bash.exe -l -c "pacman -Syuu --noconfirm && pacman -Sy --noconfirm --needed base-devel mingw-w64-x86_64-toolchain git flex mingw-w64-x86_64-cmake mingw-w64-x86_64-autotools mingw-w64-x86_64-python3 && export PATH=/mingw64/bin:/usr/local/bin:/usr/bin:/usr/bin/core_perl && cd ~ && git clone --depth 1 -b v4.228 https://github.com/verilator/verilator && cd verilator && autoconf && (./configure --prefix=/mingw64 || cat config.log) && cp /usr/include/FlexLexer.h /mingw64/include && make -j$(nproc) && make install && cd ~ && rm -rf verilator"
+        run: C:\msys64\usr\bin\bash.exe -l -c "pacman -Sy --noconfirm --needed base-devel mingw-w64-x86_64-toolchain git flex mingw-w64-x86_64-cmake mingw-w64-x86_64-autotools mingw-w64-x86_64-python3 && export PATH=/mingw64/bin:/usr/local/bin:/usr/bin:/usr/bin/core_perl && cd ~ && git clone --depth 1 -b v4.228 https://github.com/verilator/verilator && cd verilator && autoconf && (./configure --prefix=/mingw64 || cat config.log) && cp /usr/include/FlexLexer.h /mingw64/include && make -j$(nproc) && make install && cd ~ && rm -rf verilator"
       - run: echo 'C:\msys64\usr\bin' | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       - run: echo 'C:\msys64\mingw64\bin' | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       - name: Setup Developer Command 
