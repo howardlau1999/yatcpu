@@ -112,15 +112,11 @@ class CSR extends Module {
       CSRRegister.MSCRATCH -> mscratch,
     )
 
-  io.id_reg_data := MuxLookup(
-    io.reg_read_address_id,
-    0.U,
-    regLUT,
+  io.id_reg_data := MuxLookup(io.reg_read_address_id, 0.U)(
+    regLUT
   )
 
-  io.clint_reg_data := MuxLookup(
-    io.reg_read_address_clint,
-    0.U,
-    regLUT,
+  io.clint_reg_data := MuxLookup(io.reg_read_address_clint, 0.U)(
+    regLUT
   )
 }

@@ -67,7 +67,7 @@ class CSR extends Module {
   val mstatus = RegInit(UInt(Parameters.DataWidth), 0.U)
   val mscratch = RegInit(UInt(Parameters.DataWidth), 0.U)
   val mtval = RegInit(UInt(Parameters.DataWidth), 0.U)
-  val satp = RegInit(UInt(Parameters.DataWidth),0.U)
+  val satp = RegInit(UInt(Parameters.DataWidth), 0.U)
 
   cycles := cycles + 1.U
   io.clint_csr_mtvec := mtvec
@@ -110,9 +110,9 @@ class CSR extends Module {
     mscratch := reg_write_data
   }.elsewhen(reg_write_address === CSRRegister.MTVAL) {
     mtval := reg_write_data
-  }.elsewhen(reg_write_address === CSRRegister.SATP){
+  }.elsewhen(reg_write_address === CSRRegister.SATP) {
     satp := reg_write_data
-    when(reg_write_data(31) === 1.U && satp(31) === 0.U){
+    when(reg_write_data(31) === 1.U && satp(31) === 0.U) {
       io.start_paging := true.B
     }
   }
@@ -131,15 +131,11 @@ class CSR extends Module {
       CSRRegister.SATP -> satp,
     )
 
-  io.id_reg_data := MuxLookup(
-    io.reg_read_address_id,
-    0.U,
-    regLUT,
+  io.id_reg_data := MuxLookup(io.reg_read_address_id, 0.U)(
+    regLUT
   )
 
-  io.clint_reg_data := MuxLookup(
-    io.reg_read_address_clint,
-    0.U,
-    regLUT,
+  io.clint_reg_data := MuxLookup(io.reg_read_address_clint, 0.U)(
+    regLUT
   )
 }

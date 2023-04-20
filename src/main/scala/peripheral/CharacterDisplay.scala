@@ -14,10 +14,9 @@
 
 package peripheral
 
-import chisel3._
 import bus.{AXI4LiteChannels, AXI4LiteSlave}
-import chisel3.{Bool, Bundle, Flipped, Module, Mux, Output, UInt, Wire}
 import chisel3.util.{MuxLookup, log2Up}
+import chisel3.{Bool, Bundle, Flipped, Module, Mux, Output, UInt, Wire, _}
 import peripheral.ScreenInfo.{DisplayHorizontal, DisplayVertical}
 import riscv.Parameters
 
@@ -70,9 +69,7 @@ class CharacterDisplay extends Module {
   val ch = Wire(UInt(8.W))
 
   mem.io.debug_read_address := char_index
-  ch := MuxLookup(
-    offset,
-    0.U,
+  ch := MuxLookup(offset, 0.U)(
     IndexedSeq(
       0.U -> mem.io.debug_read_data(7, 0).asUInt,
       1.U -> mem.io.debug_read_data(15, 8).asUInt,

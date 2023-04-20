@@ -15,7 +15,6 @@
 package riscv.core.fivestage
 
 import chisel3._
-import chisel3.experimental.ChiselEnum
 import chisel3.util._
 import riscv.Parameters
 
@@ -58,9 +57,7 @@ class Execute extends Module {
   alu.io.op1 := Mux(
     io.aluop1_source === ALUOp1Source.InstructionAddress,
     io.instruction_address,
-    MuxLookup(
-      io.reg1_forward,
-      io.reg1_data,
+    MuxLookup(io.reg1_forward, io.reg1_data)(
       IndexedSeq(
         ForwardingType.ForwardFromMEM -> io.forward_from_mem,
         ForwardingType.ForwardFromWB -> io.forward_from_wb
@@ -70,9 +67,7 @@ class Execute extends Module {
   alu.io.op2 := Mux(
     io.aluop2_source === ALUOp2Source.Immediate,
     io.immediate,
-    MuxLookup(
-      io.reg2_forward,
-      io.reg2_data,
+    MuxLookup(io.reg2_forward, io.reg2_data)(
       IndexedSeq(
         ForwardingType.ForwardFromMEM -> io.forward_from_mem,
         ForwardingType.ForwardFromWB -> io.forward_from_wb
@@ -80,7 +75,7 @@ class Execute extends Module {
     )
   )
   io.mem_alu_result := alu.io.result
-  io.csr_write_data := MuxLookup(funct3, 0.U, IndexedSeq(
+  io.csr_write_data := MuxLookup(funct3, 0.U)(IndexedSeq(
     InstructionsTypeCSR.csrrw -> io.reg1_data,
     InstructionsTypeCSR.csrrc -> io.csr_read_data.&((~io.reg1_data).asUInt),
     InstructionsTypeCSR.csrrs -> io.csr_read_data.|(io.reg1_data),

@@ -19,7 +19,7 @@ import chisel3.util._
 import riscv.Parameters
 
 
-object InstructionTypes  {
+object InstructionTypes {
   val L = "b0000011".U
   val I = "b0010011".U
   val S = "b0100011".U
@@ -27,7 +27,7 @@ object InstructionTypes  {
   val B = "b1100011".U
 }
 
-object Instructions  {
+object Instructions {
   val lui = "b0110111".U
   val nop = "b0000001".U
   val jal = "b1101111".U
@@ -37,7 +37,7 @@ object Instructions  {
   val fence = "b0001111".U
 }
 
-object InstructionsTypeL  {
+object InstructionsTypeL {
   val lb = "b000".U
   val lh = "b001".U
   val lw = "b010".U
@@ -56,13 +56,13 @@ object InstructionsTypeI {
   val andi = 7.U
 }
 
-object InstructionsTypeS  {
+object InstructionsTypeS {
   val sb = "b000".U
   val sh = "b001".U
   val sw = "b010".U
 }
 
-object InstructionsTypeR  {
+object InstructionsTypeR {
   val add_sub = 0.U
   val sll = 1.U
   val slt = 2.U
@@ -73,7 +73,7 @@ object InstructionsTypeR  {
   val and = 7.U
 }
 
-object InstructionsTypeM  {
+object InstructionsTypeM {
   val mul = 0.U
   val mulh = 1.U
   val mulhsu = 2.U
@@ -84,7 +84,7 @@ object InstructionsTypeM  {
   val remu = 7.U
 }
 
-object InstructionsTypeB  {
+object InstructionsTypeB {
   val beq = "b000".U
   val bne = "b001".U
   val blt = "b100".U
@@ -93,7 +93,7 @@ object InstructionsTypeB  {
   val bgeu = "b111".U
 }
 
-object InstructionsTypeCSR  {
+object InstructionsTypeCSR {
   val csrrw = "b001".U
   val csrrs = "b010".U
   val csrrc = "b011".U

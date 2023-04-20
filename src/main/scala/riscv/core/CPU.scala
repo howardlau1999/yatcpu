@@ -15,9 +15,9 @@
 package riscv.core
 
 import chisel3._
-import threestage.{CPU => ThreeStageCPU}
-import fivestage.{CPU => FiveStageCPU}
 import riscv.ImplementationType
+import riscv.core.fivestage.{CPU => FiveStageCPU}
+import riscv.core.threestage.{CPU => ThreeStageCPU}
 
 class CPU(val implementation: Int = ImplementationType.FiveStage) extends Module {
   val io = IO(new CPUBundle)

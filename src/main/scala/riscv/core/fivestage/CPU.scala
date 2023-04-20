@@ -14,18 +14,17 @@
 
 package riscv.core.fivestage
 
-import bus.{AXI4LiteChannels, AXI4LiteMaster}
+import bus.AXI4LiteMaster
 import chisel3._
-import chisel3.experimental.ChiselEnum
 import riscv.Parameters
 import riscv.core.CPUBundle
 
-object BUSGranted extends ChiselEnum{
-  val idle,if_granted,mem_granted,mmu_mem_granted,mmu_if_granted = Value
+object BUSGranted extends ChiselEnum {
+  val idle, if_granted, mem_granted, mmu_mem_granted, mmu_if_granted = Value
 }
 
-object MEMAccessState extends  ChiselEnum{
-  val idle,if_address_translate,mem_address_translate,mem_access,if_access = Value
+object MEMAccessState extends ChiselEnum {
+  val idle, if_address_translate, mem_address_translate, mem_access, if_access = Value
 }
 
 class CPU extends Module {
@@ -58,31 +57,31 @@ class CPU extends Module {
 
   val bus_granted = RegInit(BUSGranted.idle)
   val mem_access_state = RegInit(MEMAccessState.idle)
-  val virtual_address = RegInit(UInt(Parameters.AddrWidth),0.U)
-  val physical_address = RegInit(UInt(Parameters.AddrWidth),0.U)
+  val virtual_address = RegInit(UInt(Parameters.AddrWidth), 0.U)
+  val physical_address = RegInit(UInt(Parameters.AddrWidth), 0.U)
   val mmu_restart = RegInit(false.B)
   val pending = RegInit(false.B) //play the same role as pending_jump in Inst_fetch
 
   //bus arbitration
-  when(mem_access_state === MEMAccessState.idle){
+  when(mem_access_state === MEMAccessState.idle) {
     bus_granted := BUSGranted.idle
-    when(!axi4_master.io.bundle.busy && !axi4_master.io.bundle.read_valid){
-      when(csr_regs.io.mmu_enable){
-        when(mem.io.bus.request){
+    when(!axi4_master.io.bundle.busy && !axi4_master.io.bundle.read_valid) {
+      when(csr_regs.io.mmu_enable) {
+        when(mem.io.bus.request) {
           mem_access_state := MEMAccessState.mem_address_translate
           bus_granted := BUSGranted.mmu_mem_granted
           virtual_address := ex2mem.io.output_alu_result
-        }.elsewhen(inst_fetch.io.bus.request && io.instruction_valid && inst_fetch.io.pc_valid){
+        }.elsewhen(inst_fetch.io.bus.request && io.instruction_valid && inst_fetch.io.pc_valid) {
           mem_access_state := MEMAccessState.if_address_translate
           bus_granted := BUSGranted.mmu_if_granted
           virtual_address := inst_fetch.io.id_instruction_address
         }
-      }.otherwise{
-        when(mem.io.bus.request){
+      }.otherwise {
+        when(mem.io.bus.request) {
           mem_access_state := MEMAccessState.mem_access
           physical_address := ex2mem.io.output_alu_result
           bus_granted := BUSGranted.mem_granted
-        }.elsewhen(inst_fetch.io.bus.request && io.instruction_valid && inst_fetch.io.pc_valid){
+        }.elsewhen(inst_fetch.io.bus.request && io.instruction_valid && inst_fetch.io.pc_valid) {
           mem_access_state := MEMAccessState.if_access
           bus_granted := BUSGranted.if_granted
           physical_address := inst_fetch.io.id_instruction_address
@@ -90,16 +89,16 @@ class CPU extends Module {
       }
     }
   }.elsewhen(mem_access_state === MEMAccessState.mem_address_translate) {
-    when(clint.io.exception_token){
+    when(clint.io.exception_token) {
       mem_access_state := MEMAccessState.if_address_translate
       bus_granted := BUSGranted.mmu_if_granted
       virtual_address := id.io.if_jump_address
-    }.elsewhen(mmu.io.pa_valid){
+    }.elsewhen(mmu.io.pa_valid) {
       mem_access_state := MEMAccessState.mem_access
       bus_granted := BUSGranted.mem_granted
       physical_address := mmu.io.pa
     }
-  }.elsewhen(mem_access_state === MEMAccessState.if_address_translate){
+  }.elsewhen(mem_access_state === MEMAccessState.if_address_translate) {
     //"Interrupt" the IF address translation, turn to mem address translation
     when(mem.io.bus.request) {
       mmu_restart := true.B
@@ -109,9 +108,9 @@ class CPU extends Module {
         bus_granted := BUSGranted.mmu_mem_granted
         virtual_address := ex2mem.io.output_alu_result
       }
-    }.otherwise{
-      when(pending){
-        when(mmu.io.restart_done){
+    }.otherwise {
+      when(pending) {
+        when(mmu.io.restart_done) {
           mmu_restart := false.B
           pending := false.B
           mem_access_state := MEMAccessState.if_address_translate
@@ -119,45 +118,45 @@ class CPU extends Module {
           virtual_address := inst_fetch.io.id_instruction_address
         }
       }.otherwise {
-        when(!id.io.if_jump_flag && mmu.io.pa_valid){
+        when(!id.io.if_jump_flag && mmu.io.pa_valid) {
           mem_access_state := MEMAccessState.if_access
           bus_granted := BUSGranted.if_granted
           physical_address := mmu.io.pa
         }
       }
 
-      when(id.io.if_jump_flag){
+      when(id.io.if_jump_flag) {
         mmu_restart := true.B
         pending := true.B
       }
     }
-  }.elsewhen(mem_access_state === MEMAccessState.mem_access){
-    when(mem.io.bus.read_valid || mem.io.bus.write_valid){
+  }.elsewhen(mem_access_state === MEMAccessState.mem_access) {
+    when(mem.io.bus.read_valid || mem.io.bus.write_valid) {
       mem_access_state := MEMAccessState.idle
       bus_granted := BUSGranted.idle
     }
-  }.elsewhen(mem_access_state === MEMAccessState.if_access){
-    when(inst_fetch.io.bus.read_valid){
+  }.elsewhen(mem_access_state === MEMAccessState.if_access) {
+    when(inst_fetch.io.bus.read_valid) {
       bus_granted := BUSGranted.idle
       mem_access_state := MEMAccessState.idle
     }
   }
 
-  when(bus_granted === BUSGranted.mmu_if_granted || bus_granted === BUSGranted.mmu_mem_granted){
+  when(bus_granted === BUSGranted.mmu_if_granted || bus_granted === BUSGranted.mmu_mem_granted) {
     io.bus_address := mmu.io.bus.address
     axi4_master.io.bundle.read := mmu.io.bus.read
     axi4_master.io.bundle.address := mmu.io.bus.address
     axi4_master.io.bundle.write := mmu.io.bus.write
     axi4_master.io.bundle.write_data := mmu.io.bus.write_data
     axi4_master.io.bundle.write_strobe := mmu.io.bus.write_strobe
-  }.elsewhen(bus_granted === BUSGranted.mem_granted){
+  }.elsewhen(bus_granted === BUSGranted.mem_granted) {
     io.bus_address := mem.io.bus.address
     axi4_master.io.bundle.read := mem.io.bus.read
     axi4_master.io.bundle.address := mem.io.bus.address
     axi4_master.io.bundle.write := mem.io.bus.write
     axi4_master.io.bundle.write_data := mem.io.bus.write_data
     axi4_master.io.bundle.write_strobe := mem.io.bus.write_strobe
-  }.otherwise{
+  }.otherwise {
     io.bus_address := inst_fetch.io.bus.address
     axi4_master.io.bundle.read := inst_fetch.io.bus.read
     axi4_master.io.bundle.address := inst_fetch.io.bus.address
@@ -167,58 +166,58 @@ class CPU extends Module {
   }
 
   inst_fetch.io.bus.read_valid := Mux(
-    bus_granted===BUSGranted.if_granted && io.instruction_valid,
+    bus_granted === BUSGranted.if_granted && io.instruction_valid,
     axi4_master.io.bundle.read_valid,
     false.B
   )
   inst_fetch.io.bus.read_data := Mux(
-    bus_granted===BUSGranted.if_granted && io.instruction_valid,
+    bus_granted === BUSGranted.if_granted && io.instruction_valid,
     axi4_master.io.bundle.read_data,
     0.U
   )
   inst_fetch.io.bus.write_valid := false.B
   inst_fetch.io.bus.busy := Mux(
-    bus_granted===BUSGranted.if_granted && io.instruction_valid,
+    bus_granted === BUSGranted.if_granted && io.instruction_valid,
     axi4_master.io.bundle.busy,
     false.B
   )
   mem.io.bus.read_valid := Mux(
-    bus_granted===BUSGranted.mem_granted,
+    bus_granted === BUSGranted.mem_granted,
     axi4_master.io.bundle.read_valid,
     false.B
   )
   mem.io.bus.read_data := Mux(
-    bus_granted===BUSGranted.mem_granted,
+    bus_granted === BUSGranted.mem_granted,
     axi4_master.io.bundle.read_data,
     0.U
   )
   mem.io.bus.write_valid := Mux(
-    bus_granted===BUSGranted.mem_granted,
+    bus_granted === BUSGranted.mem_granted,
     axi4_master.io.bundle.write_valid,
     false.B
   )
   mem.io.bus.busy := Mux(
-    bus_granted===BUSGranted.mem_granted,
+    bus_granted === BUSGranted.mem_granted,
     axi4_master.io.bundle.busy,
     false.B
   )
   mmu.io.bus.read_valid := Mux(
-    bus_granted===BUSGranted.mmu_if_granted || bus_granted===BUSGranted.mmu_mem_granted,
+    bus_granted === BUSGranted.mmu_if_granted || bus_granted === BUSGranted.mmu_mem_granted,
     axi4_master.io.bundle.read_valid,
     false.B
   )
   mmu.io.bus.read_data := Mux(
-    bus_granted===BUSGranted.mmu_if_granted || bus_granted===BUSGranted.mmu_mem_granted,
+    bus_granted === BUSGranted.mmu_if_granted || bus_granted === BUSGranted.mmu_mem_granted,
     axi4_master.io.bundle.read_data,
     0.U
   )
   mmu.io.bus.write_valid := Mux(
-    bus_granted===BUSGranted.mmu_if_granted || bus_granted===BUSGranted.mmu_mem_granted,
+    bus_granted === BUSGranted.mmu_if_granted || bus_granted === BUSGranted.mmu_mem_granted,
     axi4_master.io.bundle.write_valid,
     false.B
   )
   mmu.io.bus.busy := Mux(
-    bus_granted===BUSGranted.mmu_if_granted || bus_granted===BUSGranted.mmu_mem_granted,
+    bus_granted === BUSGranted.mmu_if_granted || bus_granted === BUSGranted.mmu_mem_granted,
     axi4_master.io.bundle.busy,
     false.B
   )
@@ -228,7 +227,7 @@ class CPU extends Module {
   mmu.io.virtual_address := virtual_address
   mmu.io.bus.granted := bus_granted === BUSGranted.mmu_mem_granted || bus_granted === BUSGranted.mmu_if_granted
   mmu.io.page_fault_responed := false.B
-  mmu.io.ppn_from_satp := csr_regs.io.mmu_csr_satp(21,0)
+  mmu.io.ppn_from_satp := csr_regs.io.mmu_csr_satp(21, 0)
   mmu.io.page_fault_responed := clint.io.exception_token
   mmu.io.mmu_occupied_by_mem := bus_granted === BUSGranted.mmu_mem_granted
   mmu.io.restart := mmu_restart

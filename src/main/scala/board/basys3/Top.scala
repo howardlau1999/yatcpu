@@ -14,13 +14,13 @@
 
 package board.basys3
 
-import chisel3._
-import chisel3.experimental.ChiselEnum
-import chisel3.util._
-import riscv._
-import peripheral.{CharacterDisplay, DummySlave, InstructionROM, Memory, ROMLoader, Timer, Uart, VGADisplay}
 import bus.{BusArbiter, BusSwitch}
-import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
+import chisel3.{ChiselEnum, _}
+import chisel3.stage.ChiselGeneratorAnnotation
+import circt.stage.ChiselStage
+import chisel3.util._
+import peripheral._
+import riscv._
 import riscv.core.CPU
 
 object BootStates extends ChiselEnum {
@@ -130,9 +130,7 @@ class Top extends Module {
   seg_mux.io.digit_mask := io.digit_mask
   seg_mux.io.numbers := io.led
 
-  io.segs := MuxLookup(
-    io.switch,
-    seg_mux.io.segs,
+  io.segs := MuxLookup(io.switch, seg_mux.io.segs)(
     IndexedSeq(
       0.U -> sysu_logo.io.segs
     )
@@ -140,5 +138,6 @@ class Top extends Module {
 }
 
 object VerilogGenerator extends App {
-  (new ChiselStage).execute(Array("-X", "verilog", "-td", "verilog/basys3"), Seq(ChiselGeneratorAnnotation(() => new Top)))
+  (new ChiselStage).execute(Array("-X", "verilog", "-td", "verilog/basys3"), Seq(ChiselGeneratorAnnotation(() => new
+      Top)))
 }

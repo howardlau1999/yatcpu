@@ -1,9 +1,8 @@
 package peripheral
 
-import chisel3._
 import chisel3.experimental.{ChiselAnnotation, annotate}
 import chisel3.util.experimental.loadMemoryFromFileInline
-import chisel3.{Bundle, Input, Module, Output, SyncReadMem, UInt}
+import chisel3.{Bundle, Input, Module, Output, SyncReadMem, UInt, _}
 import firrtl.annotations.MemorySynthInit
 
 import java.io.FileWriter

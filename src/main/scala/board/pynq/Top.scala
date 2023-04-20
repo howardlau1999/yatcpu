@@ -15,13 +15,13 @@
 package board.pynq
 
 import bus.{AXI4LiteChannels, AXI4LiteInterface, BusArbiter, BusSwitch}
-import chisel3._
-import chisel3.experimental.ChiselEnum
-import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
-import chisel3.util.{Cat, is, switch}
+import chisel3.{ChiselEnum, _}
+import chisel3.stage.ChiselGeneratorAnnotation
+import chisel3.util.{is, switch}
+import circt.stage.ChiselStage
 import peripheral._
-import riscv.{ImplementationType, Parameters}
-import riscv.core.{CPU, CPUBundle}
+import riscv.Parameters
+import riscv.core.CPU
 
 object BootStates extends ChiselEnum {
   val Init, Loading, BusWait, Finished = Value
@@ -145,5 +145,6 @@ class Top extends Module {
 }
 
 object VerilogGenerator extends App {
-  (new ChiselStage).execute(Array("-X", "verilog", "-td", "verilog/pynq"), Seq(ChiselGeneratorAnnotation(() => new Top)))
+  (new ChiselStage).execute(Array("-X", "verilog", "-td", "verilog/pynq"), Seq(ChiselGeneratorAnnotation(() => new
+      Top)))
 }

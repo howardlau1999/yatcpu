@@ -15,7 +15,6 @@
 package riscv.core.fivestage
 
 import chisel3._
-import chisel3.experimental.ChiselEnum
 import chisel3.util.MuxCase
 import riscv.Parameters
 import riscv.core.BusBundle
@@ -24,8 +23,8 @@ object ProgramCounter {
   val EntryAddress = Parameters.EntryAddress
 }
 
-object IFAccessStates extends ChiselEnum{
-  val idle,read = Value
+object IFAccessStates extends ChiselEnum {
+  val idle, read = Value
 }
 
 class InstructionFetch extends Module {
@@ -47,7 +46,7 @@ class InstructionFetch extends Module {
   val pc = RegInit(ProgramCounter.EntryAddress)
   val state = RegInit(IFAccessStates.idle)
   val pc_valid = RegInit(false.B) //because the romloader of verilator(sim_main.cpp) need no time cycle
-                                  //it prevent fetching instruction from 0x0, when pc haven't been initailized
+  //it prevent fetching instruction from 0x0, when pc haven't been initailized
 
   io.bus.read := false.B
   io.bus.request := true.B
@@ -56,7 +55,7 @@ class InstructionFetch extends Module {
   io.bus.write_strobe := VecInit(Seq.fill(Parameters.WordSize)(false.B))
   io.pc_valid := pc_valid
 
-  when(!pc_valid && pc===ProgramCounter.EntryAddress){
+  when(!pc_valid && pc === ProgramCounter.EntryAddress) {
     pc_valid := true.B
   }
 
@@ -80,15 +79,15 @@ class InstructionFetch extends Module {
     }
   }
 
-  when(io.bus.granted){
-    when(state === IFAccessStates.idle){
+  when(io.bus.granted) {
+    when(state === IFAccessStates.idle) {
       io.bus.request := true.B
       io.bus.read := true.B
       state := IFAccessStates.read
-    }.elsewhen(state === IFAccessStates.read){
+    }.elsewhen(state === IFAccessStates.read) {
       io.bus.read := false.B
       io.bus.request := true.B
-      when(io.bus.read_valid){
+      when(io.bus.read_valid) {
         state := IFAccessStates.idle
       }
     }

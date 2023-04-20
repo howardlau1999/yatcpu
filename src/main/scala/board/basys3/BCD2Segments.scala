@@ -26,9 +26,7 @@ class BCD2Segments extends Module {
   val bcd = io.bcd
   val segs = Wire(UInt(8.W))
 
-  segs := MuxLookup(
-    bcd,
-    0xFF.U,
+  segs := MuxLookup(bcd, 0xFF.U)(
     IndexedSeq(
       0.U -> "b10000001".U,
       1.U -> "b11001111".U,

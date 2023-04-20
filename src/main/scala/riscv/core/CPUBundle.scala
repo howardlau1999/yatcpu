@@ -14,7 +14,7 @@
 
 package riscv.core
 
-import bus.{AXI4LiteChannels, AXI4LiteMasterBundle}
+import bus.AXI4LiteChannels
 import chisel3._
 import riscv.Parameters
 

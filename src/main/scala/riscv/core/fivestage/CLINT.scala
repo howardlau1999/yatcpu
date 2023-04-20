@@ -95,18 +95,18 @@ class CLINT extends Module {
   val csr_reg_write_data = RegInit(UInt(Parameters.DataWidth), 0.U)
   val exception_token = RegInit(false.B)
   val exception_signal = RegInit(false.B)
-  io.ctrl_stall_flag := (interrupt_state =/= InterruptState.Idle || csr_state =/= CSRState.Idle ) && !exception_token
+  io.ctrl_stall_flag := (interrupt_state =/= InterruptState.Idle || csr_state =/= CSRState.Idle) && !exception_token
   io.exception_token := exception_token
 
   when(exception_signal && csr_state === CSRState.MCAUSE) {
     exception_token := true.B
-  }.otherwise{
+  }.otherwise {
     exception_token := false.B
   }
 
-  when(exception_token){
+  when(exception_token) {
     exception_signal := false.B
-  }.elsewhen(exception_signal === false.B && io.exception_signal){
+  }.elsewhen(exception_signal === false.B && io.exception_signal) {
     exception_signal := true.B
   }
 
@@ -141,9 +141,7 @@ class CLINT extends Module {
       cause := Mux(
         exception_signal,
         io.exception_cause,
-        MuxLookup(
-          io.instruction,
-          10.U,
+        MuxLookup(io.instruction, 10.U)(
           IndexedSeq(
             InstructionsEnv.ecall -> 11.U,
             InstructionsEnv.ebreak -> 3.U,
@@ -162,7 +160,7 @@ class CLINT extends Module {
       // Asynchronous Interrupt
       cause := 0x8000000BL.U // Interrupt from peripherals : Uart
       when(io.interrupt_flag(0)) {
-        cause := 0x80000007L.U  // Interrupt from timer
+        cause := 0x80000007L.U // Interrupt from timer
       }
       trap_val := 0.U
       csr_state := CSRState.MEPC
@@ -190,9 +188,7 @@ class CLINT extends Module {
   }
 
   csr_reg_write_enable := csr_state =/= CSRState.Idle
-  csr_reg_write_address := Cat(Fill(20, 0.U(1.W)), MuxLookup(
-    csr_state,
-    0.U(Parameters.CSRRegisterAddrWidth),
+  csr_reg_write_address := Cat(Fill(20, 0.U(1.W)), MuxLookup(csr_state, 0.U(Parameters.CSRRegisterAddrWidth))(
     IndexedSeq(
       CSRState.MEPC -> CSRRegister.MEPC,
       CSRState.MCAUSE -> CSRRegister.MCAUSE,
@@ -202,9 +198,7 @@ class CLINT extends Module {
     )
   ))
 
-  csr_reg_write_data := MuxLookup(
-    csr_state,
-    0.U(Parameters.DataWidth),
+  csr_reg_write_data := MuxLookup(csr_state, 0.U(Parameters.DataWidth))(
     IndexedSeq(
       CSRState.MEPC -> instruction_address,
       CSRState.MCAUSE -> cause,
@@ -219,9 +213,7 @@ class CLINT extends Module {
   io.csr_reg_write_data := csr_reg_write_data
 
   interrupt_assert := csr_state === CSRState.MCAUSE || csr_state === CSRState.MRET
-  interrupt_handler_address := MuxLookup(
-    csr_state,
-    0.U(Parameters.AddrWidth),
+  interrupt_handler_address := MuxLookup(csr_state, 0.U(Parameters.AddrWidth))(
     IndexedSeq(
       CSRState.MCAUSE -> io.csr_mtvec,
       CSRState.MRET -> io.csr_mepc,

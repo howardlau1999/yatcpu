@@ -15,7 +15,6 @@
 package riscv.core.threestage
 
 import chisel3._
-import chisel3.experimental.ChiselEnum
 import chisel3.util._
 import riscv.Parameters
 import riscv.core.BusBundle
@@ -74,8 +73,8 @@ class Execute extends Module {
   alu.io.op2 := io.op2
 
 
-  val mem_read_address_index = (io.op1 + io.op2) (log2Up(Parameters.WordSize) - 1, 0).asUInt
-  val mem_write_address_index = (io.op1 + io.op2) (log2Up(Parameters.WordSize) - 1, 0).asUInt
+  val mem_read_address_index = (io.op1 + io.op2)(log2Up(Parameters.WordSize) - 1, 0).asUInt
+  val mem_write_address_index = (io.op1 + io.op2)(log2Up(Parameters.WordSize) - 1, 0).asUInt
   val mem_access_state = RegInit(MemoryAccessStates.Idle)
   val pending_interrupt = RegInit(false.B)
   val pending_interrupt_handler_address = RegInit(Parameters.EntryAddress)
@@ -137,7 +136,7 @@ class Execute extends Module {
     val mask = (0xFFFFFFFFL.U >> io.instruction(24, 20)).asUInt
     io.regs_write_data := alu.io.result
     when(funct3 === InstructionsTypeI.sri) {
-      when(funct7(5).asBool()) {
+      when(funct7(5).asBool) {
         io.regs_write_data := alu.io.result & mask |
           (Fill(32, io.op1(31)) & (~mask).asUInt).asUInt
       }
@@ -149,7 +148,7 @@ class Execute extends Module {
       val mask = (0xFFFFFFFFL.U >> io.reg2_data(4, 0)).asUInt
       io.regs_write_data := alu.io.result
       when(funct3 === InstructionsTypeR.sr) {
-        when(funct7(5).asBool()) {
+        when(funct7(5).asBool) {
           io.regs_write_data := alu.io.result & mask |
             (Fill(32, io.op1(31)) & (~mask).asUInt).asUInt
         }
@@ -180,13 +179,11 @@ class Execute extends Module {
       when(io.bus.read_valid) {
         io.regs_write_enable := true.B
         val data = io.bus.read_data
-        io.regs_write_data := MuxLookup(
-          funct3,
-          0.U,
+        io.regs_write_data := MuxLookup(funct3, 0.U)(
           IndexedSeq(
             InstructionsTypeL.lb -> MuxLookup(
               mem_read_address_index,
-              Cat(Fill(24, data(31)), data(31, 24)),
+              Cat(Fill(24, data(31)), data(31, 24)))(
               IndexedSeq(
                 0.U -> Cat(Fill(24, data(7)), data(7, 0)),
                 1.U -> Cat(Fill(24, data(15)), data(15, 8)),
@@ -195,7 +192,7 @@ class Execute extends Module {
             ),
             InstructionsTypeL.lbu -> MuxLookup(
               mem_read_address_index,
-              Cat(Fill(24, 0.U), data(31, 24)),
+              Cat(Fill(24, 0.U), data(31, 24)))(
               IndexedSeq(
                 0.U -> Cat(Fill(24, 0.U), data(7, 0)),
                 1.U -> Cat(Fill(24, 0.U), data(15, 8)),
@@ -269,16 +266,14 @@ class Execute extends Module {
     }
   }.elsewhen(opcode === InstructionTypes.B) {
     disable_control()
-    jump_flag := MuxLookup(
-      funct3,
-      0.U,
+    jump_flag := MuxLookup(funct3, 0.U)(
       IndexedSeq(
         InstructionsTypeB.beq -> (io.op1 === io.op2),
         InstructionsTypeB.bne -> (io.op1 =/= io.op2),
         InstructionsTypeB.bltu -> (io.op1 < io.op2),
         InstructionsTypeB.bgeu -> (io.op1 >= io.op2),
-        InstructionsTypeB.blt -> (io.op1.asSInt() < io.op2.asSInt()),
-        InstructionsTypeB.bge -> (io.op1.asSInt() >= io.op2.asSInt())
+        InstructionsTypeB.blt -> (io.op1.asSInt < io.op2.asSInt),
+        InstructionsTypeB.bge -> (io.op1.asSInt >= io.op2.asSInt)
       )
     )
     jump_address := Fill(32, io.ctrl_jump_flag) & (io.op1_jump + io.op2_jump)
@@ -292,7 +287,7 @@ class Execute extends Module {
     io.regs_write_data := io.op1 + io.op2
   }.elsewhen(opcode === Instructions.csr) {
     disable_control()
-    io.csr_reg_write_data := MuxLookup(funct3, 0.U, IndexedSeq(
+    io.csr_reg_write_data := MuxLookup(funct3, 0.U)(IndexedSeq(
       InstructionsTypeCSR.csrrw -> io.reg1_data,
       InstructionsTypeCSR.csrrc -> io.csr_reg_data_id.&((~io.reg1_data).asUInt),
       InstructionsTypeCSR.csrrs -> io.csr_reg_data_id.|(io.reg1_data),
@@ -300,7 +295,7 @@ class Execute extends Module {
       InstructionsTypeCSR.csrrci -> io.csr_reg_data_id.&((~Cat(0.U(27.W), uimm)).asUInt),
       InstructionsTypeCSR.csrrsi -> io.csr_reg_data_id.|(Cat(0.U(27.W), uimm)),
     ))
-    io.regs_write_data := MuxLookup(funct3, 0.U, IndexedSeq(
+    io.regs_write_data := MuxLookup(funct3, 0.U)(IndexedSeq(
       InstructionsTypeCSR.csrrw -> io.csr_reg_data_id,
       InstructionsTypeCSR.csrrc -> io.csr_reg_data_id,
       InstructionsTypeCSR.csrrs -> io.csr_reg_data_id,

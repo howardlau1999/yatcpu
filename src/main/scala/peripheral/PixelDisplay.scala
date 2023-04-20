@@ -16,7 +16,6 @@ package peripheral
 
 import bus.{AXI4LiteChannels, AXI4LiteSlave}
 import chisel3._
-import chisel3.util.log2Up
 import riscv.Parameters
 
 class PixelDisplay extends Module {

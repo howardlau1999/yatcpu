@@ -15,7 +15,6 @@
 package bus
 
 import chisel3._
-import chisel3.experimental.ChiselEnum
 import chisel3.util._
 import riscv.Parameters
 
@@ -61,25 +60,25 @@ class AXI4LiteReadDataChannel(dataWidth: Int) extends Bundle {
 }
 
 class AXI4LiteInterface(addrWidth: Int, dataWidth: Int) extends Bundle {
-    val AWVALID = Output(Bool())
-    val AWREADY = Input(Bool())
-    val AWADDR = Output(UInt(addrWidth.W))
-    val AWPROT = Output(UInt(AXI4Lite.protWidth.W))
-    val WVALID = Output(Bool())
-    val WREADY = Input(Bool())
-    val WDATA = Output(UInt(dataWidth.W))
-    val WSTRB = Output(UInt((dataWidth / 8).W))
-    val BVALID = Input(Bool())
-    val BREADY = Output(Bool())
-    val BRESP = Input(UInt(AXI4Lite.respWidth.W))
-    val ARVALID = Output(Bool())
-    val ARREADY = Input(Bool())
-    val ARADDR = Output(UInt(addrWidth.W))
-    val ARPROT = Output(UInt(AXI4Lite.protWidth.W))
-    val RVALID = Input(Bool())
-    val RREADY = Output(Bool())
-    val RDATA = Input(UInt(dataWidth.W))
-    val RRESP = Input(UInt(AXI4Lite.respWidth.W))
+  val AWVALID = Output(Bool())
+  val AWREADY = Input(Bool())
+  val AWADDR = Output(UInt(addrWidth.W))
+  val AWPROT = Output(UInt(AXI4Lite.protWidth.W))
+  val WVALID = Output(Bool())
+  val WREADY = Input(Bool())
+  val WDATA = Output(UInt(dataWidth.W))
+  val WSTRB = Output(UInt((dataWidth / 8).W))
+  val BVALID = Input(Bool())
+  val BREADY = Output(Bool())
+  val BRESP = Input(UInt(AXI4Lite.respWidth.W))
+  val ARVALID = Output(Bool())
+  val ARREADY = Input(Bool())
+  val ARADDR = Output(UInt(addrWidth.W))
+  val ARPROT = Output(UInt(AXI4Lite.protWidth.W))
+  val RVALID = Input(Bool())
+  val RREADY = Output(Bool())
+  val RDATA = Input(UInt(dataWidth.W))
+  val RRESP = Input(UInt(AXI4Lite.respWidth.W))
 }
 
 class AXI4LiteChannels(addrWidth: Int, dataWidth: Int) extends Bundle {
@@ -139,7 +138,7 @@ class AXI4LiteSlave(addrWidth: Int, dataWidth: Int) extends Module {
   io.channels.read_address_channel.ARREADY := ARREADY
   val RVALID = RegInit(false.B)
   io.channels.read_data_channel.RVALID := RVALID
-  val RRESP = RegInit(0.U(AXI4Lite.respWidth))
+  val RRESP = RegInit(0.U(AXI4Lite.respWidth.W))
   io.channels.read_data_channel.RRESP := RRESP
 
   io.channels.read_data_channel.RDATA := io.bundle.read_data
@@ -151,7 +150,7 @@ class AXI4LiteSlave(addrWidth: Int, dataWidth: Int) extends Module {
   write_data := io.channels.write_data_channel.WDATA
   val BVALID = RegInit(false.B)
   io.channels.write_response_channel.BVALID := BVALID
-  val BRESP = WireInit(0.U(AXI4Lite.respWidth))
+  val BRESP = WireInit(0.U(AXI4Lite.respWidth.W))
   io.channels.write_response_channel.BRESP := BRESP
 
   switch(state) {

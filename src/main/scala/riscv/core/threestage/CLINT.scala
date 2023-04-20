@@ -107,9 +107,7 @@ class CLINT extends Module {
         io.instruction_address_id
       )
 
-      cause := MuxLookup(
-        io.instruction,
-        10.U,
+      cause := MuxLookup(io.instruction, 10.U)(
         IndexedSeq(
           InstructionsEnv.ecall -> 11.U,
           InstructionsEnv.ebreak -> 3.U,
@@ -144,9 +142,7 @@ class CLINT extends Module {
   }
 
   csr_reg_write_enable := csr_state =/= CSRState.Idle
-  csr_reg_write_address := Cat(Fill(20, 0.U(1.W)), MuxLookup(
-    csr_state,
-    0.U(Parameters.CSRRegisterAddrWidth),
+  csr_reg_write_address := Cat(Fill(20, 0.U(1.W)), MuxLookup(csr_state, 0.U(Parameters.CSRRegisterAddrWidth))(
     IndexedSeq(
       CSRState.MEPC -> CSRRegister.MEPC,
       CSRState.MCAUSE -> CSRRegister.MCAUSE,
@@ -154,9 +150,7 @@ class CLINT extends Module {
       CSRState.MRET -> CSRRegister.MSTATUS,
     )
   ))
-  csr_reg_write_data := MuxLookup(
-    csr_state,
-    0.U(Parameters.DataWidth),
+  csr_reg_write_data := MuxLookup(csr_state, 0.U(Parameters.DataWidth))(
     IndexedSeq(
       CSRState.MEPC -> instruction_address,
       CSRState.MCAUSE -> cause,
@@ -169,9 +163,7 @@ class CLINT extends Module {
   io.csr_reg_write_data := csr_reg_write_data
 
   interrupt_assert := csr_state === CSRState.MCAUSE || csr_state === CSRState.MRET
-  interrupt_handler_address := MuxLookup(
-    csr_state,
-    0.U(Parameters.AddrWidth),
+  interrupt_handler_address := MuxLookup(csr_state, 0.U(Parameters.AddrWidth))(
     IndexedSeq(
       CSRState.MCAUSE -> io.csr_mtvec,
       CSRState.MRET -> io.csr_mepc,

@@ -23,9 +23,8 @@ class SYSULogo extends Module {
     val segs = Output(UInt(8.W))
   })
 
-  io.segs := MuxLookup(
-    io.digit_mask,
-    "b00100100".U, // "b0111".U, "b1101".U -> S
+  io.segs := MuxLookup(io.digit_mask, "b00100100".U)(
+    // "b0111".U, "b1101".U -> S
     IndexedSeq(
       "b1011".U -> "b01000100".U, // Y
       "b1110".U -> "b01000001".U, // U

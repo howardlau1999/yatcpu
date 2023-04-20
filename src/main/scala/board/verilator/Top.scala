@@ -16,7 +16,8 @@ package board.verilator
 
 import bus.{AXI4LiteSlave, AXI4LiteSlaveBundle, BusArbiter, BusSwitch}
 import chisel3._
-import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
+import chisel3.stage.ChiselGeneratorAnnotation
+import circt.stage.ChiselStage
 import peripheral.DummySlave
 import riscv.Parameters
 import riscv.core.CPU

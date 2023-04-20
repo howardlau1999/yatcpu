@@ -176,18 +176,18 @@ class InstructionDecode extends Module {
   io.regs_reg2_read_address := rs2
   io.ex_reg1_data := io.reg1_data
   io.ex_reg2_data := io.reg2_data
-  io.ex_immediate := MuxLookup(
-    opcode,
-    Cat(Fill(20, io.instruction(31)), io.instruction(31, 20)),
+  io.ex_immediate := MuxLookup(opcode, Cat(Fill(20, io.instruction(31)), io.instruction(31, 20)))(
     IndexedSeq(
       InstructionTypes.I -> Cat(Fill(21, io.instruction(31)), io.instruction(30, 20)),
       InstructionTypes.L -> Cat(Fill(21, io.instruction(31)), io.instruction(30, 20)),
       Instructions.jalr -> Cat(Fill(21, io.instruction(31)), io.instruction(30, 20)),
       InstructionTypes.S -> Cat(Fill(21, io.instruction(31)), io.instruction(30, 25), io.instruction(11, 7)),
-      InstructionTypes.B -> Cat(Fill(20, io.instruction(31)), io.instruction(7), io.instruction(30, 25), io.instruction(11, 8), 0.U(1.W)),
+      InstructionTypes.B -> Cat(Fill(20, io.instruction(31)), io.instruction(7), io.instruction(30, 25), io
+        .instruction(11, 8), 0.U(1.W)),
       Instructions.lui -> Cat(io.instruction(31, 12), 0.U(12.W)),
       Instructions.auipc -> Cat(io.instruction(31, 12), 0.U(12.W)),
-      Instructions.jal -> Cat(Fill(12, io.instruction(31)), io.instruction(19, 12), io.instruction(20), io.instruction(30, 21), 0.U(1.W))
+      Instructions.jal -> Cat(Fill(12, io.instruction(31)), io.instruction(19, 12), io.instruction(20), io
+        .instruction(30, 21), 0.U(1.W))
     )
   )
   io.ex_aluop1_source := Mux(
@@ -202,9 +202,7 @@ class InstructionDecode extends Module {
   )
   io.ex_memory_read_enable := opcode === InstructionTypes.L
   io.ex_memory_write_enable := opcode === InstructionTypes.S
-  io.ex_reg_write_source := MuxLookup(
-    opcode,
-    RegWriteSource.ALUResult,
+  io.ex_reg_write_source := MuxLookup(opcode, RegWriteSource.ALUResult)(
     IndexedSeq(
       InstructionTypes.L -> RegWriteSource.Memory,
       Instructions.csr -> RegWriteSource.CSR,
@@ -223,17 +221,13 @@ class InstructionDecode extends Module {
       funct3 === InstructionsTypeCSR.csrrc || funct3 === InstructionsTypeCSR.csrrci
     )
 
-  val reg1_data = MuxLookup(
-    io.reg1_forward,
-    io.reg1_data,
+  val reg1_data = MuxLookup(io.reg1_forward, io.reg1_data)(
     IndexedSeq(
       ForwardingType.ForwardFromMEM -> io.forward_from_mem,
       ForwardingType.ForwardFromWB -> io.forward_from_wb
     )
   )
-  val reg2_data = MuxLookup(
-    io.reg2_forward,
-    io.reg2_data,
+  val reg2_data = MuxLookup(io.reg2_forward, io.reg2_data)(
     IndexedSeq(
       ForwardingType.ForwardFromMEM -> io.forward_from_mem,
       ForwardingType.ForwardFromWB -> io.forward_from_wb
@@ -243,9 +237,7 @@ class InstructionDecode extends Module {
     (opcode === Instructions.jalr) || (opcode === InstructionTypes.B)
   val instruction_jump_flag = (opcode === Instructions.jal) ||
     (opcode === Instructions.jalr) ||
-    (opcode === InstructionTypes.B) && MuxLookup(
-      funct3,
-      false.B,
+    (opcode === InstructionTypes.B) && MuxLookup(funct3, false.B)(
       IndexedSeq(
         InstructionsTypeB.beq -> (reg1_data === reg2_data),
         InstructionsTypeB.bne -> (reg1_data =/= reg2_data),

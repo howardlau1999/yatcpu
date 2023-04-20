@@ -15,7 +15,6 @@
 package riscv.core.fivestage
 
 import chisel3._
-import chisel3.experimental.ChiselEnum
 import chisel3.util._
 import riscv.Parameters
 
@@ -45,7 +44,7 @@ class ALU extends Module {
       io.result := io.op1 << io.op2(4, 0)
     }
     is(ALUFunctions.slt) {
-      io.result := io.op1.asSInt() < io.op2.asSInt()
+      io.result := io.op1.asSInt < io.op2.asSInt
     }
     is(ALUFunctions.xor) {
       io.result := io.op1 ^ io.op2

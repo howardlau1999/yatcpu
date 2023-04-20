@@ -41,8 +41,10 @@ class Control extends Module {
     val ex_stall = Output(Bool())
   })
 
-  val id_hazard = (io.memory_read_enable_ex || io.jump_instruction_id) && io.rd_ex =/= 0.U && (io.rd_ex === io.rs1_id || io.rd_ex === io.rs2_id) ||
-    io.jump_instruction_id && io.memory_read_enable_mem && io.rd_mem =/= 0.U && (io.rd_mem === io.rs1_id || io.rd_mem === io.rs2_id)
+  val id_hazard = (io.memory_read_enable_ex || io.jump_instruction_id) && io.rd_ex =/= 0.U && (io.rd_ex === io.rs1_id
+    || io.rd_ex === io.rs2_id) ||
+    io.jump_instruction_id && io.memory_read_enable_mem && io.rd_mem =/= 0.U && (io.rd_mem === io.rs1_id || io.rd_mem
+      === io.rs2_id)
   io.if_flush := io.jump_flag && !id_hazard || io.csr_start_paging
   io.id_flush := id_hazard || io.csr_start_paging
 

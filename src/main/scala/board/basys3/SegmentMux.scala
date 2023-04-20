@@ -30,9 +30,8 @@ class SegmentMux extends Module {
 
   bcd2segs.io.bcd := digit
   io.segs := bcd2segs.io.segs
-  digit := MuxLookup(
-    io.digit_mask,
-    io.numbers(3, 0), // "b1110".U
+  digit := MuxLookup(io.digit_mask, io.numbers(3, 0))(
+    // "b1110".U
     IndexedSeq(
       "b1101".U -> io.numbers(7, 4),
       "b1011".U -> io.numbers(11, 8),

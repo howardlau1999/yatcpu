@@ -14,10 +14,8 @@
 
 package peripheral
 
-import bus.{AXI4LiteChannels, AXI4LiteSlave}
 import chisel3._
 import chisel3.util._
-import riscv.Parameters
 
 class HDMISync extends Module {
   val io = IO(new Bundle {
@@ -111,48 +109,43 @@ class TMDS_encoder extends Module {
     val TMDS = Output(UInt(10.W))
   })
   val Nb1s = PopCount(io.video_data)
-
-  def xorfct(value: UInt): UInt = {
-    val vin = VecInit(value.asBools)
-    val res = VecInit(511.U.asBools)
-    res(0) := vin(0)
-    for(i <- 1 to 7){
-      res(i) := res(i-1) ^ vin(i)
-    }
-    res(8) := 1.U
-    res.asUInt
-  }
-
   val xored = xorfct(io.video_data)
-
-  def xnorfct(value: UInt): UInt = {
-    val vin = VecInit(value.asBools)
-    val res = VecInit(511.U.asBools)
-    res(0) := vin(0)
-    for(i <- 1 to 7){
-      res(i) := !(res(i-1) ^ vin(i))
-    }
-    res(8) := 0.U
-    res.asUInt
-  }
-
   val xnored = xnorfct(io.video_data)
-
   val XNOR = (Nb1s > 4.U(4.W)) || (Nb1s === 4.U(4.W) && io.video_data(0) === 0.U)
   val q_m = RegInit(0.U(9.W))
+  val diffSize = 4
+  val diff = RegInit(0.S(diffSize.W))
   q_m := Mux(
     XNOR,
     xnored,
     xored
   )
-
-  val diffSize = 4
-  val diff = RegInit(0.S(diffSize.W))
-  diff := PopCount(q_m).asSInt - 4.S
-
   val disparitySize = 4
   val disparityReg = RegInit(0.S(disparitySize.W))
+  diff := PopCount(q_m).asSInt - 4.S
   val doutReg = RegInit("b1010101011".U(10.W))
+
+  def xorfct(value: UInt): UInt = {
+    val vin = VecInit(value.asBools)
+    val res = VecInit(511.U.asBools)
+    res(0) := vin(0)
+    for (i <- 1 to 7) {
+      res(i) := res(i - 1) ^ vin(i)
+    }
+    res(8) := 1.U
+    res.asUInt
+  }
+
+  def xnorfct(value: UInt): UInt = {
+    val vin = VecInit(value.asBools)
+    val res = VecInit(511.U.asBools)
+    res(0) := vin(0)
+    for (i <- 1 to 7) {
+      res(i) := !(res(i - 1) ^ vin(i))
+    }
+    res(8) := 0.U
+    res.asUInt
+  }
 
   when(io.video_on === false.B) {
     disparityReg := 0.S
@@ -338,20 +331,18 @@ class OSER10 extends Module {
   withClockAndReset(io.FCLK, io.RESET) {
     val count = RegInit(0.U(4.W))
     val countnext = Wire(UInt(4.W))
-    io.Q := MuxLookup(
-      count,
-      0.U,
+    io.Q := MuxLookup(count, 0.U)(
       IndexedSeq(
-        0.U -> io.D0.asBool(),
-        1.U -> io.D1.asBool(),
-        2.U -> io.D2.asBool(),
-        3.U -> io.D3.asBool(),
-        4.U -> io.D4.asBool(),
-        5.U -> io.D5.asBool(),
-        6.U -> io.D6.asBool(),
-        7.U -> io.D7.asBool(),
-        8.U -> io.D8.asBool(),
-        9.U -> io.D9.asBool()
+        0.U -> io.D0.asBool,
+        1.U -> io.D1.asBool,
+        2.U -> io.D2.asBool,
+        3.U -> io.D3.asBool,
+        4.U -> io.D4.asBool,
+        5.U -> io.D5.asBool,
+        6.U -> io.D6.asBool,
+        7.U -> io.D7.asBool,
+        8.U -> io.D8.asBool,
+        9.U -> io.D9.asBool
       )
     )
     countnext := Mux(

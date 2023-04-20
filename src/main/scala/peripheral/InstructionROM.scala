@@ -20,7 +20,7 @@ import chisel3.util.experimental.loadMemoryFromFileInline
 import firrtl.annotations.MemorySynthInit
 import riscv.Parameters
 
-import java.io.{FileInputStream, FileWriter}
+import java.io.FileWriter
 import java.nio.file.{Files, Paths}
 import java.nio.{ByteBuffer, ByteOrder}
 

@@ -55,7 +55,7 @@ class MemoryAccess extends Module {
   io.wb_memory_read_data := 0.U
   io.ctrl_stall_flag := false.B
 
-  when(io.clint_exception_token){
+  when(io.clint_exception_token) {
     io.bus.request := false.B
     io.ctrl_stall_flag := false.B
   }.elsewhen(io.memory_read_enable) {
@@ -75,22 +75,16 @@ class MemoryAccess extends Module {
       io.ctrl_stall_flag := true.B
       when(io.bus.read_valid) {
         val data = io.bus.read_data
-        io.wb_memory_read_data := MuxLookup(
-          io.funct3,
-          0.U,
+        io.wb_memory_read_data := MuxLookup(io.funct3, 0.U)(
           IndexedSeq(
-            InstructionsTypeL.lb -> MuxLookup(
-              mem_address_index,
-              Cat(Fill(24, data(31)), data(31, 24)),
+            InstructionsTypeL.lb -> MuxLookup(mem_address_index, Cat(Fill(24, data(31)), data(31, 24)))(
               IndexedSeq(
                 0.U -> Cat(Fill(24, data(7)), data(7, 0)),
                 1.U -> Cat(Fill(24, data(15)), data(15, 8)),
                 2.U -> Cat(Fill(24, data(23)), data(23, 16))
               )
             ),
-            InstructionsTypeL.lbu -> MuxLookup(
-              mem_address_index,
-              Cat(Fill(24, 0.U), data(31, 24)),
+            InstructionsTypeL.lbu -> MuxLookup(mem_address_index, Cat(Fill(24, 0.U), data(31, 24)))(
               IndexedSeq(
                 0.U -> Cat(Fill(24, 0.U), data(7, 0)),
                 1.U -> Cat(Fill(24, 0.U), data(15, 8)),
@@ -121,7 +115,8 @@ class MemoryAccess extends Module {
       io.bus.write_strobe := VecInit(Seq.fill(Parameters.WordSize)(false.B))
       when(io.funct3 === InstructionsTypeS.sb) {
         io.bus.write_strobe(mem_address_index) := true.B
-        io.bus.write_data := io.reg2_data(Parameters.ByteBits, 0) << (mem_address_index << log2Up(Parameters.ByteBits).U)
+        io.bus.write_data := io.reg2_data(Parameters.ByteBits, 0) << (mem_address_index << log2Up(Parameters
+          .ByteBits).U)
       }.elsewhen(io.funct3 === InstructionsTypeS.sh) {
         when(mem_address_index === 0.U) {
           for (i <- 0 until Parameters.WordSize / 2) {
