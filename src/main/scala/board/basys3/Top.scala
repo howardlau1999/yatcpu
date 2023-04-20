@@ -15,10 +15,9 @@
 package board.basys3
 
 import bus.{BusArbiter, BusSwitch}
-import chisel3.stage.ChiselGeneratorAnnotation
-import chisel3.{ChiselEnum, _}
-import circt.stage.ChiselStage
+import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
 import chisel3.util._
+import chisel3.{ChiselEnum, _}
 import peripheral._
 import riscv._
 import riscv.core.CPU
@@ -138,7 +137,6 @@ class Top extends Module {
 }
 
 object VerilogGenerator extends App {
-  (new ChiselStage).execute(Array("--target", "verilog", "-td", "verilog/basys3"), Seq(ChiselGeneratorAnnotation(()
-  => new
+  (new ChiselStage).execute(Array("-X", "verilog", "-td", "verilog/basys3"), Seq(ChiselGeneratorAnnotation(() => new
       Top)))
 }
