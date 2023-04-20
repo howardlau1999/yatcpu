@@ -60,6 +60,7 @@ class Top extends Module {
   val rom_loader = Module(new ROMLoader(instruction_rom.capacity))
 
   val vga_display = Module(new VGADisplay)
+  vga_display.io.rgb := 0.U
   bus_arbiter.io.bus_request(0) := true.B
 
   bus_switch.io.master <> cpu.io.axi4_channels
