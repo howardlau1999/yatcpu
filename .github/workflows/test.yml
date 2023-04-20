@@ -146,6 +146,8 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y verilator binutils-riscv64-unknown-elf gcc-riscv64-unknown-elf
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          append-timestamp: false
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
@@ -163,7 +165,8 @@ jobs:
         run: |
           cd yatcpu/verilog/verilator 
           export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
-          verilator --exe --cc --trace Top.v sim_main.cpp && make -C obj_dir -f VTop.mk
+          verilator --exe --cc --trace Top.v sim_main.cpp 
+          make -C obj_dir -f VTop.mk
       - name: Setup RISCOF
         run: | 
           pip3 install git+https://github.com/riscv/riscof.git
