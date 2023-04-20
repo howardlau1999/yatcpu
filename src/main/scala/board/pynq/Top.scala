@@ -15,9 +15,9 @@
 package board.pynq
 
 import bus.{AXI4LiteChannels, AXI4LiteInterface, BusArbiter, BusSwitch}
-import chisel3.{ChiselEnum, _}
 import chisel3.stage.ChiselGeneratorAnnotation
 import chisel3.util.{is, switch}
+import chisel3.{ChiselEnum, _}
 import circt.stage.ChiselStage
 import peripheral._
 import riscv.Parameters
@@ -145,6 +145,6 @@ class Top extends Module {
 }
 
 object VerilogGenerator extends App {
-  (new ChiselStage).execute(Array("-X", "verilog", "-td", "verilog/pynq"), Seq(ChiselGeneratorAnnotation(() => new
+  (new ChiselStage).execute(Array("--target", "verilog", "-td", "verilog/pynq"), Seq(ChiselGeneratorAnnotation(() => new
       Top)))
 }

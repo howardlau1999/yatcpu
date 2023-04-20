@@ -67,6 +67,6 @@ class Top extends Module {
 }
 
 object VerilogGenerator extends App {
-  (new ChiselStage).execute(Array("-X", "verilog", "-td", "verilog/verilator"), Seq(ChiselGeneratorAnnotation(() =>
-    new Top())))
+  (new ChiselStage).execute(Array("--target", "verilog", "-td", "verilog/verilator"), Seq(ChiselGeneratorAnnotation(
+    () => new Top())))
 }
