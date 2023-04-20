@@ -32,7 +32,7 @@ class MemoryAccess extends Module {
 
     val wb_memory_read_data = Output(UInt(Parameters.DataWidth))
     val ctrl_stall_flag = Output(Bool())
-    val forward_to_ex = Output(UInt(Parameters.DataWidth))
+    val forward_data = Output(UInt(Parameters.DataWidth))
 
     val physical_address = Input(UInt(Parameters.AddrWidth))
 
@@ -155,5 +155,5 @@ class MemoryAccess extends Module {
     }
   }
 
-  io.forward_to_ex := Mux(io.regs_write_source === RegWriteSource.CSR, io.csr_read_data, io.alu_result)
+  io.forward_data := Mux(io.regs_write_source === RegWriteSource.CSR, io.csr_read_data, io.alu_result)
 }
