@@ -12,7 +12,7 @@ jobs:
         with:
           submodules: recursive
       - name: Setup Verilator
-        run: C:\msys64\usr\bin\bash.exe -l -c "pacman -Sy --noconfirm --needed base-devel mingw-w64-x86_64-toolchain git flex mingw-w64-x86_64-cmake mingw-w64-x86_64-autotools && cd ~ && git clone --depth 1 -b v4.228 https://github.com/verilator/verilator && cd verilator && autoconf && which gcc && (./configure || cat config.log) && make -j $(nproc) install"
+        run: C:\msys64\usr\bin\bash.exe -l -c "pacman -Sy --noconfirm --needed base-devel mingw-w64-x86_64-toolchain git flex mingw-w64-x86_64-cmake mingw-w64-x86_64-autotools && cd ~ && git clone --depth 1 -b v4.228 https://github.com/verilator/verilator && cd verilator && autoconf && export PATH=/mingw64/bin:$PATH && (./configure || cat config.log) && make -j $(nproc) install"
       - run: echo 'C:\msys64\usr\bin' | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       - run: echo 'C:\msys64\mingw64\bin' | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       - name: Setup Developer Command 
