@@ -85,6 +85,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           push: false
+          load: true
           tags: howardlau1999/yatcpu:latest
       - name: Run test in Docker
         run: docker run --user $(id -u) --rm -v $PWD:/yatcpu -w /yatcpu howardlau1999/yatcpu bash -c "cd csrc && ./build.sh && cd .. && sbt test"
