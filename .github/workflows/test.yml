@@ -70,8 +70,8 @@ jobs:
         run: cd csrc && ./build.sh
       - name: SBT Test
         run: sbt test
-  build-docker:
-    name: Build Docker image
+  test-in-docker:
+    name: Test in Devcontainer Docker image
     runs-on: ubuntu-latest
     steps: 
       - name: Checkout
@@ -88,22 +88,6 @@ jobs:
           tags: howardlau1999/yatcpu:latest
       - name: Run test in Docker
         run: docker run --user $(id -u) --rm -v $PWD:/yatcpu -w /yatcpu howardlau1999/yatcpu bash -c "cd csrc && ./build.sh && cd .. && sbt test"
-  test-docker:
-    name: Test in Docker
-    runs-on: ubuntu-latest
-    container:
-      image: howardlau1999/yatcpu
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          submodules: recursive
-      - name: Cache Scala
-        uses: coursier/cache-action@v6
-      - name: Compile executables for testing
-        run: cd csrc && ./build.sh
-      - name: SBT Test
-        run: sbt test
   old-riscv-compliance-test:
     name: Run old RISC-V compliance test
     runs-on: ubuntu-latest
