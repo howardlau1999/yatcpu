@@ -1,4 +1,6 @@
 ### Project Specific stuff
+.sbt
+.cache
 test_run_dir/*
 **/__pycache__
 **/riscof_work

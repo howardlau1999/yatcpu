@@ -1,0 +1,12 @@
+{
+  "name": "YatCPU Development Container",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "remoteUser": "sbtuser",
+  "initializeCommand": "mkdir -p .cache && mkdir -p .sbt",
+  "mounts": [
+    "source=${localWorkspaceFolder}/.cache,target=/home/sbtuser/.cache,type=bind,consistency=cached",
+    "source=${localWorkspaceFolder}/.sbt,target=/home/sbtuser/.sbt,type=bind,consistency=cached"
+  ]
+}
