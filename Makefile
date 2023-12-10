@@ -24,8 +24,12 @@ verilator-sim: verilator
 
 basys3:
 	sbt "runMain board.basys3.VerilogGenerator"
+	
 pynq:
 	sbt "runMain board.pynq.VerilogGenerator"
+
+z710:
+	sbt "runMain board.z710.VerilogGenerator"
 
 bitstream-basys3: basys3
 	cd vivado/basys3 && vivado -mode batch -source generate_bitstream.tcl
@@ -35,6 +39,7 @@ program-basys3: bitstream-basys3
 
 vivado-sim-basys3: basys3
 	cd vivado/basys3 && vivado -mode batch -source run_simulation.tcl
+
 bitstream-pynq: pynq
 	cd vivado/pynq && vivado -mode batch -source generate_bitstream.tcl
 
@@ -43,5 +48,14 @@ program-pynq: bitstream-pynq
 
 vivado-sim-pynq: pynq
 	cd vivado/pynq && vivado -mode batch -source run_simulation.tcl
+	
+bitstream-z710: z710
+	cd vivado/z710 && vivado -mode batch -source generate_bitstream.tcl
+
+program-z710: bitstream-z710
+	cd vivado/basys3 && vivado -mode batch -source program_device.tcl
+
+vivado-sim-z710: z710
+	cd vivado/basys3 && vivado -mode batch -source run_simulation.tcl
 
 .PHONY: basys3 verilator test bitstream program verilator-sim vivado-sim
